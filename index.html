@@ -114,12 +114,23 @@
   .pDot.on { background:#ff7ba9; transform:scale(1.35); box-shadow:0 0 10px rgba(255,110,160,.9); }
   .rainHeart { position:fixed; top:-30px; z-index:8; pointer-events:none; color:#ff6b9d; animation: rainFall linear forwards; text-shadow:0 0 10px rgba(255,80,140,.7); }
   @keyframes rainFall { to { transform: translateY(112dvh) rotate(320deg); opacity:.15; } }
+
+  /* ============ MUSIC ============ */
+  #ytWrap { position:fixed; left:-9999px; top:-9999px; width:10px; height:10px; overflow:hidden; pointer-events:none; }
+  #muteBtn {
+    position:fixed; top:14px; right:14px; z-index:40; width:42px; height:42px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.35); background:rgba(20,8,36,.55); color:#fff; font-size:19px;
+    cursor:pointer; display:none; align-items:center; justify-content:center; backdrop-filter:blur(4px);
+  }
+  body.open #muteBtn { display:flex; }
   .sig { font-family:'Great Vibes', cursive; font-size:27px; color:#ffb9cf; display:block; margin-top:10px; }
 </style>
 </head>
 <body>
 <div id="heartsBg"></div>
 <div id="flash"></div>
+<div id="ytWrap"><div id="ytPlayer"></div></div>
+<button id="muteBtn" type="button" aria-label="Music on or off">🔊</button>
 
 <!-- ================= LOCK SCREEN ================= -->
 <div class="stage" id="phoneStage">
@@ -197,6 +208,7 @@
   }
   function press(k){
     if (unlocked) return;
+    primeMusic();
     if (k === '') return;
     if (k === '⌫') { entered = entered.slice(0, -1); renderDots(); return; }
     if (entered.length >= 4) return;
@@ -221,6 +233,69 @@
     if (unlocked && e.key === 'ArrowLeft') go(cur - 1);
   });
 
+  /* ================= MUSIC (YouTube: Oum - Lik) ================= */
+  var ytPlayer = null, ytReady = false, primed = false, musicOn = false, fadeTimer = null;
+  var ytTag = document.createElement('script');
+  ytTag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(ytTag);
+  window.onYouTubeIframeAPIReady = function(){
+    ytPlayer = new YT.Player('ytPlayer', {
+      width: '10', height: '10',
+      videoId: 'VBp9Ea5UM_Y',
+      playerVars: { autoplay: 0, controls: 0, loop: 1, playlist: 'VBp9Ea5UM_Y', playsinline: 1, rel: 0, modestbranding: 1 },
+      events: {
+        onReady: function(){ ytReady = true; },
+        onStateChange: function(e){
+          if (e.data === YT.PlayerState.ENDED && ytPlayer){ ytPlayer.seekTo(0); ytPlayer.playVideo(); }
+        }
+      }
+    });
+  };
+  function primeMusic(){
+    if (ytReady && ytPlayer && !primed){
+      primed = true;
+      try { ytPlayer.mute(); ytPlayer.playVideo(); } catch(err){}
+    }
+  }
+  function startMusic(){
+    if (!ytReady || !ytPlayer) return;
+    try {
+      ytPlayer.unMute();
+      ytPlayer.seekTo(0);
+      ytPlayer.setVolume(10);
+      ytPlayer.playVideo();
+      musicOn = true;
+      document.getElementById('muteBtn').textContent = '🔊';
+      var v = 10;
+      if (fadeTimer) clearInterval(fadeTimer);
+      fadeTimer = setInterval(function(){
+        v += 3;
+        if (v >= 100){ v = 100; clearInterval(fadeTimer); }
+        try { ytPlayer.setVolume(v); } catch(err){}
+      }, 100);
+    } catch(err){}
+  }
+  var muteBtn = document.getElementById('muteBtn');
+  var muteLast = 0;
+  function toggleMusic(e){
+    var now = Date.now();
+    if (now - muteLast < 450) return;
+    muteLast = now;
+    if (e && e.preventDefault) e.preventDefault();
+    if (!ytReady || !ytPlayer) return;
+    if (musicOn){
+      try { ytPlayer.mute(); } catch(err){}
+      musicOn = false;
+      muteBtn.textContent = '🔇';
+    } else {
+      try { ytPlayer.unMute(); ytPlayer.setVolume(100); ytPlayer.playVideo(); } catch(err){}
+      musicOn = true;
+      muteBtn.textContent = '🔊';
+    }
+  }
+  muteBtn.addEventListener('pointerdown', toggleMusic);
+  muteBtn.addEventListener('click', toggleMusic);
+
   function burstHearts(){
     var box = document.createElement('div');
     box.className = 'burst';
@@ -238,6 +313,7 @@
   }
   function unlock(){
     unlocked = true;
+    startMusic();
     document.getElementById('flash').style.opacity = '1';
     burstHearts();
     setTimeout(function(){ document.getElementById('flash').style.opacity = '0'; }, 350);
