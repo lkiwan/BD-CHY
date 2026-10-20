@@ -25,7 +25,7 @@
   .stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; }
 
   /* ============ PHONE / LOCK SCREEN ============ */
-  #phoneStage { transition: opacity .5s; }
+  #phoneStage { transition: opacity .5s; z-index:3; }
   .phone {
     width:min(94vw, 400px); height:min(96dvh, 830px);
     background:#000; border-radius:46px; padding:11px;
@@ -84,7 +84,8 @@
     transition: opacity .55s ease, transform .65s cubic-bezier(.3,.7,.3,1);
     pointer-events:none; display:flex; flex-direction:column;
   }
-  .page.active { opacity:1; transform: rotateY(0) translateX(0) scale(1); pointer-events:auto; z-index:3; }
+  .page.active { opacity:1; transform: rotateY(0) translateX(0) scale(1); z-index:3; }
+  body.open .page.active { pointer-events:auto; }
   .page.gone { opacity:0; transform: rotateY(-24deg) translateX(-46px) scale(.96); z-index:1; }
   .page .imgWrap { height:56%; overflow:hidden; position:relative; flex:none; }
   .page .imgWrap img { width:100%; height:100%; object-fit:cover; animation: kb 14s ease-in-out infinite alternate; }
