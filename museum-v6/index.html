@@ -1094,18 +1094,20 @@ function buildCandles(root) {
     candles.push({ x, y, z, h });
     flames.push(x, y + h + 0.045, z);
   };
-  // Wall sconces: pairs on both side walls of every room.
+  // Wall sconces: pairs on both side walls of every room, placed near
+  // the room CORNERS (t 0.045 / 0.955). Paintings hang at t 0.22–0.78
+  // (frames.js hallSlots) and the centrepiece spans its room's centre,
+  // so the corners are the only always-clear wall space — sconces at
+  // 0.25/0.5/0.75 landed ON the pictures (Omar's screenshot, 2026-10-25).
   for (const room of JOURNEY) {
-    const cz = (room.zMin + room.zMax) / 2;
     const len = room.zMax - room.zMin;
-    for (const fz of [0.25, 0.5, 0.75]) {
+    for (const fz of [0.045, 0.955]) {
       const z = room.zMin + len * fz;
       for (const sx of [-1, 1]) {
         addCandle(sx * (ROOM_HALF_W - 0.16), 2.5, z - 0.11, 0.24);
         addCandle(sx * (ROOM_HALF_W - 0.16), 2.5, z + 0.11, 0.31);
       }
     }
-    void cz;
   }
   // Candle pairs on the walls beside every door (both faces).
   for (const wall of INTERIOR_WALLS) {
