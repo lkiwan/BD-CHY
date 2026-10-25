@@ -510,6 +510,11 @@ const THEME = {
   accent: MUSEUM_THEME.accent || '#c96f7b',
   centrepieceWall: MUSEUM_THEME.centrepieceWall || '#14100e',
 };
+// Castle theme (theme.style === 'castle', Omar 2026-10-25): dark wood
+// panelling, wood floors, ceiling beams, dim warm light and candles
+// everywhere. Everything castle is gated on this flag — other
+// customers build exactly as before.
+const CASTLE = MUSEUM_THEME.style === 'castle';
 
 // ---------------------------------------------------------------- layout
 // Rooms in a row along -Z. All rooms share width X in [-6, 6]; interior
@@ -628,11 +633,72 @@ function makePlaqueTexture(text, opts) {
 
 // ------------------------------------------------------------- materials
 // Created once and shared by every wall/frame so draw state stays cheap.
+// Castle wood textures: procedural canvas panelling + planks (no image
+// assets, two textures shared by every surface).
+function makeWoodPanelTexture() {
+  const c = makeCanvas(512, 512);
+  const x = c.getContext('2d');
+  x.fillStyle = '#503722'; x.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 260; i++) { // grain streaks
+    x.strokeStyle = 'rgba(' + (30 + Math.random() * 40 | 0) + ',' + (18 + Math.random() * 26 | 0) + ',10,' + (0.05 + Math.random() * 0.1) + ')';
+    x.lineWidth = 1 + Math.random() * 2;
+    const gx = Math.random() * 512;
+    x.beginPath(); x.moveTo(gx, 0);
+    x.bezierCurveTo(gx + 6, 170, gx - 6, 340, gx + 3, 512); x.stroke();
+  }
+  for (const px of [26, 282]) { // two raised panels with moulding
+    x.fillStyle = '#573d24'; x.fillRect(px, 60, 204, 392);
+    x.strokeStyle = '#2e1d0f'; x.lineWidth = 10; x.strokeRect(px, 60, 204, 392);
+    x.strokeStyle = '#7a5a34'; x.lineWidth = 3; x.strokeRect(px + 9, 69, 186, 374);
+    x.strokeStyle = 'rgba(0,0,0,0.35)'; x.lineWidth = 2; x.strokeRect(px + 22, 82, 160, 348);
+  }
+  x.fillStyle = 'rgba(0,0,0,0.4)'; x.fillRect(0, 0, 3, 512); x.fillRect(256, 0, 3, 512);
+  x.fillStyle = 'rgba(255,220,160,0.07)'; x.fillRect(0, 0, 512, 10);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(5, 1.6);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+function makeWoodFloorTexture() {
+  const c = makeCanvas(512, 512);
+  const x = c.getContext('2d');
+  const browns = ['#5d4128', '#54391f', '#66482c', '#4e351d'];
+  for (let row = 0; row < 8; row++) {
+    x.fillStyle = browns[row % browns.length];
+    x.fillRect(0, row * 64, 512, 64);
+    for (let i = 0; i < 46; i++) {
+      x.strokeStyle = 'rgba(28,17,8,' + (0.05 + Math.random() * 0.1) + ')';
+      x.lineWidth = 1 + Math.random() * 1.6;
+      const gy = row * 64 + Math.random() * 64;
+      x.beginPath(); x.moveTo(0, gy); x.bezierCurveTo(170, gy + 3, 340, gy - 3, 512, gy + 2); x.stroke();
+    }
+    x.fillStyle = 'rgba(0,0,0,0.5)'; x.fillRect(0, row * 64, 512, 2);
+    x.fillRect(((row * 197) % 512), row * 64, 2, 64); // staggered plank end
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(3, 10);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+const CASTLE_WALL_TEX = CASTLE ? makeWoodPanelTexture() : null;
+const CASTLE_FLOOR_TEX = CASTLE ? makeWoodFloorTexture() : null;
 const MAT = {
-  wall: new THREE.MeshStandardMaterial({ color: new THREE.Color(THEME.wall), roughness: 0.95 }),
-  centreWall: new THREE.MeshStandardMaterial({ color: new THREE.Color(THEME.centrepieceWall), roughness: 0.92 }),
-  floor: new THREE.MeshStandardMaterial({ color: 0x9a7b58, roughness: 0.7, metalness: 0.05 }),
-  ceiling: new THREE.MeshStandardMaterial({ color: 0xefe9dd, roughness: 1 }),
+  wall: CASTLE
+    ? new THREE.MeshStandardMaterial({ map: CASTLE_WALL_TEX, color: new THREE.Color(THEME.wall), roughness: 0.85 })
+    : new THREE.MeshStandardMaterial({ color: new THREE.Color(THEME.wall), roughness: 0.95 }),
+  centreWall: CASTLE
+    ? new THREE.MeshStandardMaterial({ map: CASTLE_WALL_TEX, color: new THREE.Color(THEME.centrepieceWall), roughness: 0.88 })
+    : new THREE.MeshStandardMaterial({ color: new THREE.Color(THEME.centrepieceWall), roughness: 0.92 }),
+  floor: CASTLE
+    ? new THREE.MeshStandardMaterial({ map: CASTLE_FLOOR_TEX, roughness: 0.75 })
+    : new THREE.MeshStandardMaterial({ color: 0x9a7b58, roughness: 0.7, metalness: 0.05 }),
+  ceiling: CASTLE
+    ? new THREE.MeshStandardMaterial({ color: 0x2e1f14, roughness: 1 })
+    : new THREE.MeshStandardMaterial({ color: 0xefe9dd, roughness: 1 }),
   gold: new THREE.MeshStandardMaterial({ color: new THREE.Color(THEME.frame), roughness: 0.35, metalness: 0.65 }),
   goldDark: new THREE.MeshStandardMaterial({ color: 0x7a6238, roughness: 0.45, metalness: 0.55 }),
   bench: new THREE.MeshStandardMaterial({ color: 0x5d4230, roughness: 0.8 }),
@@ -797,6 +863,18 @@ function buildMuseum(scene) {
   // purple balloons — all canvas textures + shared low-poly geometry,
   // ~20 static draw calls, no extra lights, so movement stays fluid.
   if (MUSEUM_CONFIG.entranceDecor) buildEntranceDecor(root);
+
+  // Castle theme: ceiling beams in every room + candles everywhere.
+  if (CASTLE) {
+    const beamMat = new THREE.MeshStandardMaterial({ color: 0x33241a, roughness: 0.9 });
+    for (const room of JOURNEY) {
+      const len = room.zMax - room.zMin;
+      for (let i = 1; i <= 3; i++) {
+        addBox(root, beamMat, ROOM_HALF_W * 2, 0.34, 0.3, 0, ROOM_HEIGHT - 0.17, room.zMin + (len * i) / 4);
+      }
+    }
+    buildCandles(root);
+  }
 
   return root;
 }
@@ -1004,19 +1082,130 @@ function buildEntranceDecor(root) {
   }
 }
 
+// ------------------------------------------------------------- candles
+// Castle theme only. Every candle body + holder is ONE InstancedMesh
+// each; every flame is a point in ONE THREE.Points cloud — the whole
+// candlelight system costs ~4 draw calls and three PointLights, so
+// the game stays fluid. main.js flickers the flame cloud's size.
+function buildCandles(root) {
+  const candles = []; // {x, y(base), z, h}
+  const flames = [];  // flame tip positions
+  const addCandle = (x, y, z, h) => {
+    candles.push({ x, y, z, h });
+    flames.push(x, y + h + 0.045, z);
+  };
+  // Wall sconces: pairs on both side walls of every room, placed near
+  // the room CORNERS (t 0.045 / 0.955). Paintings hang at t 0.22–0.78
+  // (frames.js hallSlots) and the centrepiece spans its room's centre,
+  // so the corners are the only always-clear wall space — sconces at
+  // 0.25/0.5/0.75 landed ON the pictures (Omar's screenshot, 2026-10-25).
+  for (const room of JOURNEY) {
+    const len = room.zMax - room.zMin;
+    for (const fz of [0.045, 0.955]) {
+      const z = room.zMin + len * fz;
+      for (const sx of [-1, 1]) {
+        addCandle(sx * (ROOM_HALF_W - 0.16), 2.5, z - 0.11, 0.24);
+        addCandle(sx * (ROOM_HALF_W - 0.16), 2.5, z + 0.11, 0.31);
+      }
+    }
+  }
+  // Candle pairs on the walls beside every door (both faces). The
+  // interior walls are 0.3 deep (faces at ±0.15), so the candles sit
+  // at ±0.24 — at ±0.14 they were buried inside the wall, unlit
+  // (Omar, 2026-10-25).
+  for (const wall of INTERIOR_WALLS) {
+    for (const sz of [-1, 1]) {
+      for (const sx of [-1, 1]) {
+        addCandle(sx * 1.62, 2.15, wall.z + sz * 0.24, 0.26);
+        addCandle(sx * 1.86, 2.15, wall.z + sz * 0.24, 0.19);
+      }
+    }
+  }
+  // Floor candles along the entrance carpet.
+  for (let z = 1.3; z <= 9.1; z += 0.78) {
+    addCandle(-1.32, 0, z, 0.12 + ((z * 7) % 3) * 0.06);
+    addCandle(1.32, 0, z + 0.39, 0.1 + ((z * 5) % 3) * 0.07);
+  }
+  // Floor candles in an arc before the finale heart.
+  for (let i = 0; i < 9; i++) {
+    const a = Math.PI * (0.15 + 0.7 * (i / 8));
+    addCandle(Math.cos(a) * 2.3, 0, -46.6 - Math.sin(a) * 1.1, 0.12 + (i % 3) * 0.06);
+  }
+  // Candelabras flanking door 1 (entrance side) and the finale door.
+  const goldMat = new THREE.MeshStandardMaterial({ color: 0xc9a24d, metalness: 0.72, roughness: 0.35 });
+  const poleGeo = new THREE.CylinderGeometry(0.03, 0.05, 1.32, 8);
+  const cupGeo = new THREE.CylinderGeometry(0.16, 0.03, 0.05, 8);
+  for (const [sx, sz] of [[-1.8, 0.75], [1.8, 0.75], [-1.8, -40.75], [1.8, -40.75]]) {
+    const pole = new THREE.Mesh(poleGeo, goldMat);
+    pole.position.set(sx, 0.66, sz);
+    root.add(pole);
+    const cup = new THREE.Mesh(cupGeo, goldMat);
+    cup.position.set(sx, 1.34, sz);
+    root.add(cup);
+    addCandle(sx, 1.36, sz, 0.24);
+    addCandle(sx - 0.13, 1.36, sz, 0.18);
+    addCandle(sx + 0.13, 1.36, sz, 0.18);
+  }
+  // Instanced bodies + holders.
+  const bodyGeo = new THREE.CylinderGeometry(0.034, 0.04, 1, 8);
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf3e6cf, roughness: 0.55 });
+  const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, candles.length);
+  const holderGeo = new THREE.CylinderGeometry(0.075, 0.085, 0.025, 10);
+  const holders = new THREE.InstancedMesh(holderGeo, goldMat, candles.length);
+  const m4 = new THREE.Matrix4();
+  const q0 = new THREE.Quaternion();
+  candles.forEach((cd, i) => {
+    m4.compose(new THREE.Vector3(cd.x, cd.y + cd.h / 2, cd.z), q0, new THREE.Vector3(1, cd.h, 1));
+    bodies.setMatrixAt(i, m4);
+    m4.compose(new THREE.Vector3(cd.x, cd.y + 0.012, cd.z), q0, new THREE.Vector3(1, 1, 1));
+    holders.setMatrixAt(i, m4);
+  });
+  root.add(bodies);
+  root.add(holders);
+  // Flame cloud (single draw call).
+  const fc = makeCanvas(64, 64);
+  const fx = fc.getContext('2d');
+  const fg = fx.createRadialGradient(32, 32, 2, 32, 32, 30);
+  fg.addColorStop(0, 'rgba(255,246,220,1)');
+  fg.addColorStop(0.35, 'rgba(255,196,110,0.85)');
+  fg.addColorStop(1, 'rgba(255,140,40,0)');
+  fx.fillStyle = fg; fx.fillRect(0, 0, 64, 64);
+  const fTex = new THREE.CanvasTexture(fc);
+  const fGeo = new THREE.BufferGeometry();
+  fGeo.setAttribute('position', new THREE.Float32BufferAttribute(flames, 3));
+  const fMat = new THREE.PointsMaterial({
+    size: 0.16, map: fTex, transparent: true, depthWrite: false,
+    blending: THREE.AdditiveBlending, color: 0xffc37a, sizeAttenuation: true,
+  });
+  const points = new THREE.Points(fGeo, fMat);
+  root.add(points);
+  window.__CANDLE_FLAMES__ = fMat;
+  // Three warm pools of real light (the only added lights).
+  for (const [lx, ly, lz, li] of [[0, 2.7, 5, 34], [0, 2.7, -20, 30], [0, 2.7, -46, 30]]) {
+    const pl = new THREE.PointLight(0xffa04e, li, 14, 1.8);
+    pl.position.set(lx, ly, lz);
+    root.add(pl);
+  }
+}
+
 // ----------------------------------------------------------------- lights
 function buildLights(scene) {
-  const hemisphere = new THREE.HemisphereLight(0xfff2dd, 0x8a6f4d, 0.55);
+  const hemisphere = CASTLE
+    ? new THREE.HemisphereLight(0xffc98a, 0x3a2415, 0.34)
+    : new THREE.HemisphereLight(0xfff2dd, 0x8a6f4d, 0.55);
   scene.add(hemisphere);
-  const ambient = new THREE.AmbientLight(0xffe9c9, 0.25);
+  const ambient = CASTLE
+    ? new THREE.AmbientLight(0xff9a3c, 0.12)
+    : new THREE.AmbientLight(0xffe9c9, 0.25);
   scene.add(ambient);
 
   const spotGeo = new THREE.CylinderGeometry(0.09, 0.14, 0.18, 12);
   const spotMat = new THREE.MeshStandardMaterial({ color: 0x2b2622, roughness: 0.5, metalness: 0.4 });
   for (const room of JOURNEY) {
     const cz = (room.zMin + room.zMax) / 2;
-    const spot = new THREE.SpotLight(0xffdfae, 170,
-      22, Math.PI / 3.4, 0.55, 1.6);
+    const spot = CASTLE
+      ? new THREE.SpotLight(0xffb45e, 120, 22, Math.PI / 3.4, 0.55, 1.6)
+      : new THREE.SpotLight(0xffdfae, 170, 22, Math.PI / 3.4, 0.55, 1.6);
     spot.position.set(0, ROOM_HEIGHT - 0.15, cz);
     spot.target.position.set(0, 0, cz);
     scene.add(spot);
@@ -2893,11 +3082,8 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   sitBtn.setAttribute('aria-pressed', 'false');
   const heartBtn = actionBtn('om-heart-btn', '♥ Leave a heart');
   heartBtn.setAttribute('aria-label', 'Leave a heart');
-  const buddyBtn = actionBtn('om-buddy-btn', '🕺 Dance');
-  buddyBtn.setAttribute('aria-label', 'Make your buddy dance');
-  buddyBtn.addEventListener('click', () => {
-    window.dispatchEvent(new Event('om-buddy-dance'));
-  });
+  // No Dance button (Omar, 2026-10-25): dancing starts from Nada's
+  // heart menu in the world, not from a screen button.
   const heartCountEl = el('div', 'om-heart-count');
   heartCountEl.style.display = 'none';
   body.appendChild(heartCountEl);
@@ -3368,7 +3554,6 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     actions.style.display = 'flex';
     hint.style.display = 'block';
     if (audio && audio.available()) muteBtn.style.display = 'block';
-    buddyBtn.style.display = 'block';
     crosshair.style.display = 'block';
     if (audio) audio.start(); // audio unlock happens on this tap
     if (window.matchMedia('(pointer: coarse)').matches) joy.style.display = 'block';
@@ -4563,7 +4748,7 @@ async function bootMuseum() {
   const ceremony = { started: false, done: false, t: 0, dur: 2 };
   function finishCeremony() {
     if (dedicationSpot) dedicationSpot.intensity = 150;
-    if (hemisphere) hemisphere.intensity = 0.55;
+    if (hemisphere) hemisphere.intensity = CASTLE ? 0.34 : 0.55;
     ceremony.started = false;
     ceremony.done = true;
   }
@@ -4734,7 +4919,7 @@ async function bootMuseum() {
       ceremony.t += dt;
       const k = Math.min(1, ceremony.t / ceremony.dur);
       if (dedicationSpot) dedicationSpot.intensity = 150 * k;
-      if (hemisphere) hemisphere.intensity = 0.3 + (0.55 - 0.3) * k;
+      if (hemisphere) hemisphere.intensity = 0.3 + ((CASTLE ? 0.34 : 0.55) - 0.3) * k;
       if (k >= 1) finishCeremony();
     }
     player.update(dt);
@@ -4746,6 +4931,10 @@ async function bootMuseum() {
       const bt = clock.elapsedTime;
       bg.rotation.z = Math.sin(bt * 0.8) * 0.035;
       bg.rotation.x = Math.cos(bt * 0.6) * 0.02;
+    }
+    if (window.__CANDLE_FLAMES__) { // castle candles: flame size flicker
+      const ft = clock.elapsedTime;
+      window.__CANDLE_FLAMES__.size = 0.155 + Math.sin(ft * 13.7) * 0.012 + Math.sin(ft * 7.3 + 1.7) * 0.009;
     }
     for (const gate of doorGates) { // door-quiz barriers pulse / dissolve + hearts
       if (!gate) continue;
