@@ -3230,6 +3230,13 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   const ndc = new THREE.Vector2();
   renderer.domElement.addEventListener('click', (e) => {
     if (!player.started || viewerOpen) return;
+    // A click that only (re)grabs the mouse must never trigger
+    // anything (Omar, 2026-10-25: the door question appeared "before
+    // clicking on it" — the lock-engaging click was being treated as
+    // an aim click at screen centre). On desktop, interactions count
+    // only while pointer-locked; touch has no lock and keeps taps.
+    const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    if (finePointer && document.pointerLockElement !== renderer.domElement) return;
     if (document.pointerLockElement !== renderer.domElement && player.wasDrag()) return;
     ndc.set(0, 0);
     raycaster.setFromCamera(ndc, camera);
@@ -3264,7 +3271,8 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     const doorBarriers = (typeof window !== 'undefined' && window.__DOOR_BARRIERS__) || [];
     if (doorBarriers.length) {
       const dhits = raycaster.intersectObjects(doorBarriers, false);
-      if (dhits.length) {
+      // Only when standing right at the door, aiming at it (< 2.3 m).
+      if (dhits.length && dhits[0].distance < 2.3) {
         const di = dhits[0].object.userData.doorQuizIndex;
         if (typeof di === 'number' && quizStates[di] && !quizStates[di].solved) { openQuiz(di); return; }
       }
