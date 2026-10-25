@@ -3302,19 +3302,8 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   tourPill.style.display = 'none';
   body.appendChild(tourPill);
 
-  const chipsEl = el('div', 'om-room-chips');
-  for (const room of JOURNEY) {
-    const chip = el('button', 'om-chip', room.name);
-    chip.type = 'button';
-    chip.dataset.room = room.id;
-    chip.addEventListener('click', () => {
-      if (tour) tour.startAtRoom(room.id);
-    });
-    chipsEl.appendChild(chip);
-  }
-  chipsEl.style.display = 'none';
-  body.appendChild(chipsEl);
-
+  // No room teleport chips (Omar, 2026-10-25): the visitor walks the
+  // museum, no shortcut buttons across the top.
   function renderTourDots(total, activeIdx) {
     tourDots.innerHTML = '';
     for (let i = 0; i < total; i++) {
@@ -3326,7 +3315,6 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     const tourActive = !!(tour && tour.isActive());
     tourOverlay.style.display = (entered && tourActive && !viewerOpen) ? 'flex' : 'none';
     tourPill.style.display = (entered && tourInterrupted && !tourActive && !viewerOpen) ? 'block' : 'none';
-    chipsEl.style.display = (entered && !viewerOpen) ? 'flex' : 'none';
   }
   if (tour && typeof tour.setHooks === 'function') {
     tour.setHooks({
