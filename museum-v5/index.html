@@ -1560,8 +1560,58 @@ function buildCompanionAvatar(scene, camera) {
   const chestHeart = addBox(g, MAT.heart, 0.13, 0.13, 0.05, 0, 1.02, isGirl ? 0.225 : 0.25);
   chestHeart.rotation.z = Math.PI / 4;
   // The heart is the buddy BUTTON (Omar, 2026-10-25): ui.js raycasts it
-  // from the centre dot; main.js pulses it when the dot is on it.
+  // from the centre dot; main.js pulses it when the dot is on it. The
+  // pulse must MULTIPLY this base scale — overwriting it once blew the
+  // heart up to a 1.35 m cube (Omar's "sooo big" bug).
+  chestHeart.userData.baseScale = { x: 0.13, y: 0.13, z: 0.05 };
   if (typeof window !== 'undefined') window.__BUDDY_HEART__ = chestHeart;
+
+  // Buddy choices, IN the world above her head (Omar, 2026-10-25):
+  // click the heart and two labels appear — 🕺 Dance / 🔄 Turn — and
+  // STAY until the visitor aims the centre dot at one and clicks.
+  function makeChoiceSprite(text) {
+    const canvas = makeCanvas(512, 160);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(23, 19, 16, 0.80)';
+    ctx.beginPath();
+    ctx.roundRect(6, 6, 500, 148, 74);
+    ctx.fill();
+    ctx.strokeStyle = '#c96f7b';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.roundRect(6, 6, 500, 148, 74);
+    ctx.stroke();
+    ctx.fillStyle = '#fbf7ee';
+    ctx.font = '600 62px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(text, 256, 102);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+    s.scale.set(1.05, 0.33, 1);
+    s.visible = false;
+    return s;
+  }
+  const danceLabel = makeChoiceSprite('🕺 Dance');
+  danceLabel.position.set(-0.60, 2.32, 0);
+  g.add(danceLabel);
+  const turnLabel = makeChoiceSprite('🔄 Turn');
+  turnLabel.position.set(0.60, 2.32, 0);
+  g.add(turnLabel);
+  let choicesOpen = false;
+  if (typeof window !== 'undefined') {
+    window.__BUDDY__ = {
+      heart: chestHeart,
+      danceLabel,
+      turnLabel,
+      showChoices(v) {
+        choicesOpen = !!v;
+        danceLabel.visible = choicesOpen;
+        turnLabel.visible = choicesOpen;
+      },
+      choicesVisible() { return choicesOpen; },
+    };
+  }
 
   const label = MUSEUM_CONFIG.fromName || 'Omar';
   const sprite = makeNameSprite(label);
@@ -2597,34 +2647,16 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   crosshair.style.display = 'none';
   body.appendChild(crosshair);
 
-  // Buddy menu: opens when the heart is clicked with the centre dot.
-  const buddyMenu = el('div', 'om-buddy-menu');
-  buddyMenu.style.display = 'none';
-  const buddyDanceBtn = el('button', '', '🕺 Dance');
-  buddyDanceBtn.type = 'button';
-  const buddyTurnBtn = el('button', '', '🔄 Turn');
-  buddyTurnBtn.type = 'button';
-  buddyMenu.appendChild(buddyDanceBtn);
-  buddyMenu.appendChild(buddyTurnBtn);
-  body.appendChild(buddyMenu);
-  let buddyMenuTimer = null;
+  // Buddy choices live IN the world above her head (avatar.js exposes
+  // window.__BUDDY__): clicking her heart opens them, they stay fixed
+  // until the visitor aims the centre dot at one and clicks (Omar,
+  // 2026-10-25). No DOM menu.
   function closeBuddyMenu() {
-    buddyMenu.style.display = 'none';
-    if (buddyMenuTimer) { clearTimeout(buddyMenuTimer); buddyMenuTimer = null; }
+    if (typeof window !== 'undefined' && window.__BUDDY__) window.__BUDDY__.showChoices(false);
   }
   function openBuddyMenu() {
-    buddyMenu.style.display = 'flex';
-    if (buddyMenuTimer) clearTimeout(buddyMenuTimer);
-    buddyMenuTimer = setTimeout(closeBuddyMenu, 6000);
+    if (typeof window !== 'undefined' && window.__BUDDY__) window.__BUDDY__.showChoices(true);
   }
-  buddyDanceBtn.addEventListener('click', () => {
-    closeBuddyMenu();
-    window.dispatchEvent(new Event('om-buddy-dance'));
-  });
-  buddyTurnBtn.addEventListener('click', () => {
-    closeBuddyMenu();
-    window.dispatchEvent(new Event('om-buddy-turn'));
-  });
 
   if (audio) {
     muteBtn.addEventListener('click', () => {
@@ -2844,10 +2876,25 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     // shortened 7 -> 4 so clicks cannot reach photos through a wall at
     // museum distances (full occlusion raycast was not landed).
     raycaster.far = 4;
-    // Buddy first: the heart on her chest opens the buddy menu.
+    // Buddy first: her heart opens the choices; a choice label (when
+    // open) fires its action; anything else closes the choices.
+    const buddy = (typeof window !== 'undefined') ? window.__BUDDY__ : null;
+    if (buddy && buddy.choicesVisible()) {
+      if (raycaster.intersectObject(buddy.danceLabel, false).length) {
+        closeBuddyMenu();
+        window.dispatchEvent(new Event('om-buddy-dance'));
+        return;
+      }
+      if (raycaster.intersectObject(buddy.turnLabel, false).length) {
+        closeBuddyMenu();
+        window.dispatchEvent(new Event('om-buddy-turn'));
+        return;
+      }
+    }
     const heart = (typeof window !== 'undefined') ? window.__BUDDY_HEART__ : null;
     if (heart && raycaster.intersectObject(heart, false).length) {
-      openBuddyMenu();
+      if (buddy && buddy.choicesVisible()) closeBuddyMenu();
+      else openBuddyMenu();
       return;
     }
     closeBuddyMenu();
@@ -4129,17 +4176,23 @@ async function bootMuseum() {
     if (tour) tour.update(dt);
     ui.update();
     companion.update(dt);
-    { // buddy heart heat under the centre dot
+    { // buddy heat under the centre dot: heart or an open choice label
       const heart = window.__BUDDY_HEART__;
+      const buddy = window.__BUDDY__;
       const dot = document.getElementById('om-crosshair');
       if (heart && dot && player.started) {
         buddyRay.setFromCamera(buddyCenter, camera);
-        const hot = buddyRay.intersectObject(heart, false).length > 0;
+        let hot = buddyRay.intersectObject(heart, false).length > 0;
+        if (!hot && buddy && buddy.choicesVisible()) {
+          hot = buddyRay.intersectObject(buddy.danceLabel, false).length > 0
+            || buddyRay.intersectObject(buddy.turnLabel, false).length > 0;
+        }
         if (hot !== buddyHot) {
           buddyHot = hot;
           dot.classList.toggle('om-hot', hot);
-          const s = hot ? 1.35 : 1;
-          heart.scale.set(s, s, s);
+          const b = heart.userData.baseScale || { x: 0.13, y: 0.13, z: 0.05 };
+          const k = hot ? 1.35 : 1;
+          heart.scale.set(b.x * k, b.y * k, b.z * k);
         }
       }
     }
