@@ -1442,17 +1442,24 @@ function buildGirlBody(g, skin) {
   camisole.position.y = 1.13;
   g.add(camisole);
 
-  // Arms: white sleeves to the elbow, skin forearms.
+  // Arms on shoulder pivots (so the dance can swing and point them):
+  // white sleeves to the elbow, skin forearms.
+  const parts = {};
   for (const sx of [-1, 1]) {
+    const armGroup = new THREE.Group();
+    armGroup.position.set(sx * 0.245, 1.22, 0);
     const sleeve = new THREE.Mesh(new THREE.CapsuleGeometry(0.056, 0.17, 4, 10), shirtMat);
-    sleeve.position.set(sx * 0.255, 1.13, 0);
+    sleeve.position.set(sx * 0.01, -0.09, 0);
     sleeve.rotation.z = sx * -0.14;
-    g.add(sleeve);
+    armGroup.add(sleeve);
     const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.19, 4, 10), skin);
-    arm.position.set(sx * 0.29, 0.885, 0);
+    arm.position.set(sx * 0.045, -0.335, 0);
     arm.rotation.z = sx * -0.10;
-    g.add(arm);
+    armGroup.add(arm);
+    g.add(armGroup);
+    parts[sx < 0 ? 'armL' : 'armR'] = armGroup;
   }
+  g.userData.parts = parts;
 
   // Long wavy hair down the back + two locks over the shoulders.
   const backHair = new THREE.Mesh(
@@ -1528,6 +1535,105 @@ function buildCompanionAvatar(scene, camera) {
   sprite.position.y = 1.95;
   g.add(sprite);
 
+  // ------------------------------------------------------------ dance
+  // The Rick dance (Omar's pick, 2026-10-25): tap the 🕺 Dance button
+  // (ui.js dispatches 'om-buddy-dance', main.js calls startDance) and
+  // she stops, faces the visitor, and does the Rick Astley groove for
+  // ~8 beats at 118 BPM — side-to-side steps, bounce, hip sway, arm
+  // swings and points — with a little hearts burst, then a final spin
+  // and back to following.
+  const BEAT = 60 / 118;
+  const DANCE_LEN = BEAT * 8 + 0.55;
+  let dancing = false;
+  let danceT = 0;
+  let danceAnchor = null;
+  let burst = [];
+  function makeHeartSprite() {
+    const canvas = makeCanvas(96, 96);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#e2607e';
+    ctx.beginPath();
+    ctx.moveTo(48, 82);
+    ctx.bezierCurveTo(8, 54, 14, 14, 48, 30);
+    ctx.bezierCurveTo(82, 14, 88, 54, 48, 82);
+    ctx.fill();
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+    s.scale.set(0.16, 0.16, 1);
+    return s;
+  }
+  function startDance() {
+    if (dancing) return;
+    dancing = true;
+    danceT = 0;
+    danceAnchor = { x: g.position.x, z: g.position.z };
+    for (let i = 0; i < 8; i++) {
+      const s = makeHeartSprite();
+      s.position.set((Math.random() - 0.5) * 0.5, 1.75 + Math.random() * 0.25, (Math.random() - 0.5) * 0.3);
+      s.userData.vy = 0.35 + Math.random() * 0.3;
+      s.userData.life = 0;
+      g.add(s);
+      burst.push(s);
+    }
+  }
+  function updateDance(dt) {
+    danceT += dt;
+    const amp = REDUCED_MOTION_AVATAR ? 0.3 : 1;
+    // Face the visitor for the whole dance.
+    if (camera) {
+      const fx = camera.position.x - g.position.x;
+      const fz = camera.position.z - g.position.z;
+      if (Math.hypot(fx, fz) > 0.05) {
+        curYaw = lerpAngle(curYaw, Math.atan2(fx, fz), 1 - Math.exp(-8 * dt));
+      }
+    }
+    const ph = danceT / BEAT; // beats elapsed
+    const side = Math.sin(ph * Math.PI) * 0.11 * amp; // one step each way per 2 beats
+    const rightX = Math.cos(curYaw);
+    const rightZ = -Math.sin(curYaw);
+    g.position.x = danceAnchor.x + rightX * side;
+    g.position.z = danceAnchor.z + rightZ * side;
+    g.position.y = Math.abs(Math.sin(ph * Math.PI)) * 0.05 * amp;
+    let yaw = curYaw + Math.sin(ph * Math.PI) * 0.16 * amp;
+    if (danceT > DANCE_LEN - 0.55) { // final spin
+      const k = 1 - (DANCE_LEN - danceT) / 0.55;
+      yaw += k * k * Math.PI * 2;
+    }
+    g.rotation.y = yaw;
+    g.rotation.z = Math.sin(ph * Math.PI) * 0.10 * amp;
+    const parts = g.userData.parts || {};
+    if (parts.armL && parts.armR) {
+      const swing = Math.sin(ph * Math.PI) * 0.85 * amp;
+      parts.armL.rotation.x = swing;
+      parts.armR.rotation.x = -swing;
+      // Rick point at the visitor on beats 3 and 7.
+      const beatIdx = Math.floor(ph) % 4;
+      if (beatIdx === 2) {
+        const pulse = Math.sin((ph - Math.floor(ph)) * Math.PI);
+        parts.armR.rotation.x = -1.85 * pulse * amp;
+      }
+    }
+    for (const s of burst) {
+      s.userData.life += dt;
+      s.position.y += s.userData.vy * dt;
+      s.material.opacity = Math.max(0, 1 - s.userData.life / 1.6);
+    }
+    burst = burst.filter((s) => {
+      if (s.userData.life > 1.6) { g.remove(s); return false; }
+      return true;
+    });
+    if (danceT >= DANCE_LEN) {
+      dancing = false;
+      g.rotation.z = 0;
+      g.position.x = danceAnchor.x;
+      g.position.z = danceAnchor.z;
+      const parts2 = g.userData.parts || {};
+      if (parts2.armL) parts2.armL.rotation.x = 0;
+      if (parts2.armR) parts2.armR.rotation.x = 0;
+    }
+  }
+
   // Spawns beside the visitor at the entrance and follows from there.
   g.position.set(1.4, 0, 3.9);
   scene.add(g);
@@ -1550,8 +1656,10 @@ function buildCompanionAvatar(scene, camera) {
 
   return {
     group: g,
+    startDance,
     update(dt) {
       t += dt;
+      if (dancing) { updateDance(dt); return; }
       const camPos = camera ? camera.position : null;
       let walking = false;
       let speedNow = 0;
@@ -2412,6 +2520,11 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   sitBtn.setAttribute('aria-pressed', 'false');
   const heartBtn = actionBtn('om-heart-btn', '♥ Leave a heart');
   heartBtn.setAttribute('aria-label', 'Leave a heart');
+  const buddyBtn = actionBtn('om-buddy-btn', '🕺 Dance');
+  buddyBtn.setAttribute('aria-label', 'Make your buddy dance');
+  buddyBtn.addEventListener('click', () => {
+    window.dispatchEvent(new Event('om-buddy-dance'));
+  });
   const heartCountEl = el('div', 'om-heart-count');
   heartCountEl.style.display = 'none';
   body.appendChild(heartCountEl);
@@ -2727,6 +2840,7 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     actions.style.display = 'flex';
     hint.style.display = 'block';
     if (audio && audio.available()) muteBtn.style.display = 'block';
+    buddyBtn.style.display = 'block';
     if (audio) audio.start(); // audio unlock happens on this tap
     if (window.matchMedia('(pointer: coarse)').matches) joy.style.display = 'block';
     player.started = true;
@@ -3843,6 +3957,7 @@ async function bootMuseum() {
   });
   const player = createPlayer(camera, renderer.domElement);
   const companion = buildCompanionAvatar(scene, camera);
+  window.addEventListener('om-buddy-dance', () => companion.startDance());
   const cinema = createCinema(scene, player, camera);
   const finale = createFinale(scene);
   const audio = createAudio();
