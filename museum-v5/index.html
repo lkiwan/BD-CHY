@@ -700,9 +700,9 @@ function buildMuseum(scene) {
   const heart = addBox(root, MAT.heart, 0.55, 0.55, 0.18, 0, 3.9, -49.9);
   heart.rotation.z = Math.PI / 4;
 
-  // Benches: two facing the centrepiece, one in the finale.
-  buildBench(root, -1.6, -21.5, 0);
-  buildBench(root, 1.6, -21.5, 0);
+  // Benches: two facing the centrepiece on its west wall, one in the finale.
+  buildBench(root, -3.1, -21.6, Math.PI / 2);
+  buildBench(root, -3.1, -18.4, Math.PI / 2);
   buildBench(root, 0, -44, Math.PI);
 
   // Room name plaques above each door (south face).
@@ -1151,21 +1151,24 @@ async function buildFrames(scene, onProgress) {
     return frame;
   }
 
-  // Centrepiece: far (north) wall of its dark room, centred, big.
+  // Centrepiece: WEST side wall of its dark room, big — hung like every
+  // other picture (on a side wall), NOT centred on the far wall in the
+  // doorway line (Omar's order 2026-10-25: the doors stay free).
   const cpRoom = JOURNEY[2];
   const cpEntry = entries.find((e) => e.file === centreFile);
   const rest = entries.filter((e) => e !== cpEntry);
   if (cpEntry) {
+    const cpZ = (cpRoom.zMin + cpRoom.zMax) / 2;
     const cpFrame = await place(cpEntry,
-      { x: 0, z: cpRoom.zMin + 0.06, ry: 0 },
+      { x: -ROOM_HALF_W + 0.06, z: cpZ, ry: Math.PI / 2 },
       { maxW: 4.6, maxH: 3.1, y: 2.15, isCentrepiece: true });
     if (cpFrame) interactables.push(cpFrame.userData.photoMesh);
     // Dedicated warm spot aimed at the centrepiece.
     // 320 bleached the photo white in coordinator visual QA (2026-10-25);
     // 130 keeps the drama without blowing out the picture.
     const spot = new THREE.SpotLight(0xffe0b0, 130, 20, Math.PI / 5.5, 0.5, 1.5);
-    spot.position.set(0, ROOM_HEIGHT - 0.3, cpRoom.zMin + 5.2);
-    spot.target.position.set(0, 2.1, cpRoom.zMin);
+    spot.position.set(-1.2, ROOM_HEIGHT - 0.3, cpZ);
+    spot.target.position.set(-ROOM_HALF_W, 2.1, cpZ);
     scene.add(spot);
     scene.add(spot.target);
   }
@@ -1565,14 +1568,14 @@ function createCinema(scene, player, camera) {
   }
 
   // ------------------------------------------------------------ benches
-  // The centrepiece room's two benches (built in scene.js at z=-21.5)
-  // face the centrepiece (north wall, -Z). Seats sit just behind the
-  // bench back line so the view over it is clear. Plus one bench added
-  // here facing the cinema screen.
+  // The centrepiece room's two benches (built in scene.js at x=-3.1)
+  // face the centrepiece on the room's west wall (-X). Seats sit just
+  // behind the bench back line so the view over it is clear. Plus one
+  // bench added here facing the cinema screen.
   buildBench(group, 2.7, -20, -Math.PI / 2); // seat line parallel to the screen wall, pulled back so the whole film fits the seated view
   const SIT_SPOTS = [
-    { x: -1.6, z: -21.5, seatY: 1.28, yaw: Math.PI },      // centrepiece bench L — faces the centrepiece (-Z)
-    { x: 1.6,  z: -21.5, seatY: 1.28, yaw: Math.PI },      // centrepiece bench R — faces the centrepiece (-Z)
+    { x: -3.1, z: -21.6, seatY: 1.28, yaw: Math.PI / 2 },  // centrepiece bench L — faces the centrepiece (-X)
+    { x: -3.1, z: -18.4, seatY: 1.28, yaw: Math.PI / 2 },  // centrepiece bench R — faces the centrepiece (-X)
     { x: 2.7,  z: -20,   seatY: 1.28, yaw: -Math.PI / 2 }, // cinema bench — faces the screen (+X), far enough back to see it whole
     { x: 0,    z: -44,   seatY: 1.28, yaw: Math.PI },      // finale bench — faces the heart/panel (-Z)
   ];
