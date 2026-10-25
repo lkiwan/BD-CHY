@@ -1024,109 +1024,111 @@ function fitFrame(aspect, maxW, maxH) {
   return { w, h };
 }
 
-// Ornate Renaissance gilt frame texture, drawn per frame at its real
-// aspect (Omar's order 2026-10-25: frames like the Mona Lisa's — wide,
-// carved, antique gold). Layers: aged gilt base, a carved scallop band,
-// pearl beading, an acanthus-scroll band, a polished inner lip, and a
-// rosette in each corner, with relief shading so it reads as carved
-// wood under the spotlights, not a flat gold slab.
+// Ornate frame texture, drawn per frame at its real aspect. Style =
+// the wide antique gilt frame inside painting 04 itself (Omar's own
+// reference photo, 2026-10-25): broad smooth aged-gold band, distressed
+// with worn dark patches and hairline cracks, a raised inner slip, and
+// LARGE carved scroll volutes in the corners plus a matching cartouche
+// at the middle of each side — ornament concentrated, field kept calm.
 function makeOrnateFrameTexture(frameW, frameH) {
   const CW = 896;
   const CH = Math.max(320, Math.min(896, Math.round(CW * frameH / frameW)));
   const canvas = makeCanvas(CW, CH);
   const ctx = canvas.getContext('2d');
-  const T = Math.round(Math.min(CW, CH) * 0.185); // ring thickness in px
+  const T = Math.round(Math.min(CW, CH) * 0.19); // ring thickness in px
 
-  const grad = ctx.createLinearGradient(0, 0, CW, CH);
-  grad.addColorStop(0, '#97742f');
-  grad.addColorStop(0.5, '#8a682a');
-  grad.addColorStop(1, '#75571f');
+  // Aged gilt base.
+  const grad = ctx.createLinearGradient(0, 0, CW * 0.3, CH);
+  grad.addColorStop(0, '#a87f36');
+  grad.addColorStop(0.5, '#9a732e');
+  grad.addColorStop(1, '#84601f');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, CW, CH);
 
-  // Aged speckle.
-  for (let i = 0; i < 1600; i++) {
-    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(60,42,10,0.07)' : 'rgba(240,212,136,0.06)';
+  // Distress: worn dark patches + pale rubbed spots + hairline cracks.
+  for (let i = 0; i < 46; i++) {
+    const x = Math.random() * CW, y = Math.random() * CH;
+    const r = 12 + Math.random() * 46;
+    const g2 = ctx.createRadialGradient(x, y, 2, x, y, r);
+    const dark = Math.random() > 0.42;
+    g2.addColorStop(0, dark ? 'rgba(74,50,18,0.20)' : 'rgba(238,208,138,0.16)');
+    g2.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g2;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  ctx.strokeStyle = 'rgba(58,38,10,0.35)';
+  for (let i = 0; i < 26; i++) {
+    ctx.lineWidth = 0.8 + Math.random() * 0.8;
+    ctx.beginPath();
+    let x = Math.random() * CW, y = Math.random() * CH;
+    ctx.moveTo(x, y);
+    for (let s = 0; s < 4; s++) { x += (Math.random() - 0.5) * 34; y += (Math.random() - 0.5) * 34; ctx.lineTo(x, y); }
+    ctx.stroke();
+  }
+  for (let i = 0; i < 1300; i++) {
+    ctx.fillStyle = Math.random() > 0.5 ? 'rgba(60,42,10,0.06)' : 'rgba(240,212,136,0.05)';
     ctx.fillRect(Math.random() * CW, Math.random() * CH, 2.2, 2.2);
   }
 
-  // One side strip in local coords: length L along +x, ring 0..T along +y
-  // (inward). Patterns are drawn for all four sides via transforms.
-  function drawStrip(L) {
-    // Outer carved scallops.
-    ctx.save();
-    ctx.beginPath(); ctx.rect(0, 0, L, T * 0.30); ctx.clip();
-    const sc = T * 0.30;
-    for (let x = 0; x < L + sc; x += sc) {
-      ctx.beginPath();
-      ctx.arc(x, T * 0.30, sc * 0.52, Math.PI, 0);
-      ctx.strokeStyle = 'rgba(52,36,8,0.85)'; ctx.lineWidth = 3; ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(x, T * 0.30 - 2.5, sc * 0.52, Math.PI, 0);
-      ctx.strokeStyle = 'rgba(238,206,130,0.55)'; ctx.lineWidth = 1.6; ctx.stroke();
-    }
-    ctx.restore();
-    // Pearl beading.
-    const beadY = T * 0.44;
-    for (let x = T * 0.16; x < L; x += T * 0.17) {
-      ctx.beginPath();
-      ctx.arc(x, beadY, T * 0.052, 0, Math.PI * 2);
-      ctx.fillStyle = '#e8c877'; ctx.fill();
-      ctx.strokeStyle = 'rgba(52,36,8,0.7)'; ctx.lineWidth = 1.2; ctx.stroke();
-    }
-    // Acanthus scroll band.
-    ctx.save();
-    ctx.beginPath(); ctx.rect(0, T * 0.56, L, T * 0.34); ctx.clip();
-    const step = T * 0.62;
-    for (let x = step * 0.4; x < L; x += step) {
-      for (const dy of [0, -2]) {
-        ctx.beginPath();
-        ctx.arc(x, T * 0.73, T * 0.20, Math.PI * 0.9, Math.PI * 2.15);
-        ctx.strokeStyle = dy === 0 ? 'rgba(52,36,8,0.8)' : 'rgba(238,206,130,0.5)';
-        ctx.lineWidth = dy === 0 ? 3.4 : 1.6;
-        ctx.stroke();
-      }
-      ctx.beginPath();
-      ctx.arc(x + step * 0.52, T * 0.73, T * 0.13, Math.PI * 1.1, Math.PI * 0.4, true);
-      ctx.strokeStyle = 'rgba(52,36,8,0.65)'; ctx.lineWidth = 2.4; ctx.stroke();
-    }
-    ctx.restore();
-    // Polished inner lip.
-    const lip = ctx.createLinearGradient(0, T * 0.90, 0, T);
-    lip.addColorStop(0, '#a37e35');
-    lip.addColorStop(1, '#e9cd85');
-    ctx.fillStyle = lip;
-    ctx.fillRect(0, T * 0.90, L, T * 0.10);
+  // Molding shading: outer groove, a raised round molding, then the wide
+  // calm field, then the inner slip. Drawn as nested rects.
+  function ringRect(inset, style, width) {
+    ctx.strokeStyle = style; ctx.lineWidth = width;
+    ctx.strokeRect(inset, inset, CW - inset * 2, CH - inset * 2);
   }
+  ringRect(T * 0.06, 'rgba(46,30,6,0.9)', 4);            // outer dark edge
+  ringRect(T * 0.16, 'rgba(240,214,140,0.5)', 3);        // molding highlight
+  ringRect(T * 0.24, 'rgba(70,48,14,0.55)', 3);          // molding shadow
+  ringRect(T * 0.80, 'rgba(70,48,14,0.6)', 2.5);         // slip groove
+  ringRect(T * 0.88, '#e9cd85', 4);                      // raised inner slip
+  ringRect(T * 0.97, 'rgba(46,30,6,0.85)', 3);           // picture edge
 
-  ctx.save(); ctx.translate(0, 0); drawStrip(CW); ctx.restore();                       // top
-  ctx.save(); ctx.translate(0, CH); ctx.scale(1, -1); drawStrip(CW); ctx.restore();     // bottom
-  ctx.save(); ctx.translate(0, CH); ctx.rotate(-Math.PI / 2); drawStrip(CH); ctx.restore(); // left
-  ctx.save(); ctx.translate(CW, 0); ctx.rotate(Math.PI / 2); drawStrip(CH); ctx.restore();  // right
-
-  // Corner rosettes.
-  for (const [cx, cy] of [[T / 2, T / 2], [CW - T / 2, T / 2], [T / 2, CH - T / 2], [CW - T / 2, CH - T / 2]]) {
-    for (let p = 0; p < 8; p++) {
-      const a = (p / 8) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.ellipse(cx + Math.cos(a) * T * 0.26, cy + Math.sin(a) * T * 0.26, T * 0.13, T * 0.07, a, 0, Math.PI * 2);
-      ctx.fillStyle = '#c49b45'; ctx.fill();
-      ctx.strokeStyle = 'rgba(52,36,8,0.75)'; ctx.lineWidth = 1.4; ctx.stroke();
+  // Carved volute: concentric spiral arcs with relief shading.
+  function volute(cx, cy, r, dir) {
+    for (const pass of [{ o: 2.2, s: 'rgba(52,34,6,0.85)', w: r * 0.20 }, { o: 0, s: '#caa050', w: r * 0.15 }, { o: -1.6, s: 'rgba(246,222,150,0.8)', w: r * 0.06 }]) {
+      for (let ring = 0; ring < 3; ring++) {
+        ctx.beginPath();
+        ctx.arc(cx + pass.o, cy + pass.o, r * (1 - ring * 0.27), dir * 0.4, dir * 4.4);
+        ctx.strokeStyle = pass.s; ctx.lineWidth = pass.w; ctx.stroke();
+      }
     }
-    ctx.beginPath(); ctx.arc(cx, cy, T * 0.16, 0, Math.PI * 2);
-    ctx.fillStyle = '#e8c877'; ctx.fill();
-    ctx.strokeStyle = 'rgba(52,36,8,0.8)'; ctx.lineWidth = 1.6; ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx, cy, T * 0.055, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.10, 0, Math.PI * 2);
     ctx.fillStyle = '#6d5016'; ctx.fill();
   }
-
-  // Relief edges: dark outer rim, bright bevel at the picture edge.
-  ctx.strokeStyle = 'rgba(40,27,5,0.9)'; ctx.lineWidth = 5;
-  ctx.strokeRect(2, 2, CW - 4, CH - 4);
-  ctx.strokeStyle = '#f4dc96'; ctx.lineWidth = 3;
-  ctx.strokeRect(T - 2, T - 2, CW - 2 * T + 4, CH - 2 * T + 4);
-  ctx.strokeStyle = 'rgba(40,27,5,0.85)'; ctx.lineWidth = 2.5;
-  ctx.strokeRect(T + 2, T + 2, CW - 2 * T - 4, CH - 2 * T - 4);
+  // Acanthus leaf: a rotated pointed ellipse with a centre vein.
+  function leaf(cx, cy, len, ang) {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+    for (const pass of [{ o: 2, f: 'rgba(52,34,6,0.55)' }, { o: 0, f: '#b28c3c' }]) {
+      ctx.beginPath();
+      ctx.ellipse(pass.o, pass.o, len, len * 0.34, 0, 0, Math.PI * 2);
+      ctx.fillStyle = pass.f; ctx.fill();
+    }
+    ctx.beginPath(); ctx.moveTo(-len, 0); ctx.lineTo(len, 0);
+    ctx.strokeStyle = 'rgba(52,34,6,0.6)'; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.restore();
+  }
+  // Corner ornament: two volutes + a fan of leaves, mirrored per corner.
+  function corner(cx, cy, mx, my) {
+    volute(cx + mx * T * 0.16, cy + my * T * 0.16, T * 0.30, mx * my > 0 ? 1 : -1);
+    volute(cx + mx * T * 0.38, cy + my * T * 0.05, T * 0.17, -1);
+    volute(cx + mx * T * 0.05, cy + my * T * 0.38, T * 0.17, 1);
+    for (let i = -2; i <= 2; i++) {
+      const a = Math.atan2(my, mx) + i * 0.34;
+      leaf(cx + mx * T * 0.30 + Math.cos(a) * T * 0.30, cy + my * T * 0.30 + Math.sin(a) * T * 0.30, T * 0.21, a);
+    }
+  }
+  corner(0, 0, 1, 1); corner(CW, 0, -1, 1); corner(0, CH, 1, -1); corner(CW, CH, -1, -1);
+  // Side cartouches: shell fan + twin small volutes at each side's middle.
+  function cartouche(cx, cy, horizontal) {
+    for (let i = -2; i <= 2; i++) {
+      const a = (horizontal ? -Math.PI / 2 : 0) + i * 0.36;
+      leaf(cx + Math.cos(a) * T * 0.22, cy + Math.sin(a) * T * 0.22, T * 0.17, a);
+    }
+    volute(cx - (horizontal ? T * 0.30 : 0), cy - (horizontal ? 0 : T * 0.30), T * 0.13, 1);
+    volute(cx + (horizontal ? T * 0.30 : 0), cy + (horizontal ? 0 : T * 0.30), T * 0.13, -1);
+  }
+  cartouche(CW / 2, T / 2, true); cartouche(CW / 2, CH - T / 2, true);
+  cartouche(T / 2, CH / 2, false); cartouche(CW - T / 2, CH / 2, false);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
