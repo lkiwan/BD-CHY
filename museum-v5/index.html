@@ -1411,7 +1411,9 @@ function buildCompanionAvatar(scene, camera) {
 // (or tap Sit) and the camera glides to the seat facing the centrepiece;
 // press E again to stand back up exactly where you were.
 
-const CINEMA_SLIDE_SECONDS = 5;
+const CINEMA_SLIDE_SECONDS = 7; // every picture gets the same time
+const CINEMA_FADE_SECONDS = 2.2; // slow crossfade between pictures
+const CINEMA_ZOOM = 0.055; // gentle slow zoom-in across each picture
 
 function createCinema(scene, player, camera) {
   const room = JOURNEY[2]; // centrepiece room, z in [-26, -14]
@@ -1542,6 +1544,8 @@ function createCinema(scene, player, camera) {
     const aspect = img && img.naturalWidth ? img.naturalWidth / img.naturalHeight : screenW / screenH;
     const fitted = fitFrame(aspect, screenW, screenH);
     back.main.scale.set(fitted.w, fitted.h, 1);
+    back.baseW = fitted.w;
+    back.baseH = fitted.h;
     back.main.material.map = tex;
     back.main.material.needsUpdate = true;
     back.fill.scale.set(screenW, screenH, 1);
@@ -1565,11 +1569,11 @@ function createCinema(scene, player, camera) {
   // face the centrepiece (north wall, -Z). Seats sit just behind the
   // bench back line so the view over it is clear. Plus one bench added
   // here facing the cinema screen.
-  buildBench(group, 3.9, -20, -Math.PI / 2); // seat line parallel to the screen wall
+  buildBench(group, 2.7, -20, -Math.PI / 2); // seat line parallel to the screen wall, pulled back so the whole film fits the seated view
   const SIT_SPOTS = [
     { x: -1.6, z: -21.5, seatY: 1.28, yaw: Math.PI },      // centrepiece bench L — faces the centrepiece (-Z)
     { x: 1.6,  z: -21.5, seatY: 1.28, yaw: Math.PI },      // centrepiece bench R — faces the centrepiece (-Z)
-    { x: 3.9,  z: -20,   seatY: 1.28, yaw: -Math.PI / 2 }, // cinema bench — faces the screen (+X)
+    { x: 2.7,  z: -20,   seatY: 1.28, yaw: -Math.PI / 2 }, // cinema bench — faces the screen (+X), far enough back to see it whole
     { x: 0,    z: -44,   seatY: 1.28, yaw: Math.PI },      // finale bench — faces the heart/panel (-Z)
   ];
 
@@ -1677,10 +1681,10 @@ function createCinema(scene, player, camera) {
           if (done) done();
         }
       }
-      // Nobody's watching = paused: no slideTimer advance, no crossfade.
-      if (!nearScreen() && !sitting && !glide) return;
-      // Crossfade: front fades out while back (new slide) fades in.
-      const speed = dt / 1.4;
+      // The film always plays — it never freezes waiting for a watcher.
+      // Crossfade: front fades out while back (new slide) fades in,
+      // slowly, over CINEMA_FADE_SECONDS.
+      const speed = dt / CINEMA_FADE_SECONDS;
       if (back.main.material.opacity < 1 && back.main.material.map) {
         back.main.material.opacity = Math.min(1, back.main.material.opacity + speed);
         front.main.material.opacity = Math.max(0, front.main.material.opacity - speed);
@@ -1689,6 +1693,11 @@ function createCinema(scene, player, camera) {
         if (back.main.material.opacity >= 1) {
           const tmp = front; front = back; back = tmp;
         }
+      }
+      // Slow zoom-in on the picture currently showing.
+      if (playing && front.baseW) {
+        const zoom = 1 + CINEMA_ZOOM * Math.min(1, slideTimer / CINEMA_SLIDE_SECONDS);
+        front.main.scale.set(front.baseW * zoom, front.baseH * zoom, 1);
       }
       if (playing) {
         slideTimer += dt;
