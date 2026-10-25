@@ -2755,6 +2755,9 @@ function createFinale(scene) {
   return {
     heartCount: () => heartCount,
     leaveHeart: spawnHeart,
+    // Clicking the big red heart (or the Guest Book panel's heart)
+    // leaves a heart — wired in ui.js's canvas click handler.
+    clickTargets: [bigHeart, gbPanel],
     inFinale: (pos) => pos.z <= room.zMax + 0.5 && pos.z >= room.zMin - 0.5,
     update(dt) {
       t += dt;
@@ -3414,6 +3417,17 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   // from the middle of the view, at whatever the visitor is looking at.
   const raycaster = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
+  // General rule (Omar, 2026-10-25): whenever the mouse cursor is
+  // showing, ONE click anywhere on the screen turns it back into the
+  // aim point. Clicks on real UI (buttons, quiz, viewer) keep their
+  // own job; the next free click re-aims.
+  document.addEventListener('pointerdown', (e) => {
+    if (!player.started || viewerOpen || quizOpenIdx >= 0) return;
+    if (!window.matchMedia || !window.matchMedia('(pointer: fine)').matches) return;
+    if (document.pointerLockElement === renderer.domElement) return;
+    if (e.target.closest && e.target.closest('button, a, input, textarea, select, .om-quiz, .om-viewer')) return;
+    if (player.requestLock) player.requestLock();
+  });
   renderer.domElement.addEventListener('click', (e) => {
     if (!player.started || viewerOpen) return;
     // A click that only (re)grabs the mouse must never trigger
@@ -3461,6 +3475,16 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
       if (dhits.length && dhits[0].distance < 2.3) {
         const di = dhits[0].object.userData.doorQuizIndex;
         if (typeof di === 'number' && quizStates[di] && !quizStates[di].solved) { openQuiz(di); return; }
+      }
+    }
+    // Finale: clicking the big red heart (or the Guest Book panel)
+    // leaves a heart, same as the ♥ button / H key (Omar, 2026-10-25).
+    if (finale && finale.clickTargets) {
+      const fhits = raycaster.intersectObjects(finale.clickTargets, false);
+      if (fhits.length) {
+        const n = finale.leaveHeart();
+        if (typeof n === 'number') heartCountEl.textContent = '♥ ' + n;
+        return;
       }
     }
     const hits = raycaster.intersectObjects(interactables, false);
