@@ -1593,10 +1593,12 @@ function buildCompanionAvatar(scene, camera) {
     return s;
   }
   const danceLabel = makeChoiceSprite('🕺 Dance');
-  danceLabel.position.set(-0.60, 2.32, 0);
+  danceLabel.scale.set(0.62, 0.195, 1);
+  danceLabel.position.set(-0.45, 1.10, 0.16);
   g.add(danceLabel);
   const turnLabel = makeChoiceSprite('🔄 Turn');
-  turnLabel.position.set(0.60, 2.32, 0);
+  turnLabel.scale.set(0.62, 0.195, 1);
+  turnLabel.position.set(0.45, 1.10, 0.16);
   g.add(turnLabel);
   let choicesOpen = false;
   if (typeof window !== 'undefined') {
