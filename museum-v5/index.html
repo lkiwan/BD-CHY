@@ -3657,9 +3657,11 @@ function createNet(scene, player, camera) {
 // Bloom Intro: a procedural 2D-canvas cinematic that plays on page load,
 // BEFORE the landing card, recreating the 'she wanted flowers' bloom reel:
 // darkness -> warm glow -> green stems grow -> layered-petal flowers bloom
-// in pink / yellow / red-orange / white -> one config line fades in at the
-// top -> the whole canvas crossfades out and removes itself, revealing the
-// v2 landing that was already rendering beneath.
+// in pink / yellow / red-orange / white -> the field HOLDS at full bloom
+// until the visitor taps ('Tap to continue', Omar 2026-10-25) -> the one
+// config line fades in at the top -> the whole canvas crossfades out and
+// removes itself, revealing the v2 landing that was already rendering
+// beneath.
 //
 // Template rule: everything per-customer comes from customer.json's
 // optional `intro` object — { enabled: bool, line: string }. Defaults when
@@ -3667,8 +3669,10 @@ function createNet(scene, player, camera) {
 // Nothing here is hard-coded to any customer.
 //
 // Safety contract: the intro NEVER blocks the museum. The whole thing is
-// wrapped in try/catch, any pointerdown / keydown skips to the fade-out,
-// and a hard 12 s safety timeout force-dismisses it. It is silent (audio
+// wrapped in try/catch; a tap during growth snaps to the full-bloom
+// hold, a tap in the hold moves on to the line and the fade-out, and a
+// hard safety timeout force-dismisses it (12 s before the hold, a long
+// 120 s backstop while holding). It is silent (audio
 // still starts on the landing's Enter tap, per autoplay rules) and it
 // needs no photos and no 3D scene — it starts on module evaluation /
 // DOMContentLoaded, independent of the museum's own load progress.
@@ -3676,10 +3680,11 @@ function createNet(scene, player, camera) {
 (function bloomIntro() {
   'use strict';
 
-  var DISMISS_AFTER_S = 9.0;    // natural end -> fade-out starts
   var FADE_MS = 900;            // crossfade duration (CSS transition)
-  var SAFETY_MS = 12000;        // hard force-dismiss, whatever happens
-  var LINE_AT_S = 6.5;          // config line fades in
+  var SAFETY_MS = 12000;        // hard force-dismiss before the hold
+  var HOLD_AT_S = 6.8;          // full bloom reached -> HOLD for a tap
+  var HOLD_SAFETY_MS = 120000;  // backstop while holding
+  var LINE_AFTER_TAP_MS = 1750; // line shows, then fade-out
   var SKIP_HINT_AT_MS = 800;    // 'Tap to skip' hint appears
 
   var overlay = null;
@@ -3710,7 +3715,14 @@ function createNet(scene, player, camera) {
     setTimeout(removeOverlay, fast ? 480 : FADE_MS + 120);
   }
 
-  function onSkipInput() { dismiss(false); }
+  // Set by the animated path: a tap during growth snaps to the full-
+  // bloom hold; a tap during the hold releases it (line, then fade).
+  var holdHook = null;
+
+  function onSkipInput() {
+    if (holdHook) { holdHook(); return; }
+    dismiss(false);
+  }
 
   try {
     var cfg = (typeof MUSEUM_CONFIG !== 'undefined' && MUSEUM_CONFIG)
@@ -4035,7 +4047,39 @@ function createNet(scene, player, camera) {
       var lastMs = startMs;
       var emaDt = 16.7;
       var frameCount = 0;
-      var lineShown = false;
+      // Hold state (Omar, 2026-10-25): at full bloom the cinematic
+      // STOPS and waits for the visitor's tap before moving on.
+      var holding = false;
+      var released = false;
+      var holdStartMs = 0;
+      var releaseAtMs = 0;
+
+      function enterHold(now) {
+        holding = true;
+        holdStartMs = now;
+        if (skipEl) {
+          skipEl.textContent = 'Tap to continue';
+          skipEl.classList.add('om-show');
+        }
+        // The 12 s safety must not kill the hold: swap in a long one.
+        if (safetyTimer) { clearTimeout(safetyTimer); safetyTimer = 0; }
+        safetyTimer = setTimeout(function () { removeOverlay(); }, HOLD_SAFETY_MS);
+      }
+      function releaseHold() {
+        released = true;
+        releaseAtMs = performance.now() + LINE_AFTER_TAP_MS;
+        if (lineEl) lineEl.classList.add('om-show');
+        if (skipEl) skipEl.classList.remove('om-show');
+      }
+      holdHook = function () {
+        if (!holding) { // tap during growth: snap to the full bloom
+          startMs = performance.now() - HOLD_AT_S * 1000;
+          enterHold(performance.now());
+        } else if (!released) {
+          releaseHold();
+        }
+      };
+
       var frame = function (now) {
         if (dismissed || fading) return;
         var dt = now - lastMs; lastMs = now;
@@ -4047,12 +4091,15 @@ function createNet(scene, player, camera) {
           quality = Math.max(0.35, quality * 0.7);
         }
         var t = (now - startMs) / 1000;
-        drawScene(t);
-        if (!lineShown && t >= LINE_AT_S) {
-          lineShown = true;
-          if (lineEl) lineEl.classList.add('om-show');
+        if (!holding && t >= HOLD_AT_S) enterHold(now);
+        if (released) {
+          if (now >= releaseAtMs) { dismiss(false); return; }
+        } else if (holding) {
+          // Frozen at full bloom; time crawls so the field still sways
+          // and the pollen drifts while it waits for the tap.
+          t = HOLD_AT_S + (now - holdStartMs) / 1000;
         }
-        if (t >= DISMISS_AFTER_S) { dismiss(false); return; }
+        drawScene(t);
         rafId = requestAnimationFrame(frame);
       };
       rafId = requestAnimationFrame(frame);
