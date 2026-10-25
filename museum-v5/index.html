@@ -4735,8 +4735,9 @@ async function bootMuseum() {
     companion.update(dt);
     if (window.__BALLOON_GROUP__) { // entrance balloons: one gentle sway
       const bg = window.__BALLOON_GROUP__;
-      bg.rotation.z = Math.sin(t * 0.8) * 0.035;
-      bg.rotation.x = Math.cos(t * 0.6) * 0.02;
+      const bt = clock.elapsedTime;
+      bg.rotation.z = Math.sin(bt * 0.8) * 0.035;
+      bg.rotation.x = Math.cos(bt * 0.6) * 0.02;
     }
     for (const gate of doorGates) { // door-quiz barriers pulse / dissolve + hearts
       if (!gate) continue;
