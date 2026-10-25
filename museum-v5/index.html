@@ -3058,6 +3058,16 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
       return;
     }
     closeBuddyMenu();
+    // A locked door: clicking its glowing barrier opens the question —
+    // never automatic on approach (Omar, 2026-10-25).
+    const doorBarriers = (typeof window !== 'undefined' && window.__DOOR_BARRIERS__) || [];
+    if (doorBarriers.length) {
+      const dhits = raycaster.intersectObjects(doorBarriers, false);
+      if (dhits.length) {
+        const di = dhits[0].object.userData.doorQuizIndex;
+        if (typeof di === 'number' && quizStates[di] && !quizStates[di].solved) { openQuiz(di); return; }
+      }
+    }
     const hits = raycaster.intersectObjects(interactables, false);
     if (hits.length && hits[0].object.userData.frameGroup) {
       openViewer(hits[0].object.userData.frameGroup);
