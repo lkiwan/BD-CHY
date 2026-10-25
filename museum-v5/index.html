@@ -315,6 +315,9 @@ html, body {
 .om-buddy-menu button:active { transform: translateY(1px); }
 
 /* -------------------------------------------------- door quiz (QCM) */
+/* In the 3D view there is no mouse cursor — only the centre aim dot
+   (Omar, 2026-10-25). DOM UI (quiz choices, buttons) keeps its own. */
+#app canvas { cursor: none; }
 .om-quiz {
   position: fixed; inset: 0; z-index: 70;
   display: flex; align-items: center; justify-content: center;
@@ -2762,6 +2765,9 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     if (quizEl) quizEl.style.display = 'none';
     renderer.domElement.style.filter = '';
     player.frozen = false;
+    // Back to the aim dot only: re-take pointer lock on desktop (the
+    // canvas also has cursor:none, so the mouse never shows either way).
+    if (player.requestLock) player.requestLock();
   }
   function answerQuiz(i, btn) {
     if (quizSolved) return;
