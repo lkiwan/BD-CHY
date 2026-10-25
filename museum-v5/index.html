@@ -2517,6 +2517,10 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   const start = el('div', 'om-start');
   start.id = 'start-screen';
   const cfg = MUSEUM_CONFIG;
+  // skipLanding: the card must NEVER paint — not even for a frame
+  // (Omar, 2026-10-25: the auto-enter hid it after ~1 s, but he wants
+  // it never shown at all).
+  if (cfg.skipLanding) start.style.display = 'none';
   start.innerHTML =
     '<div class="om-start-card">' +
       '<div class="om-start-kicker">A museum made for one visitor</div>' +
