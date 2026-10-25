@@ -281,6 +281,36 @@ html, body {
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
 }
 
+/* ------------------------------------------- centre dot + buddy menu */
+.om-crosshair {
+  position: fixed; left: 50%; top: 50%; z-index: 25;
+  width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+  background: rgba(251, 247, 238, 0.9);
+  border: 2px solid rgba(23, 19, 16, 0.55);
+  box-shadow: 0 0 0 3px rgba(251, 247, 238, 0.25);
+  pointer-events: none; transition: transform 0.12s ease, background 0.12s ease;
+}
+.om-crosshair.om-hot {
+  background: var(--accent); transform: scale(1.7);
+  box-shadow: 0 0 0 5px rgba(251, 247, 238, 0.3);
+}
+.om-buddy-menu {
+  position: fixed; left: 50%; top: 56%; z-index: 40;
+  transform: translateX(-50%);
+  display: flex; gap: 10px; align-items: center;
+  background: rgba(23, 19, 16, 0.78);
+  border: 1px solid var(--frame-color); border-radius: 999px;
+  padding: 10px 12px; box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+}
+.om-buddy-menu button {
+  font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  color: var(--paper); background: transparent;
+  border: 1px solid rgba(251, 247, 238, 0.55); border-radius: 999px;
+  padding: 9px 18px;
+}
+.om-buddy-menu button:first-of-type { background: var(--accent); border-color: var(--accent); }
+.om-buddy-menu button:active { transform: translateY(1px); }
+
 /* ------------------------------------------------ tour + room chips */
 .om-tour-overlay {
   position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%);
@@ -1529,6 +1559,9 @@ function buildCompanionAvatar(scene, camera) {
 
   const chestHeart = addBox(g, MAT.heart, 0.13, 0.13, 0.05, 0, 1.02, isGirl ? 0.225 : 0.25);
   chestHeart.rotation.z = Math.PI / 4;
+  // The heart is the buddy BUTTON (Omar, 2026-10-25): ui.js raycasts it
+  // from the centre dot; main.js pulses it when the dot is on it.
+  if (typeof window !== 'undefined') window.__BUDDY_HEART__ = chestHeart;
 
   const label = MUSEUM_CONFIG.fromName || 'Omar';
   const sprite = makeNameSprite(label);
@@ -1565,6 +1598,7 @@ function buildCompanionAvatar(scene, camera) {
   }
   function startDance() {
     if (dancing) return;
+    turned = false;
     dancing = true;
     danceT = 0;
     danceAnchor = { x: g.position.x, z: g.position.z };
@@ -1634,6 +1668,30 @@ function buildCompanionAvatar(scene, camera) {
     }
   }
 
+  // Turn (buddy-menu choice 2, Omar's correction 2026-10-25): she turns
+  // around and shows JUST her back side for a few seconds — no spin.
+  let turned = false;
+  let turnT = 0;
+  function startTurn() {
+    if (dancing || turned) return;
+    turned = true;
+    turnT = 0;
+  }
+  function updateTurn(dt) {
+    turnT += dt;
+    if (camera) {
+      const fx = camera.position.x - g.position.x;
+      const fz = camera.position.z - g.position.z;
+      if (Math.hypot(fx, fz) > 0.05) {
+        curYaw = lerpAngle(curYaw, Math.atan2(fx, fz) + Math.PI, 1 - Math.exp(-6 * dt));
+      }
+    }
+    g.rotation.y = curYaw;
+    g.rotation.z = 0;
+    g.position.y = REDUCED_MOTION_AVATAR ? 0 : Math.sin(turnT * 1.4) * 0.015;
+    if (turnT >= 4) turned = false;
+  }
+
   // Spawns beside the visitor at the entrance and follows from there.
   g.position.set(1.4, 0, 3.9);
   scene.add(g);
@@ -1657,9 +1715,11 @@ function buildCompanionAvatar(scene, camera) {
   return {
     group: g,
     startDance,
+    startTurn,
     update(dt) {
       t += dt;
       if (dancing) { updateDance(dt); return; }
+      if (turned) { updateTurn(dt); return; }
       const camPos = camera ? camera.position : null;
       let walking = false;
       let speedNow = 0;
@@ -2529,6 +2589,43 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   heartCountEl.style.display = 'none';
   body.appendChild(heartCountEl);
 
+  // Centre dot: the visitor clicks things by LOOKING at them (Omar,
+  // 2026-10-25). Shown after entering; turns hot (accent + bigger) when
+  // it is aimed at the buddy's heart (main.js toggles the class).
+  const crosshair = el('div', 'om-crosshair');
+  crosshair.id = 'om-crosshair';
+  crosshair.style.display = 'none';
+  body.appendChild(crosshair);
+
+  // Buddy menu: opens when the heart is clicked with the centre dot.
+  const buddyMenu = el('div', 'om-buddy-menu');
+  buddyMenu.style.display = 'none';
+  const buddyDanceBtn = el('button', '', '🕺 Dance');
+  buddyDanceBtn.type = 'button';
+  const buddyTurnBtn = el('button', '', '🔄 Turn');
+  buddyTurnBtn.type = 'button';
+  buddyMenu.appendChild(buddyDanceBtn);
+  buddyMenu.appendChild(buddyTurnBtn);
+  body.appendChild(buddyMenu);
+  let buddyMenuTimer = null;
+  function closeBuddyMenu() {
+    buddyMenu.style.display = 'none';
+    if (buddyMenuTimer) { clearTimeout(buddyMenuTimer); buddyMenuTimer = null; }
+  }
+  function openBuddyMenu() {
+    buddyMenu.style.display = 'flex';
+    if (buddyMenuTimer) clearTimeout(buddyMenuTimer);
+    buddyMenuTimer = setTimeout(closeBuddyMenu, 6000);
+  }
+  buddyDanceBtn.addEventListener('click', () => {
+    closeBuddyMenu();
+    window.dispatchEvent(new Event('om-buddy-dance'));
+  });
+  buddyTurnBtn.addEventListener('click', () => {
+    closeBuddyMenu();
+    window.dispatchEvent(new Event('om-buddy-turn'));
+  });
+
   if (audio) {
     muteBtn.addEventListener('click', () => {
       const mutedNow = audio.toggleMute();
@@ -2734,21 +2831,26 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   });
 
   // ------------------------------------------------------ click to view
+  // The centre dot is the clicker (Omar, 2026-10-25): every click aims
+  // from the middle of the view, at whatever the visitor is looking at.
   const raycaster = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   renderer.domElement.addEventListener('click', (e) => {
     if (!player.started || viewerOpen) return;
-    if (document.pointerLockElement === renderer.domElement) {
-      ndc.set(0, 0); // locked: view centre
-    } else {
-      if (player.wasDrag()) return; // that click ended a look-drag
-      ndc.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
-    }
+    if (document.pointerLockElement !== renderer.domElement && player.wasDrag()) return;
+    ndc.set(0, 0);
     raycaster.setFromCamera(ndc, camera);
     // Through-wall guard (A4): sanctioned fallback landed — raycaster.far
     // shortened 7 -> 4 so clicks cannot reach photos through a wall at
     // museum distances (full occlusion raycast was not landed).
     raycaster.far = 4;
+    // Buddy first: the heart on her chest opens the buddy menu.
+    const heart = (typeof window !== 'undefined') ? window.__BUDDY_HEART__ : null;
+    if (heart && raycaster.intersectObject(heart, false).length) {
+      openBuddyMenu();
+      return;
+    }
+    closeBuddyMenu();
     const hits = raycaster.intersectObjects(interactables, false);
     if (hits.length && hits[0].object.userData.frameGroup) {
       openViewer(hits[0].object.userData.frameGroup);
@@ -2841,6 +2943,7 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     hint.style.display = 'block';
     if (audio && audio.available()) muteBtn.style.display = 'block';
     buddyBtn.style.display = 'block';
+    crosshair.style.display = 'block';
     if (audio) audio.start(); // audio unlock happens on this tap
     if (window.matchMedia('(pointer: coarse)').matches) joy.style.display = 'block';
     player.started = true;
@@ -3958,6 +4061,13 @@ async function bootMuseum() {
   const player = createPlayer(camera, renderer.domElement);
   const companion = buildCompanionAvatar(scene, camera);
   window.addEventListener('om-buddy-dance', () => companion.startDance());
+  window.addEventListener('om-buddy-turn', () => companion.startTurn());
+  // Centre-dot heat: pulse the buddy's heart and light the dot when the
+  // visitor is looking straight at it (one cheap raycast per frame).
+  const buddyRay = new THREE.Raycaster();
+  buddyRay.far = 4;
+  const buddyCenter = new THREE.Vector2(0, 0);
+  let buddyHot = false;
   const cinema = createCinema(scene, player, camera);
   const finale = createFinale(scene);
   const audio = createAudio();
@@ -4019,6 +4129,20 @@ async function bootMuseum() {
     if (tour) tour.update(dt);
     ui.update();
     companion.update(dt);
+    { // buddy heart heat under the centre dot
+      const heart = window.__BUDDY_HEART__;
+      const dot = document.getElementById('om-crosshair');
+      if (heart && dot && player.started) {
+        buddyRay.setFromCamera(buddyCenter, camera);
+        const hot = buddyRay.intersectObject(heart, false).length > 0;
+        if (hot !== buddyHot) {
+          buddyHot = hot;
+          dot.classList.toggle('om-hot', hot);
+          const s = hot ? 1.35 : 1;
+          heart.scale.set(s, s, s);
+        }
+      }
+    }
     cinema.update(dt);
     finale.update(dt);
     if (net) net.update(dt);
