@@ -2811,16 +2811,9 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
       quizCard.classList.add('om-shake');
     }
   }
-  function maybeOpenQuiz() {
-    if (!quizList.length || quizOpenIdx >= 0) return;
-    const p = camera.position;
-    for (let i = 0; i < quizList.length; i++) {
-      if (quizStates[i].solved) continue;
-      const w = INTERIOR_WALLS[i];
-      if (!w) continue;
-      if (p.z < w.z + 2.7 && p.z > w.z - 0.5 && Math.abs(p.x) < 2.4) { openQuiz(i); return; }
-    }
-  }
+  // The question NEVER pops up on approach (Omar, 2026-10-25): it
+  // opens only when the visitor clicks the locked door itself — see
+  // the door-barrier branch in onCanvasClick.
 
   if (audio) {
     muteBtn.addEventListener('click', () => {
@@ -2999,6 +2992,9 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     if (renderer && renderer.domElement && renderer.domElement.focus) {
       try { renderer.domElement.focus(); } catch (e) { /* canvas focus is best-effort */ }
     }
+    // Straight back to aiming (Omar, 2026-10-25): closing a photo
+    // re-takes pointer lock so only the aim dot is in charge again.
+    if (player.requestLock) player.requestLock();
   }
   function stepViewer(delta) {
     if (!viewerOpen) return;
@@ -3194,7 +3190,6 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     _toastFor: null,
     update() {
       if (!player.started) return;
-      maybeOpenQuiz();
       const room = roomAt(camera.position.z);
       if (room && room.name !== ui._lastRoom) {
         ui._lastRoom = room.name;
@@ -4416,9 +4411,11 @@ async function bootMuseum() {
         new THREE.MeshBasicMaterial({ map: bTex, transparent: true, side: THREE.DoubleSide, depthWrite: false })
       );
       barrier.position.set(0, DOOR_HEIGHT / 2, wall.z);
+      barrier.userData.doorQuizIndex = i;
       scene.add(barrier);
       doorGates[i] = { obstacle, barrier, solved: false, t: 0, idle: Math.random() * 2, hearts: [], z: wall.z };
     });
+    window.__DOOR_BARRIERS__ = doorGates.filter(Boolean).map((g) => g.barrier);
     window.__DOOR_QUIZZES__ = {
       solve(i) {
         const gate = doorGates[i];
