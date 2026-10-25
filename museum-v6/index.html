@@ -1109,12 +1109,15 @@ function buildCandles(root) {
       }
     }
   }
-  // Candle pairs on the walls beside every door (both faces).
+  // Candle pairs on the walls beside every door (both faces). The
+  // interior walls are 0.3 deep (faces at ±0.15), so the candles sit
+  // at ±0.24 — at ±0.14 they were buried inside the wall, unlit
+  // (Omar, 2026-10-25).
   for (const wall of INTERIOR_WALLS) {
     for (const sz of [-1, 1]) {
       for (const sx of [-1, 1]) {
-        addCandle(sx * 1.62, 2.15, wall.z + sz * 0.14, 0.26);
-        addCandle(sx * 1.86, 2.15, wall.z + sz * 0.14, 0.19);
+        addCandle(sx * 1.62, 2.15, wall.z + sz * 0.24, 0.26);
+        addCandle(sx * 1.86, 2.15, wall.z + sz * 0.24, 0.19);
       }
     }
   }
@@ -3079,11 +3082,8 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   sitBtn.setAttribute('aria-pressed', 'false');
   const heartBtn = actionBtn('om-heart-btn', '♥ Leave a heart');
   heartBtn.setAttribute('aria-label', 'Leave a heart');
-  const buddyBtn = actionBtn('om-buddy-btn', '🕺 Dance');
-  buddyBtn.setAttribute('aria-label', 'Make your buddy dance');
-  buddyBtn.addEventListener('click', () => {
-    window.dispatchEvent(new Event('om-buddy-dance'));
-  });
+  // No Dance button (Omar, 2026-10-25): dancing starts from Nada's
+  // heart menu in the world, not from a screen button.
   const heartCountEl = el('div', 'om-heart-count');
   heartCountEl.style.display = 'none';
   body.appendChild(heartCountEl);
@@ -3554,7 +3554,6 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     actions.style.display = 'flex';
     hint.style.display = 'block';
     if (audio && audio.available()) muteBtn.style.display = 'block';
-    buddyBtn.style.display = 'block';
     crosshair.style.display = 'block';
     if (audio) audio.start(); // audio unlock happens on this tap
     if (window.matchMedia('(pointer: coarse)').matches) joy.style.display = 'block';
