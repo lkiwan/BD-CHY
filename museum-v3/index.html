@@ -750,16 +750,41 @@ function buildLights(scene) {
 
 // Subtle floating dust motes (one Points cloud for the whole museum).
 function buildDust(scene) {
+  // Floating HEARTS in different colours (Omar's order, 2026-10-25 — the old
+  // PointsMaterial had no sprite, so the motes rendered as beige squares).
+  // One white heart sprite tinted per-particle via vertex colours.
+  const heartCanvas = makeCanvas(128, 128);
+  const hctx = heartCanvas.getContext('2d');
+  hctx.beginPath();
+  hctx.moveTo(64, 114);
+  hctx.bezierCurveTo(8, 74, 12, 30, 38, 24);
+  hctx.bezierCurveTo(52, 20, 60, 30, 64, 44);
+  hctx.bezierCurveTo(68, 30, 76, 20, 90, 24);
+  hctx.bezierCurveTo(116, 30, 120, 74, 64, 114);
+  hctx.closePath();
+  hctx.shadowColor = 'rgba(255,255,255,0.9)';
+  hctx.shadowBlur = 10;
+  hctx.fillStyle = '#ffffff';
+  hctx.fill();
+  const heartTex = new THREE.CanvasTexture(heartCanvas);
+  heartTex.colorSpace = THREE.SRGBColorSpace;
+
   const count = 420;
   const pos = new Float32Array(count * 3);
+  const col = new Float32Array(count * 3);
+  const palette = ['#ff8fab', '#ef476f', '#ffd166', '#fff3e2', '#ff7f6b', '#e5989b', '#f7cad9']
+    .map((h) => new THREE.Color(h));
   for (let i = 0; i < count; i++) {
     pos[i * 3] = (Math.random() - 0.5) * 11;
     pos[i * 3 + 1] = 0.3 + Math.random() * 3.8;
     pos[i * 3 + 2] = 10 - Math.random() * 60;
+    const c = palette[(Math.random() * palette.length) | 0];
+    col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const mat = new THREE.PointsMaterial({ color: 0xffe9bb, size: 0.045, transparent: true, opacity: 0.55, depthWrite: false });
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({ size: 0.11, map: heartTex, vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false, sizeAttenuation: true, alphaTest: 0.02 });
   const points = new THREE.Points(geo, mat);
   points.name = 'dust';
   scene.add(points);
