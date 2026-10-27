@@ -1108,9 +1108,10 @@ function buildEntranceDecor(root) {
 
 // ------------------------------------------------------------- candles
 // Castle theme only. Every candle body + holder is ONE InstancedMesh
-// each; every flame is a point in ONE THREE.Points cloud — the whole
-// candlelight system costs ~4 draw calls and three PointLights, so
-// the game stays fluid. main.js flickers the flame cloud's size.
+// each; every flame is a point in ONE THREE.Points cloud, plus ONE
+// more cloud for the per-flame glow halos — the whole candlelight
+// system costs ~5 draw calls and one PointLight per room, so the
+// game stays fluid. main.js flickers the flame cloud's size.
 function buildCandles(root) {
   const candles = []; // {x, y(base), z, h}
   const flames = [];  // flame tip positions
@@ -1198,16 +1199,31 @@ function buildCandles(root) {
   const fGeo = new THREE.BufferGeometry();
   fGeo.setAttribute('position', new THREE.Float32BufferAttribute(flames, 3));
   const fMat = new THREE.PointsMaterial({
-    size: 0.16, map: fTex, transparent: true, depthWrite: false,
+    size: 0.19, map: fTex, transparent: true, depthWrite: false,
     blending: THREE.AdditiveBlending, color: 0xffc37a, sizeAttenuation: true,
   });
   const points = new THREE.Points(fGeo, fMat);
   root.add(points);
   window.__CANDLE_FLAMES__ = fMat;
-  // Three warm pools of real light (the only added lights).
-  for (const [lx, ly, lz, li] of [[0, 2.7, 5, 34], [0, 2.7, -20, 30], [0, 2.7, -46, 30]]) {
-    const pl = new THREE.PointLight(0xffa04e, li, 14, 1.8);
-    pl.position.set(lx, ly, lz);
+  // Warm halo around EVERY flame (Omar 2026-10-27: "light effect on each
+  // candle, the museum is too dark") — a second Points cloud sharing the
+  // flame positions: soft, additive, one draw call. main.js breathes its
+  // opacity with the flame flicker.
+  const gGeo = new THREE.BufferGeometry();
+  gGeo.setAttribute('position', new THREE.Float32BufferAttribute(flames, 3));
+  const gMat = new THREE.PointsMaterial({
+    size: 0.85, map: fTex, transparent: true, opacity: 0.32, depthWrite: false,
+    blending: THREE.AdditiveBlending, color: 0xff9a3c, sizeAttenuation: true,
+  });
+  const glows = new THREE.Points(gGeo, gMat);
+  root.add(glows);
+  window.__CANDLE_GLOW__ = gMat;
+  // Real warm light: one pool per room at candle height, so every hall is
+  // lit by its candles — not just the entrance/centre/finale as before.
+  for (const room of JOURNEY) {
+    const cz = (room.zMin + room.zMax) / 2;
+    const pl = new THREE.PointLight(0xffa04e, 26, 13, 1.8);
+    pl.position.set(0, 2.6, cz);
     root.add(pl);
   }
 }
@@ -1215,11 +1231,11 @@ function buildCandles(root) {
 // ----------------------------------------------------------------- lights
 function buildLights(scene) {
   const hemisphere = CASTLE
-    ? new THREE.HemisphereLight(0xffc98a, 0x3a2415, 0.34)
+    ? new THREE.HemisphereLight(0xffc98a, 0x3a2415, 0.44)
     : new THREE.HemisphereLight(0xfff2dd, 0x8a6f4d, 0.55);
   scene.add(hemisphere);
   const ambient = CASTLE
-    ? new THREE.AmbientLight(0xff9a3c, 0.12)
+    ? new THREE.AmbientLight(0xff9a3c, 0.18)
     : new THREE.AmbientLight(0xffe9c9, 0.25);
   scene.add(ambient);
 
@@ -4820,7 +4836,7 @@ async function bootMuseum() {
   const ceremony = { started: false, done: false, t: 0, dur: 2 };
   function finishCeremony() {
     if (dedicationSpot) dedicationSpot.intensity = 150;
-    if (hemisphere) hemisphere.intensity = CASTLE ? 0.34 : 0.55;
+    if (hemisphere) hemisphere.intensity = CASTLE ? 0.44 : 0.55;
     ceremony.started = false;
     ceremony.done = true;
   }
@@ -4991,7 +5007,7 @@ async function bootMuseum() {
       ceremony.t += dt;
       const k = Math.min(1, ceremony.t / ceremony.dur);
       if (dedicationSpot) dedicationSpot.intensity = 150 * k;
-      if (hemisphere) hemisphere.intensity = 0.3 + ((CASTLE ? 0.34 : 0.55) - 0.3) * k;
+      if (hemisphere) hemisphere.intensity = 0.3 + ((CASTLE ? 0.44 : 0.55) - 0.3) * k;
       if (k >= 1) finishCeremony();
     }
     player.update(dt);
@@ -5006,7 +5022,9 @@ async function bootMuseum() {
     }
     if (window.__CANDLE_FLAMES__) { // castle candles: flame size flicker
       const ft = clock.elapsedTime;
-      window.__CANDLE_FLAMES__.size = 0.155 + Math.sin(ft * 13.7) * 0.012 + Math.sin(ft * 7.3 + 1.7) * 0.009;
+      window.__CANDLE_FLAMES__.size = 0.185 + Math.sin(ft * 13.7) * 0.012 + Math.sin(ft * 7.3 + 1.7) * 0.009;
+      if (window.__CANDLE_GLOW__) // candle halos breathe with the flames
+        window.__CANDLE_GLOW__.opacity = 0.31 + Math.sin(ft * 9.1 + 0.6) * 0.035 + Math.sin(ft * 5.3) * 0.025;
     }
     for (const gate of doorGates) { // door-quiz barriers pulse / dissolve + hearts
       if (!gate) continue;
