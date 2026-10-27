@@ -575,27 +575,45 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
 }
 
 // A parchment-style panel texture carrying wrapped text (dedication, finale).
-function makeTextPanelTexture({ title, body, footer, dark }) {
+// opts.warm (castle dedication, Omar 2026-10-27): the pale parchment blew out
+// to washed cream under the entrance spotlights; the warm amber panel with
+// near-black lettering keeps the rich colour of his reference screenshot.
+function makeTextPanelTexture({ title, body, footer, dark, warm }) {
   const canvas = makeCanvas(1024, 640);
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = dark ? '#171310' : '#fbf7ee';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = THEME.frame;
+  if (warm && !dark) {
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, '#f0a95c');
+    grad.addColorStop(0.5, '#e59a48');
+    grad.addColorStop(1, '#d98a38');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const glow = ctx.createRadialGradient(512, 300, 60, 512, 300, 620);
+    glow.addColorStop(0, 'rgba(255,225,170,0.28)');
+    glow.addColorStop(1, 'rgba(120,60,10,0.18)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = dark ? '#171310' : '#fbf7ee';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  ctx.strokeStyle = warm && !dark ? '#8a5a24' : THEME.frame;
   ctx.lineWidth = 10;
   ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+  ctx.strokeStyle = warm && !dark ? 'rgba(58,32,10,0.55)' : THEME.frame;
   ctx.lineWidth = 2;
   ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
   ctx.textAlign = 'center';
-  ctx.fillStyle = dark ? '#e9dcc3' : '#4a3b28';
+  ctx.fillStyle = dark ? '#e9dcc3' : warm ? '#2e1a06' : '#4a3b28';
   if (title) {
     ctx.font = '600 54px Georgia, "Times New Roman", serif';
     wrapText(ctx, title, 512, 130, 840, 62, 2);
   }
-  ctx.fillStyle = dark ? '#d8c9a8' : '#5a4a33';
+  ctx.fillStyle = dark ? '#d8c9a8' : warm ? '#40260d' : '#5a4a33';
   ctx.font = 'italic 40px Georgia, "Times New Roman", serif';
   wrapText(ctx, body, 512, 250, 820, 56, 5);
   if (footer) {
-    ctx.fillStyle = THEME.accent;
+    ctx.fillStyle = warm && !dark ? '#a02c1c' : THEME.accent;
     ctx.font = '600 34px Georgia, "Times New Roman", serif';
     ctx.fillText(footer, 512, 580);
   }
@@ -823,8 +841,14 @@ function buildMuseum(scene) {
     footer: (MUSEUM_CONFIG.fromName ? 'From ' + MUSEUM_CONFIG.fromName : '') +
       (MUSEUM_CONFIG.toName ? '  ·  For ' + MUSEUM_CONFIG.toName : ''),
     dark: false,
+    warm: CASTLE,
   });
-  const dedication = new THREE.Mesh(GEO.plane, new THREE.MeshStandardMaterial({ map: dedicationTex, roughness: 0.9 }));
+  // Castle: unlit material — the panel must hold its warm amber colour in the
+  // steady state, not only during the dim intro (lit standard material washed
+  // it out to cream once the entrance lights came up; Omar 2026-10-27).
+  const dedication = new THREE.Mesh(GEO.plane, CASTLE
+    ? new THREE.MeshBasicMaterial({ map: dedicationTex })
+    : new THREE.MeshStandardMaterial({ map: dedicationTex, roughness: 0.9 }));
   dedication.scale.set(5.4, 3.375, 1);
   dedication.position.set(0, 2.25, 9.97);
   dedication.rotation.y = Math.PI; // face -Z, toward the spawning player
@@ -1264,6 +1288,13 @@ function buildDust(scene) {
   const mat = new THREE.PointsMaterial({ size: 0.11, map: heartTex, vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false, sizeAttenuation: true, alphaTest: 0.02 });
   const points = new THREE.Points(geo, mat);
   points.name = 'dust';
+  // Base positions + per-heart phase: main.js bobs each heart gently around
+  // its own base point so the hearts stay in their rooms forever (the old
+  // whole-cloud Y rotation swung them out through the walls over minutes).
+  points.userData.base = pos.slice();
+  const phases = new Float32Array(count);
+  for (let i = 0; i < count; i++) phases[i] = Math.random() * Math.PI * 2;
+  points.userData.phase = phases;
   scene.add(points);
   return points;
 }
@@ -3175,7 +3206,7 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
     quizCard.classList.remove('om-win', 'om-shake');
     quizGrid.innerHTML = '';
     (q.choices || []).forEach((choice, i) => {
-      const b = el('button', 'om-quiz-choice', choice.label || '');
+      const b = el('button', 'om-quiz-choice', typeof choice === 'string' ? choice : (choice.label || ''));
       b.type = 'button';
       b.style.background = choice.color || '';
       b.addEventListener('click', () => answerQuiz(i, b));
@@ -5024,7 +5055,18 @@ async function bootMuseum() {
     cinema.update(dt);
     finale.update(dt);
     if (net) net.update(dt);
-    if (dust && !REDUCED_MOTION_MAIN) dust.rotation.y += dt * 0.004;
+    if (dust && !REDUCED_MOTION_MAIN) { // hearts bob in place, never leave their room
+      const dp = dust.geometry.attributes.position;
+      const db = dust.userData.base, dph = dust.userData.phase;
+      if (dp && db && dph) {
+        const t = clock.elapsedTime;
+        for (let i = 0; i < dph.length; i++) {
+          dp.array[i * 3] = db[i * 3] + Math.sin(t * 0.22 + dph[i] * 1.7) * 0.12;
+          dp.array[i * 3 + 1] = db[i * 3 + 1] + Math.sin(t * 0.4 + dph[i]) * 0.18;
+        }
+        dp.needsUpdate = true;
+      }
+    }
     renderer.render(scene, camera);
   });
 }
