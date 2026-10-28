@@ -830,8 +830,10 @@ function buildMuseum(scene) {
     buildWallX(root, mat, wall.z, true);
   }
 
-  // Red carpet runner through the door line, entrance -> finale.
-  addBox(root, new THREE.MeshStandardMaterial({ color: new THREE.Color(THEME.accent), roughness: 0.95 }),
+  // Carpet runner through the door line, entrance -> finale. Castle uses a
+  // true deep red (Omar 2026-10-28: "red tapi, not rose" — the theme accent
+  // #c96f7b rendered it pink); classic builds keep the accent colour.
+  addBox(root, new THREE.MeshStandardMaterial({ color: new THREE.Color(CASTLE ? '#a31621' : THEME.accent), roughness: 0.95 }),
     2.0, 0.02, 58, 0, 0.011, -20);
 
   // Dedication panel on the entrance south wall (player spawns facing it).
