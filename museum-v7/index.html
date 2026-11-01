@@ -5503,27 +5503,18 @@ if ((window.__CONFIG__ || {}).livingPortrait) {
 
 // ------------------------------------------------------------- the mount
 // Builds the framed portrait and returns the aim bridge { tick,
-// tryClick, setRoom }. Called by main.js only when the config flag is
-// on; returns null otherwise. The portrait is NOT added to the
-// paintings interactables list — clicks on it are consumed via
-// tryClick() so the photo viewer never opens for it.
+// tryClick }. Called by main.js only when the config flag is on;
+// returns null otherwise. The portrait is NOT added to the paintings
+// interactables list — clicks on it are consumed via tryClick() so
+// the photo viewer never opens for it.
 //
-// Legacy mode (no room groups): she hangs in the finale, exactly as
-// museum-v7 shipped. Teleport mode (config "teleportRooms"): ONE
-// instance, re-parented into the visitor's current room on every
-// teleport — she is in every hall because she travels with you. One
-// placement per room, each on wall space that stays clear of the
-// room's own art:
-//   entrance    north wall (z=0), west of the door — the welcome
-//               sign is centred over the door and the welcome plaque
-//               sits east (x 2.55..3.75); the west stretch is hers
-//               (see the polaroid note at PLACEMENTS).
-//   hallA       north wall (z=0), hall side, west of the door.
-//   centrepiece west wall, south section (z -14.6..-17.1): the
-//               centrepiece photo spans z -17.7..-22.3, the benches
-//               are mid-room, the cinema screen is on the east wall.
-//   hallB       north wall (z=-26), hall side, west of the door.
-//   finale      west wall centre — her original v7 spot.
+// Omar's order (2026-11-01, after the teleport restructure): Mina
+// hangs ONLY in the finale — her original museum-v7 spot on the
+// finale's west wall. The framed group is parented once, into the
+// finale's room group in teleport mode (so the room-alone visibility
+// gating shows her exactly when the visitor is in the finale) or
+// into the scene in legacy mode. She never moves; room swaps do
+// nothing portrait-related.
 function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
   if (!((window.__CONFIG__ || {}).livingPortrait)) return null;
   const wrap = document.getElementById('magnetWrap');
@@ -5564,25 +5555,16 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
   face.position.z = 0.045;
   group.add(face);
 
-  // ------------------------------------------------------------ placements
-  // pos = group origin (frame centre), ry = facing, size = picture edge.
-  // Entrance note: the polaroid teaser wall sits at x -4.08..-2.23 on
-  // this wall in the decor builder — her frame there spans
-  // x -5.51..-3.19, which would overlap it IF the decor planes render
-  // (they sit at z 0.06-0.07, inside the wall box's ±0.15 band, behind
-  // its entrance face — in practice she owns this stretch of wall).
-  const PLACEMENTS = {
-    entrance:    { pos: [-4.35, 2.2, 0.18],   ry: 0,           size: 2.2 },
-    hallA:       { pos: [-4.25, 2.2, -0.18],  ry: Math.PI,     size: 2.2 },
-    centrepiece: { pos: [-5.94, 2.2, -15.85], ry: Math.PI / 2, size: 2.2 },
-    hallB:       { pos: [-4.25, 2.2, -26.18], ry: Math.PI,     size: 2.2 },
-    finale:      { pos: [-5.94, 2.2, -45],    ry: Math.PI / 2, size: 3.0 },
-  };
-  let curRoom = TELEPORT ? 'entrance' : 'finale';
-  let curSize = PLACEMENTS[curRoom].size;
+  // ------------------------------------------------------------ placement
+  // One fixed placement: the finale's west wall — her original v7
+  // spot. pos = group origin (frame centre), ry = facing, size =
+  // picture edge.
+  const PLACEMENT = { pos: [-5.94, 2.2, -45], ry: Math.PI / 2, size: 3.0 };
+  const curRoom = 'finale';
+  const curSize = PLACEMENT.size;
 
-  // Her frame is solid: one obstacle that follows her from room to
-  // room (roomFn — player.js asks it which room she is in right now).
+  // Her frame is solid: one static obstacle in the finale (roomFn —
+  // player.js asks it which room it belongs to; hers never changes).
   const obstacle = { minX: 0, maxX: 0, minZ: 0, maxZ: 0, roomFn: () => curRoom };
   function layoutObstacle(p) {
     const fx = Math.sin(p.ry), fz = Math.cos(p.ry); // facing (+Z of group)
@@ -5595,21 +5577,16 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
     obstacle.minZ = cz - ez; obstacle.maxZ = cz + ez;
   }
 
-  function setRoom(roomId) {
-    const p = PLACEMENTS[roomId];
-    if (!p) return;
-    curRoom = roomId;
-    curSize = p.size;
-    frameBox.scale.set(p.size + BORDER * 2, p.size + BORDER * 2, 0.07);
-    matte.scale.set(p.size + 0.06, p.size + 0.06, 1);
-    face.scale.set(p.size, p.size, 1);
-    group.position.set(p.pos[0], p.pos[1], p.pos[2]);
-    group.rotation.y = p.ry;
-    layoutObstacle(p);
-    const parent = TELEPORT ? (roomGroups[roomId] || scene) : scene;
-    if (group.parent !== parent) parent.add(group);
-  }
-  setRoom(curRoom);
+  // Mounted once, forever: in teleport mode she belongs to the
+  // finale's room group, so the room-alone visibility gating renders
+  // her only while the visitor is in the finale. She never moves.
+  frameBox.scale.set(curSize + BORDER * 2, curSize + BORDER * 2, 0.07);
+  matte.scale.set(curSize + 0.06, curSize + 0.06, 1);
+  face.scale.set(curSize, curSize, 1);
+  group.position.set(PLACEMENT.pos[0], PLACEMENT.pos[1], PLACEMENT.pos[2]);
+  group.rotation.y = PLACEMENT.ry;
+  layoutObstacle(PLACEMENT);
+  (TELEPORT ? (roomGroups.finale || scene) : scene).add(group);
   // Legacy museum-v7 had no portrait obstacle; the solid frame is a
   // teleport-mode behaviour, so it is only registered there.
   if (TELEPORT) pushObstacle(obstacle);
@@ -5672,6 +5649,20 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
     return false;
   }
 
+  // Perf gate (teleport mode): while the visitor is outside the
+  // finale, park her hidden render host off-screen. Her engine gates
+  // its own frame loop on an IntersectionObserver over its canvas,
+  // so off-screen it stops stepping the sheet physics and drawing —
+  // she costs ~nothing — and it resumes by itself when the host
+  // returns on entering the finale. Style is only touched on change.
+  const hostEl = document.getElementById('om-portrait-host');
+  let hostParked = false;
+  function parkHost(park) {
+    if (!hostEl || park === hostParked) return;
+    hostParked = park;
+    hostEl.style.left = park ? '-10000px' : '0px';
+  }
+
   let tickCount = 0;
   // Per-frame (called from main.js's render loop, before render):
   // refresh the texture, raycast the centre dot at the portrait, and
@@ -5683,12 +5674,14 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
     tickCount += 1;
     if (tickCount % 2 === 0) tex.needsUpdate = true;
 
-    // Teleport mode: she is only present in the visitor's current
-    // room (portals.js moves her with setRoom). Anywhere else there
-    // is nothing to aim at and no gaze to feed.
+    // Teleport mode: she exists only in the finale. Anywhere else
+    // there is nothing to aim at and no gaze to feed — and her own
+    // engine is parked off-screen (see parkHost above).
     if (TELEPORT) {
       const P = window.__PORTALS__;
-      if (!P || P.currentRoomId() !== curRoom) { aim.hit = false; return; }
+      const inFinale = !!P && P.currentRoomId() === 'finale';
+      parkHost(!inFinale);
+      if (!inFinale) { aim.hit = false; return; }
     }
 
     raycaster.setFromCamera(CENTRE, camera);
@@ -5728,7 +5721,7 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
         // visitor. Project the camera into her picture space: the
         // wall-right vector of her facing (fx, fz) is (fz, -fx) in
         // (x, z); u runs along it, v runs down from her top edge.
-        const p = PLACEMENTS[curRoom];
+        const p = PLACEMENT;
         const fx = Math.sin(p.ry), fz = Math.cos(p.ry);
         const along = (camera.position.x - p.pos[0]) * fz + (camera.position.z - p.pos[2]) * (-fx);
         const u = clamp(along / curSize + 0.5, -0.3, 1.3);
@@ -5738,7 +5731,7 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
     }
   }
 
-  return { tick, tryClick, setRoom, faceMesh: face, group, roomId: () => curRoom };
+  return { tick, tryClick, faceMesh: face, group, roomId: () => curRoom };
 }
 
 // Our Museum — portals.js (inlined after portrait.js, before main.js)
@@ -5749,7 +5742,8 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
 // only that room's group is visible, only its lights burn. Forward
 // doors stay locked behind their doorQuizzes question until solved
 // (ui.js opens it, exactly as before); going back is always free.
-// The Living Portrait teleports along (portrait.setRoom).
+// The Living Portrait does NOT travel: she hangs in the finale only,
+// so a room swap does nothing portrait-related.
 //
 // Everything here is gated on the config flag: without it,
 // createPortals is never called and this module injects nothing.
@@ -5947,7 +5941,6 @@ function createPortals({ scene, roomGroups, player, camera, companion, portrait,
     const { doorIdx, targetIdx } = pending;
     applyRoom(targetIdx);
     placePlayerAtDoor(doorIdx, targetIdx);
-    if (portrait && typeof portrait.setRoom === 'function') portrait.setRoom(JOURNEY[targetIdx].id);
     if (companion && typeof companion.snapBeside === 'function') companion.snapBeside();
   }
 
@@ -6165,7 +6158,7 @@ async function bootMuseum() {
   // Living Portrait (config "livingPortrait", museum-v7 test): Mina on
   // the finale's west wall, driven by the centre-dot aim. Null for
   // every other customer — portrait.js is fully gated on the flag.
-  // Teleport mode: she re-parents into the visitor's current room.
+  // She hangs in the finale only, in both modes (Omar, 2026-11-01).
   const livingPortrait = (MUSEUM_CONFIG.livingPortrait && typeof createLivingPortrait === 'function')
     ? createLivingPortrait({ scene, camera, domElement: renderer.domElement, roomGroups: TELEPORT ? roomGroups : null })
     : null;
