@@ -5103,9 +5103,11 @@ function createNet(scene, player, camera) {
 // createLivingPortrait is never called).
 //
 // Omar's interaction spec (2026-11-01, museum-v7):
-//  - In the 3D finale her gilt frame hangs EMPTY on the west wall —
-//    bare dark matte, no face. Nothing of her shows in the 3D scene,
-//    and there is no aim bridge any more.
+//  - In the 3D finale her gilt frame hangs on the west wall showing
+//    her face as a FIXED still picture — her neutral 'rest' image as
+//    one plain texture over the dark matte, loaded once, never
+//    animated. The living portrait exists only inside Portrait
+//    Mode; there is no aim bridge any more.
 //  - While the visitor is in the finale, the companion stands beside
 //    the picture holding a speech bubble: "Click on the picture!".
 //  - Clicking the picture (centre-dot aim + click/tap within 4.5 m)
@@ -5637,16 +5639,18 @@ if ((window.__CONFIG__ || {}).livingPortrait) {
 } // end of the livingPortrait gate
 
 // ------------------------------------------------------------- the mount
-// Builds the EMPTY framed picture on the finale's west wall and the
+// Builds the framed picture (still face over dark matte) on the
+// finale's west wall and the
 // Portrait Mode controller { open, close, isOpen, clickAim, group,
 // roomId }. Called by main.js only when the config flag is on;
 // returns null otherwise. The frame is NOT in the paintings
 // interactables list — ui.js routes centre-dot clicks here via
 // clickAim(), so the photo viewer never opens for it.
 //
-// Omar's order (2026-11-01): the 3D picture shows NOTHING until it is
-// clicked. The frame holds only the dark matte; Mina herself exists
-// solely inside the Portrait Mode overlay. She hangs in the finale
+// Omar's order (2026-11-01): before it is clicked, the 3D picture
+// shows her face FIXED — a still photograph (her 'rest' picture) in
+// the frame, nothing more. Mina alive exists solely inside the
+// Portrait Mode overlay. She hangs in the finale
 // only: the framed group is parented into the finale's room group in
 // teleport mode (room-alone visibility shows her room exactly when
 // the visitor is in it) or into the scene in legacy mode.
@@ -5669,12 +5673,35 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups, player, c
     [MAT.goldDark, MAT.goldDark, MAT.goldDark, MAT.goldDark, ornateMat, MAT.goldDark]);
   frameBox.position.z = 0;
   group.add(frameBox);
-  // The picture itself: bare dark near-black matte (the reference
-  // page's #0C0C0C field) — EMPTY until clicked. This matte is also
-  // the click target that opens Portrait Mode.
+  // The picture's backing: bare dark near-black matte (the reference
+  // page's #0C0C0C field). This matte is also the click target that
+  // opens Portrait Mode.
   const matte = new THREE.Mesh(GEO.plane, new THREE.MeshBasicMaterial({ color: 0x0c0c0c }));
   matte.position.z = 0.037;
   group.add(matte);
+  // Omar's follow-up order (2026-11-01): BEFORE the click, the
+  // picture shows her face — FIXED. One still texture: her neutral
+  // 'rest' picture, the same images.higgs.ai URL her engine loads
+  // for IDS.rest, at w=1024. Loaded once, never updated, no engine
+  // involved — a photograph in the frame, not the living portrait.
+  // The mesh stays invisible until the image arrives, so a failed
+  // load leaves the frame exactly as it was — bare dark matte, no
+  // error, no broken page. (Her cutout's alpha composites over the
+  // matte via the transparent material.)
+  const REST_FACE_URL = 'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261031_040619_2f6f349e-a4a7-40db-8e9b-03b6acd8b99a.png&w=1024&q=90';
+  const faceStill = new THREE.Mesh(GEO.plane,
+    new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false }));
+  faceStill.position.z = 0.044;
+  faceStill.visible = false;
+  group.add(faceStill);
+  const stillLoader = new THREE.TextureLoader();
+  stillLoader.setCrossOrigin('anonymous');
+  stillLoader.load(REST_FACE_URL, (tex) => {
+    tex.colorSpace = THREE.SRGBColorSpace;
+    faceStill.material.map = tex;
+    faceStill.material.needsUpdate = true;
+    faceStill.visible = true;
+  }, undefined, () => { /* load failed: the frame stays dark matte */ });
 
   // ------------------------------------------------------------ placement
   // One fixed placement: the finale's west wall — her museum-v7 spot.
@@ -5702,6 +5729,7 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups, player, c
 
   frameBox.scale.set(curSize + BORDER * 2, curSize + BORDER * 2, 0.07);
   matte.scale.set(curSize + 0.06, curSize + 0.06, 1);
+  faceStill.scale.set(curSize + 0.06, curSize + 0.06, 1);
   group.position.set(PLACEMENT.pos[0], PLACEMENT.pos[1], PLACEMENT.pos[2]);
   group.rotation.y = PLACEMENT.ry;
   layoutObstacle(PLACEMENT);
@@ -5807,6 +5835,7 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups, player, c
     isOpen: () => open,
     clickAim,
     group,
+    faceStill,
     roomId: () => curRoom,
   };
 }
