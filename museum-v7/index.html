@@ -2222,6 +2222,66 @@ function buildCompanionAvatar(scene, camera) {
     };
   }
 
+  // Speech bubble (Living Portrait, museum-v7): a cream bubble with a
+  // rose rim and a tail down at her head — her name pill's palette,
+  // drawn like the choice labels above. portrait.js asks for it via
+  // setSpeechHint() while she stands beside Mina's empty picture in
+  // the finale ("Click on the picture!"). Built lazily, shown/hidden
+  // by flag only.
+  let parkSpot = null;
+  let hintSprite = null;
+  function makeSpeechSprite(text) {
+    const canvas = makeCanvas(1024, 360);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fbf7ee';
+    ctx.beginPath();
+    ctx.roundRect(14, 14, 996, 236, 62);
+    ctx.fill();
+    // Tail: filled triangle from the bubble's bottom edge to a point
+    // above her head; the seam is painted over so the rim doesn't
+    // cross it, then the tail's own edges get the rose stroke.
+    ctx.beginPath();
+    ctx.moveTo(452, 244);
+    ctx.lineTo(572, 244);
+    ctx.lineTo(512, 340);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#c96f7b';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.roundRect(14, 14, 996, 236, 62);
+    ctx.stroke();
+    ctx.strokeStyle = '#fbf7ee';
+    ctx.lineWidth = 10;
+    ctx.beginPath();
+    ctx.moveTo(460, 248);
+    ctx.lineTo(564, 248);
+    ctx.stroke();
+    ctx.strokeStyle = '#c96f7b';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(452, 246);
+    ctx.lineTo(512, 340);
+    ctx.lineTo(572, 246);
+    ctx.stroke();
+    ctx.fillStyle = '#171310';
+    let fs = 96;
+    ctx.font = '600 ' + fs + 'px Georgia, "Times New Roman", serif';
+    while (ctx.measureText(text).width > 910 && fs > 40) {
+      fs -= 6;
+      ctx.font = '600 ' + fs + 'px Georgia, "Times New Roman", serif';
+    }
+    ctx.textAlign = 'center';
+    ctx.fillText(text, 512, 132 + fs * 0.36);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+    s.scale.set(2.05, 0.72, 1);
+    s.position.y = 2.52;
+    s.visible = false;
+    return s;
+  }
+
   const label = MUSEUM_CONFIG.fromName || 'Omar';
   const sprite = makeNameSprite(label);
   sprite.position.y = 1.95;
@@ -2375,6 +2435,21 @@ function buildCompanionAvatar(scene, camera) {
     group: g,
     startDance,
     startTurn,
+    // Portrait post (Living Portrait, museum-v7): portrait.js parks
+    // her at a floor spot beside Mina's picture while the visitor is
+    // in the finale, and raises/lowers her speech bubble. update()
+    // walks her to the spot and stands her there; unpark() returns
+    // her to breadcrumb following.
+    parkAt(x, z) { parkSpot = { x, z }; },
+    unpark() { parkSpot = null; },
+    setSpeechHint(v) {
+      const want = !!v;
+      if (want && !hintSprite) {
+        hintSprite = makeSpeechSprite('Click on the picture!');
+        g.add(hintSprite);
+      }
+      if (hintSprite && hintSprite.visible !== want) hintSprite.visible = want;
+    },
     // Teleport arrival (portals.js): drop the breadcrumb trail and step
     // in just behind where the visitor now faces — the same placement
     // update() uses when it detects a teleport jump, on demand.
@@ -2402,6 +2477,38 @@ function buildCompanionAvatar(scene, camera) {
       const camPos = camera ? camera.position : null;
       let walking = false;
       let speedNow = 0;
+      if (parkSpot && camPos && dt > 0) {
+        // Parked beside the portrait (finale): walk to the spot, then
+        // stand there facing the visitor. lastCam stays fresh so
+        // unparking doesn't trip the teleport-jump trail reset.
+        lastCam = { x: camPos.x, z: camPos.z };
+        const pdx = parkSpot.x - g.position.x;
+        const pdz = parkSpot.z - g.position.z;
+        const pdist = Math.hypot(pdx, pdz);
+        if (pdist > 0.05) {
+          speedNow = Math.min(4.6, 0.6 + pdist * 2.4);
+          const step = Math.min(pdist, speedNow * dt);
+          g.position.x += (pdx / pdist) * step;
+          g.position.z += (pdz / pdist) * step;
+          walking = true;
+          walkPhase += dt * (6 + speedNow * 2.2);
+          curYaw = lerpAngle(curYaw, Math.atan2(pdx, pdz), 1 - Math.exp(-8 * dt));
+        } else {
+          const fx = camPos.x - g.position.x;
+          const fz = camPos.z - g.position.z;
+          if (Math.hypot(fx, fz) > 0.05) {
+            curYaw = lerpAngle(curYaw, Math.atan2(fx, fz), 1 - Math.exp(-5 * dt));
+          }
+        }
+        g.rotation.y = curYaw;
+        if (!REDUCED_MOTION_AVATAR) {
+          g.position.y = walking
+            ? Math.abs(Math.sin(walkPhase)) * 0.035
+            : Math.sin(t * 1.4) * 0.015;
+          g.rotation.z = walking ? Math.sin(walkPhase) * 0.045 : 0;
+        }
+        return;
+      }
       if (camPos && dt > 0) {
         if (lastCam) {
           const jump = Math.hypot(camPos.x - lastCam.x, camPos.z - lastCam.z);
@@ -3445,6 +3552,7 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   // E = sit / stand (desktop); ignored while typing a name or viewing.
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyE' || !player.started || viewerOpen || !cinema) return;
+    if (window.__LIVING_PORTRAIT__ && window.__LIVING_PORTRAIT__.isOpen()) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
     if (tour && tour.isActive()) tour.stop(); // Tour and Sit are mutually exclusive
     const sittingNow = cinema.toggleSit();
@@ -3454,6 +3562,7 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   // H = leave a heart (desktop), same guard style as the E handler.
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyH' || !player.started || viewerOpen || !finale) return;
+    if (window.__LIVING_PORTRAIT__ && window.__LIVING_PORTRAIT__.isOpen()) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
     const n = finale.leaveHeart();
     heartCountEl.textContent = '♥ ' + n;
@@ -3621,6 +3730,9 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
   // own job; the next free click re-aims.
   document.addEventListener('pointerdown', (e) => {
     if (!player.started || viewerOpen || quizOpenIdx >= 0) return;
+    // Portrait Mode open (museum-v7): the visitor is playing with her
+    // face with a free cursor — never steal it back into pointer lock.
+    if (window.__LIVING_PORTRAIT__ && window.__LIVING_PORTRAIT__.isOpen()) return;
     if (!window.matchMedia || !window.matchMedia('(pointer: fine)').matches) return;
     if (document.pointerLockElement === renderer.domElement) return;
     if (e.target.closest && e.target.closest('button, a, input, textarea, select, .om-quiz, .om-viewer')) return;
@@ -3692,9 +3804,10 @@ function createUI({ player, camera, renderer, interactables, cinema, finale, aud
       if (window.__PORTALS__.isTransitioning()) return;
       if (window.__PORTALS__.clickAim()) return;
     }
-    // Living Portrait (museum-v7): a click that just pressed her is
-    // consumed by the portrait — she is not a painting, no viewer.
-    if (window.__LIVING_PORTRAIT__ && window.__LIVING_PORTRAIT__.tryClick()) return;
+    // Living Portrait (museum-v7): a click on her EMPTY framed
+    // picture in the finale opens Portrait Mode (her overlay) — she
+    // is not a painting, no viewer.
+    if (window.__LIVING_PORTRAIT__ && window.__LIVING_PORTRAIT__.clickAim()) return;
     const hits = raycaster.intersectObjects(interactables, false);
     if (hits.length && hits[0].object.userData.frameGroup) {
       openViewer(hits[0].object.userData.frameGroup);
@@ -4984,28 +5097,35 @@ function createNet(scene, player, camera) {
 
 // Our Museum — portrait.js (inlined before main.js)
 // The "Living Portrait" (Mina): Omar's interactive portrait page element
-// (motionsites.ai "Living Portrait" prompt, section 6), hung as a
-// painting in the finale room and driven by the museum's centre-dot aim
-// instead of a real mouse. Everything here is gated on the customer
-// config flag "livingPortrait" — customers without it build exactly as
-// before (this module injects nothing and createLivingPortrait is never
-// called).
+// (motionsites.ai "Living Portrait" prompt, section 6). Everything here
+// is gated on the customer config flag "livingPortrait" — customers
+// without it build exactly as before (this module injects nothing and
+// createLivingPortrait is never called).
 //
-// How it works: Omar's markup/CSS/engine run VERBATIM inside a hidden
-// but rendered host div (fixed, 512px, opacity 0, no pointer events).
-// The portrait's own WebGL canvas (#faceGl) becomes a THREE.CanvasTexture
-// on a framed plane on the finale's west wall, and the aim bridge in
-// createLivingPortrait() translates the visitor's centre-dot aim into
-// synthetic pointer events in the hidden host's coordinate space — her
-// eyes follow the aim, taps and pulls land where the dot points.
+// Omar's interaction spec (2026-11-01, museum-v7):
+//  - In the 3D finale her gilt frame hangs EMPTY on the west wall —
+//    bare dark matte, no face. Nothing of her shows in the 3D scene,
+//    and there is no aim bridge any more.
+//  - While the visitor is in the finale, the companion stands beside
+//    the picture holding a speech bubble: "Click on the picture!".
+//  - Clicking the picture (centre-dot aim + click/tap within 4.5 m)
+//    opens Portrait Mode: a full-screen dark overlay where her page
+//    element (Omar's markup + engine, verbatim) runs large and
+//    centred and answers the visitor's REAL mouse/touch — gaze,
+//    hover and tap zones, grab-and-pull, hair colours, idle acts.
+//    "✕ Exit" (or Esc) closes it; the museum resumes exactly where
+//    the visitor stood, and the companion + bubble are there again.
+//  - While Portrait Mode is closed she costs ~nothing: her engine is
+//    not even booted until the first open (so she starts asleep and
+//    wakes on the first pointer move, exactly like the original
+//    page), and once booted the display:none host keeps her own
+//    IntersectionObserver pausing her frame loop.
 //
 // Host adaptations (the engine code itself is untouched):
-//  - HTMLCanvasElement.getContext is patched ONLY while the engine
-//    creates its context and ONLY for #faceGl, adding
-//    preserveDrawingBuffer:true — a WebGL canvas without it is cleared
-//    after compositing, so THREE could never sample it as a texture.
-//  - wrap.setPointerCapture is stubbed to a no-op: synthetic pointer
-//    events carry no real pointer id for the browser to capture.
+//  - The engine is invoked lazily on first open instead of at page
+//    load. No pointer-capture stub and no getContext patch: Portrait
+//    Mode feeds her genuine pointer events, and nothing samples her
+//    canvas as a texture any more.
 
 if ((window.__CONFIG__ || {}).livingPortrait) {
 
@@ -5047,11 +5167,28 @@ if ((window.__CONFIG__ || {}).livingPortrait) {
 #faceHand .grab { display: none; }
 #faceHand.shut .open { display: none; }
 #faceHand.shut .grab { display: block; }
-/* Museum host overrides (not part of Omar's page): the portrait lives
-   in a hidden 512px render host pinned to the viewport corner; it must
-   still lay out and paint so its WebGL canvas really draws. */
-#om-portrait-host { position: fixed; left: 0; top: 0; width: 512px; height: 512px; opacity: 0; pointer-events: none; z-index: -1; }
+/* Museum host overrides (not part of Omar's page): the portrait host
+   is the Portrait Mode overlay. Closed it is display:none — her
+   engine's IntersectionObserver then keeps her frame loop paused, so
+   she burns no CPU. Open it is a full-screen dark stage with her
+   wrap centred and large, plus the Exit pill (museum chrome: dark
+   pill, accent rim, like the buddy choice labels). */
+#om-portrait-host { display: none; }
+#om-portrait-host.om-open {
+  display: block; position: fixed; inset: 0; z-index: 120;
+  opacity: 1; pointer-events: auto;
+  background: radial-gradient(120% 90% at 50% 42%, #181310 0%, #0a0806 55%, #030202 100%);
+}
 #om-portrait-host .hero-portrait-wrap { width: 512px; height: 512px; }
+#om-portrait-host.om-open .hero-portrait-wrap { width: min(88vmin, 700px); height: min(88vmin, 700px); }
+#om-portrait-exit {
+  position: absolute; top: max(14px, env(safe-area-inset-top)); right: 16px; z-index: 30;
+  min-height: 48px; min-width: 48px; padding: 0 24px; border-radius: 999px;
+  border: 2px solid ${THEME.accent}; background: rgba(23, 19, 16, 0.85);
+  color: #fbf7ee; font: 600 17px system-ui, sans-serif; letter-spacing: 0.02em;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+#om-portrait-exit:hover, #om-portrait-exit:focus-visible { background: rgba(46, 36, 30, 0.94); }
 `;
   const portraitStyleEl = document.createElement('style');
   portraitStyleEl.id = 'om-portrait-css';
@@ -5066,7 +5203,7 @@ if ((window.__CONFIG__ || {}).livingPortrait) {
           <img id="faceFallback" src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261031_040619_2f6f349e-a4a7-40db-8e9b-03b6acd8b99a.png&w=1024&q=92" alt="Portrait" />
           <canvas id="faceGl" aria-hidden="true"></canvas>
           <div id="faceProps" aria-hidden="true">
-            <svg id="faceFly" viewBox="0 0 32 32"><path class="wing" d="M15 15C12 9.500 4.500 8.500 2 13c2.500 4.500 10 4.500 13 2z"/><path class="wing r" d="M17 15c3-5.500 10.500-6.500 13-2-2.500 4.500-10 4.500-13 2z"/><ellipse cx="16" cy="19.500" rx="4" ry="6.500"/><circle cx="16" cy="11.500" r="3.300"/></svg>
+            <svg id="faceFly" viewBox="0 0 32 32"><path class="wing" d="M15 15C12 9.500 4.500 8.500 2.500 8.500 2 13c2.500 4.500 10 4.500 13 2z"/><path class="wing r" d="M17 15c3-5.500 10.500-6.500 13-2-2.500 4.500-10 4.500-13 2z"/><ellipse cx="16" cy="19.500" rx="4" ry="6.500"/><circle cx="16" cy="11.500" r="3.300"/></svg>
             <svg id="faceHand" viewBox="0 0 32 32"><path class="open" d="M10.500 16.500V8.200a1.800 1.800 0 0 1 3.600 0V14v-8a1.800 1.800 0 0 1 3.600 0V14 7a1.800 1.800 0 0 1 3.600 0v8-5a1.800 1.800 0 0 1 3.600 0v10.500c0 5-3.400 8.500-8.400 8.500-3.600 0-5.700-1.600-7.600-4.600l-3.500-5.600c-.6-1 .1-2.200 1.200-2.400 1-.2 1.900.2 2.600 1z"/><path class="grab" d="M10.500 17v-3.300a1.800 1.800 0 0 1 3.600 0V14v-1.800a1.800 1.800 0 0 1 3.600 0V14v-1.300a1.800 1.800 0 0 1 3.600 0V14v-.3a1.800 1.800 0 0 1 3.600 0v6.800c0 5-3.400 8.500-8.400 8.500-3.600 0-5.700-1.600-7.600-4.600l-2.300-3.700c-.6-1 .1-2.200 1.200-2.400 1-.2 1.900.2 2.700 1z"/></svg>
           </div>
         </div>
@@ -5076,20 +5213,24 @@ if ((window.__CONFIG__ || {}).livingPortrait) {
   portraitHost.id = 'om-portrait-host';
   portraitHost.setAttribute('aria-hidden', 'true');
   portraitHost.innerHTML = PORTRAIT_MARKUP;
+  // Museum chrome (not part of Omar's page): the Exit pill.
+  const portraitExitBtn = document.createElement('button');
+  portraitExitBtn.id = 'om-portrait-exit';
+  portraitExitBtn.type = 'button';
+  portraitExitBtn.textContent = '✕ Exit';
+  portraitExitBtn.setAttribute('aria-label', 'Exit the portrait');
+  portraitHost.appendChild(portraitExitBtn);
   document.body.appendChild(portraitHost);
 
-  // ------------------------------------------- getContext host patch
-  // Only while Omar's engine (next block) creates its context, and only
-  // for #faceGl: keep the drawing buffer so THREE can texture from it.
-  const __omOrigGetContext = HTMLCanvasElement.prototype.getContext;
-  HTMLCanvasElement.prototype.getContext = function (type, attrs) {
-    if (this && this.id === 'faceGl' && (type === 'webgl' || type === 'experimental-webgl')) {
-      attrs = Object.assign({}, attrs, { preserveDrawingBuffer: true });
-    }
-    return __omOrigGetContext.call(this, type, attrs);
-  };
-
-  // ================= OMAR'S LIVING PORTRAIT ENGINE — VERBATIM =================
+  // ------------------------------------------- lazy engine boot
+  // Omar's engine (next block) is invoked on the first Portrait Mode
+  // open only — never at page load — so she starts asleep, museum
+  // wandering cannot pre-wake her, and a never-opened portrait costs
+  // nothing at all.
+  let omEngineBooted = false;
+  window.__OM_PORTRAIT_BOOT__ = function () {
+    if (omEngineBooted) return;
+    omEngineBooted = true;
   // ===== LIVING PORTRAIT =====
   // A photo-like head on a soft sheet. Every expression, gaze and blink is a separately generated
   // picture of the same face; the code only decides which one to show and makes the skin move.
@@ -5490,47 +5631,31 @@ if ((window.__CONFIG__ || {}).livingPortrait) {
       await Promise.all(Array.from({length: 6}, async () => { while (i < names.length) await take(names[i++]); }));
     })();
   })();
-
   // =============== END OF OMAR'S ENGINE ===============
-  // Restore the getContext patch and stub pointer capture on the wrap:
-  // the synthetic pointer events dispatched by the aim bridge carry no
-  // real pointer id, so a real setPointerCapture call would throw.
-  HTMLCanvasElement.prototype.getContext = __omOrigGetContext;
-  const __omWrapEl = document.getElementById('magnetWrap');
-  if (__omWrapEl) __omWrapEl.setPointerCapture = function () {};
+  };
 
 } // end of the livingPortrait gate
 
 // ------------------------------------------------------------- the mount
-// Builds the framed portrait and returns the aim bridge { tick,
-// tryClick }. Called by main.js only when the config flag is on;
-// returns null otherwise. The portrait is NOT added to the paintings
-// interactables list — clicks on it are consumed via tryClick() so
-// the photo viewer never opens for it.
+// Builds the EMPTY framed picture on the finale's west wall and the
+// Portrait Mode controller { open, close, isOpen, clickAim, group,
+// roomId }. Called by main.js only when the config flag is on;
+// returns null otherwise. The frame is NOT in the paintings
+// interactables list — ui.js routes centre-dot clicks here via
+// clickAim(), so the photo viewer never opens for it.
 //
-// Omar's order (2026-11-01, after the teleport restructure): Mina
-// hangs ONLY in the finale — her original museum-v7 spot on the
-// finale's west wall. The framed group is parented once, into the
-// finale's room group in teleport mode (so the room-alone visibility
-// gating shows her exactly when the visitor is in the finale) or
-// into the scene in legacy mode. She never moves; room swaps do
-// nothing portrait-related.
-function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
+// Omar's order (2026-11-01): the 3D picture shows NOTHING until it is
+// clicked. The frame holds only the dark matte; Mina herself exists
+// solely inside the Portrait Mode overlay. She hangs in the finale
+// only: the framed group is parented into the finale's room group in
+// teleport mode (room-alone visibility shows her room exactly when
+// the visitor is in it) or into the scene in legacy mode.
+function createLivingPortrait({ scene, camera, domElement, roomGroups, player, companion }) {
   if (!((window.__CONFIG__ || {}).livingPortrait)) return null;
-  const wrap = document.getElementById('magnetWrap');
-  const glCanvas = document.getElementById('faceGl');
-  if (!wrap || !glCanvas) return null;
+  const host = document.getElementById('om-portrait-host');
+  const exitBtn = document.getElementById('om-portrait-exit');
+  if (!host) return null;
   const TELEPORT = !!((window.__CONFIG__ || {}).teleportRooms) && !!roomGroups;
-
-  // The portrait's own WebGL canvas, sampled as a texture. The canvas
-  // overscans the wrap by 1.7x (Omar's OVER): the actual picture is the
-  // central 1/1.7 of the canvas, so crop to that window.
-  const tex = new THREE.CanvasTexture(glCanvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.wrapS = THREE.ClampToEdgeWrapping;
-  tex.wrapT = THREE.ClampToEdgeWrapping;
-  tex.repeat.set(1 / 1.7, 1 / 1.7);
-  tex.offset.set(0.35 / 1.7, 0.35 / 1.7);
 
   const BORDER = 0.16;           // gilt frame width, as in frames.js
   const group = new THREE.Group();
@@ -5544,24 +5669,22 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
     [MAT.goldDark, MAT.goldDark, MAT.goldDark, MAT.goldDark, ornateMat, MAT.goldDark]);
   frameBox.position.z = 0;
   group.add(frameBox);
-  // Dark near-black matte behind the picture (the reference page's
-  // #0C0C0C field), so her cut-out head sits on darkness, not on wall.
+  // The picture itself: bare dark near-black matte (the reference
+  // page's #0C0C0C field) — EMPTY until clicked. This matte is also
+  // the click target that opens Portrait Mode.
   const matte = new THREE.Mesh(GEO.plane, new THREE.MeshBasicMaterial({ color: 0x0c0c0c }));
   matte.position.z = 0.037;
   group.add(matte);
-  // The living picture itself: unlit, like a glowing screen.
-  const faceMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
-  const face = new THREE.Mesh(GEO.plane, faceMat);
-  face.position.z = 0.045;
-  group.add(face);
 
   // ------------------------------------------------------------ placement
-  // One fixed placement: the finale's west wall — her original v7
-  // spot. pos = group origin (frame centre), ry = facing, size =
-  // picture edge.
+  // One fixed placement: the finale's west wall — her museum-v7 spot.
   const PLACEMENT = { pos: [-5.94, 2.2, -45], ry: Math.PI / 2, size: 3.0 };
   const curRoom = 'finale';
   const curSize = PLACEMENT.size;
+  // The companion's post beside the picture: just north of the frame,
+  // a step into the room, where a visitor entering the finale sees
+  // her — and her bubble — right next to the empty picture.
+  const COMPANION_SPOT = { x: -4.8, z: -42.55 };
 
   // Her frame is solid: one static obstacle in the finale (roomFn —
   // player.js asks it which room it belongs to; hers never changes).
@@ -5577,161 +5700,115 @@ function createLivingPortrait({ scene, camera, domElement, roomGroups }) {
     obstacle.minZ = cz - ez; obstacle.maxZ = cz + ez;
   }
 
-  // Mounted once, forever: in teleport mode she belongs to the
-  // finale's room group, so the room-alone visibility gating renders
-  // her only while the visitor is in the finale. She never moves.
   frameBox.scale.set(curSize + BORDER * 2, curSize + BORDER * 2, 0.07);
   matte.scale.set(curSize + 0.06, curSize + 0.06, 1);
-  face.scale.set(curSize, curSize, 1);
   group.position.set(PLACEMENT.pos[0], PLACEMENT.pos[1], PLACEMENT.pos[2]);
   group.rotation.y = PLACEMENT.ry;
   layoutObstacle(PLACEMENT);
   (TELEPORT ? (roomGroups.finale || scene) : scene).add(group);
-  // Legacy museum-v7 had no portrait obstacle; the solid frame is a
-  // teleport-mode behaviour, so it is only registered there.
+  // The solid frame is a teleport-mode behaviour (legacy museum-v7
+  // had no portrait obstacle), so it is only registered there.
   if (TELEPORT) pushObstacle(obstacle);
 
-  // ------------------------------------------------------------ aim bridge
-  const CENTRE = new THREE.Vector2(0, 0);
-  const raycaster = new THREE.Raycaster();
-  const aim = { hit: false, u: 0.5, v: 0.5, dist: Infinity };
-  const TAP_RANGE = 4.5;
-  let pulling = false;
-  let suppressClickUntil = 0;
-  let sendingSynthetic = false;
+  // ------------------------------------------------------- Portrait Mode
+  let open = false;
+  let savedFrozen = false;
 
-  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-  function clientFor(u, v) {
-    const r = wrap.getBoundingClientRect();
-    return { x: r.left + u * r.width, y: r.top + v * r.height };
-  }
-  function dispatchMove(u, v) {
-    const { x, y } = clientFor(u, v);
-    sendingSynthetic = true;
-    window.dispatchEvent(new PointerEvent('pointermove', { clientX: x, clientY: y, bubbles: true }));
-    sendingSynthetic = false;
+  function openPortrait() {
+    if (open) return;
+    open = true;
+    host.classList.add('om-open');
+    host.removeAttribute('aria-hidden');
+    // Layout BEFORE boot: her engine sizes its canvas from the wrap's
+    // box, so the overlay must be displayed and laid out first. The
+    // boot is first-open only — she starts asleep (eyes closed) and
+    // wakes on the first real pointer move, like the original page.
+    void host.offsetWidth;
+    if (typeof window.__OM_PORTRAIT_BOOT__ === 'function') window.__OM_PORTRAIT_BOOT__();
+    savedFrozen = player ? player.frozen : false;
+    if (player) {
+      player.frozen = true;
+      if (player.releaseLock) player.releaseLock();
+    }
+    if (companion && typeof companion.setSpeechHint === 'function') companion.setSpeechHint(false);
+    if (exitBtn && exitBtn.focus) { try { exitBtn.focus(); } catch (e) { /* best-effort */ } }
   }
 
-  // Real press/release while aiming at her (and close enough) becomes a
-  // press on the portrait itself; the engine's own logic decides tap
-  // vs pull from timing and distance. Desktop presses only count while
-  // pointer-locked (mirrors ui.js's click rule, so the lock-grabbing
-  // click never touches her); touch presses must land on the canvas.
-  window.addEventListener('pointerdown', (e) => {
-    if (sendingSynthetic || !aim.hit || aim.dist > TAP_RANGE) return;
-    const fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
-    if (fine) { if (document.pointerLockElement !== domElement) return; }
-    else if (e.target !== domElement) return;
-    const { x, y } = clientFor(aim.u, aim.v);
-    sendingSynthetic = true;
-    wrap.dispatchEvent(new PointerEvent('pointerdown', { clientX: x, clientY: y, bubbles: true }));
-    sendingSynthetic = false;
-    pulling = true;
-    suppressClickUntil = performance.now() + 600;
+  function closePortrait() {
+    if (!open) return;
+    open = false;
+    host.classList.remove('om-open');
+    host.setAttribute('aria-hidden', 'true');
+    if (player) {
+      player.frozen = savedFrozen;
+      // Straight back to aiming, like closing the photo viewer.
+      if (player.requestLock) player.requestLock();
+    }
+    refreshCompanionPost(); // companion + bubble are there again
+  }
+
+  if (exitBtn) exitBtn.addEventListener('click', closePortrait);
+  window.addEventListener('keydown', (e) => {
+    if (open && e.code === 'Escape') closePortrait();
   });
-  function endPull() {
-    if (!pulling) return;
-    pulling = false;
-    sendingSynthetic = true;
-    window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
-    sendingSynthetic = false;
-  }
-  window.addEventListener('pointerup', endPull);
-  window.addEventListener('pointercancel', endPull);
 
-  // ui.js asks before opening the photo viewer: a click that just
-  // pressed the portrait is hers, not a painting's.
-  function tryClick() {
-    if (performance.now() < suppressClickUntil) {
-      suppressClickUntil = 0;
-      return true;
-    }
-    return false;
-  }
-
-  // Perf gate (teleport mode): while the visitor is outside the
-  // finale, park her hidden render host off-screen. Her engine gates
-  // its own frame loop on an IntersectionObserver over its canvas,
-  // so off-screen it stops stepping the sheet physics and drawing —
-  // she costs ~nothing — and it resumes by itself when the host
-  // returns on entering the finale. Style is only touched on change.
-  const hostEl = document.getElementById('om-portrait-host');
-  let hostParked = false;
-  function parkHost(park) {
-    if (!hostEl || park === hostParked) return;
-    hostParked = park;
-    hostEl.style.left = park ? '-10000px' : '0px';
-  }
-
-  let tickCount = 0;
-  // Per-frame (called from main.js's render loop, before render):
-  // refresh the texture, raycast the centre dot at the portrait, and
-  // feed her the matching synthetic pointer position.
-  function tick() {
-    // Her texture re-uploads at ~30 Hz (every other frame): the sheet
-    // physics still runs at full rate in her own engine, but the GPU
-    // copy to the museum texture — the expensive part — is halved.
-    tickCount += 1;
-    if (tickCount % 2 === 0) tex.needsUpdate = true;
-
-    // Teleport mode: she exists only in the finale. Anywhere else
-    // there is nothing to aim at and no gaze to feed — and her own
-    // engine is parked off-screen (see parkHost above).
-    if (TELEPORT) {
-      const P = window.__PORTALS__;
-      const inFinale = !!P && P.currentRoomId() === 'finale';
-      parkHost(!inFinale);
-      if (!inFinale) { aim.hit = false; return; }
-    }
-
+  // ui.js calls this from its canvas click handler (aim = centre
+  // dot): a click on the empty picture within reach opens her.
+  const raycaster = new THREE.Raycaster();
+  const CENTRE = new THREE.Vector2(0, 0);
+  const OPEN_RANGE = 4.5;
+  function clickAim() {
+    if (open || !player || !player.started || player.frozen) return false;
+    if (currentRoomId() !== 'finale') return false;
+    if (TELEPORT && window.__PORTALS__ && window.__PORTALS__.isTransitioning()) return false;
     raycaster.setFromCamera(CENTRE, camera);
-    raycaster.far = Infinity;
-    const hits = raycaster.intersectObject(face, false);
-    let dispatched = false;
-    aim.hit = false;
-    if (hits.length) {
-      const h = hits[0];
-      let visibleAim = true;
-      if (!TELEPORT && camera.position.z > -40) {
-        // Legacy single-museum guard: north of the finale wall, the
-        // ray only reaches her through the door gap — anywhere else
-        // it would pass through the wall.
-        const t = (camera.position.z + 40) / (camera.position.z - h.point.z);
-        const cx = camera.position.x + (h.point.x - camera.position.x) * t;
-        const cy = camera.position.y + (h.point.y - camera.position.y) * t;
-        visibleAim = Math.abs(cx) <= DOOR_HALF_W && cy <= DOOR_HEIGHT;
-      }
-      if (visibleAim && h.uv) {
-        aim.hit = true;
-        aim.u = h.uv.x;
-        aim.v = 1 - h.uv.y; // plane UV has v up; her picture has v down
-        aim.dist = h.distance;
-        if (!pulling) { dispatchMove(aim.u, aim.v); dispatched = true; }
-      }
-    }
-    if (pulling) {
-      // The held press keeps following the aim dot, wherever it is now.
-      dispatchMove(aim.u, aim.v);
-      dispatched = true;
-    }
-    if (!dispatched) {
-      const room = roomAt(camera.position.z);
-      if (room && room.id === curRoom) {
-        // Not aiming at her, but in her room: her eyes follow the
-        // visitor. Project the camera into her picture space: the
-        // wall-right vector of her facing (fx, fz) is (fz, -fx) in
-        // (x, z); u runs along it, v runs down from her top edge.
-        const p = PLACEMENT;
-        const fx = Math.sin(p.ry), fz = Math.cos(p.ry);
-        const along = (camera.position.x - p.pos[0]) * fz + (camera.position.z - p.pos[2]) * (-fx);
-        const u = clamp(along / curSize + 0.5, -0.3, 1.3);
-        const v = clamp((p.pos[1] + curSize / 2 - camera.position.y) / curSize, -0.3, 1.3);
-        dispatchMove(u, v);
-      }
-    }
+    raycaster.far = OPEN_RANGE;
+    if (!raycaster.intersectObject(matte, false).length) return false;
+    openPortrait();
+    return true;
   }
 
-  return { tick, tryClick, faceMesh: face, group, roomId: () => curRoom };
+  // ------------------------------------------------- companion post
+  // While the visitor is in the finale and Portrait Mode is shut, the
+  // companion leaves her follow behaviour, stands beside the picture
+  // and holds up her "Click on the picture!" bubble. Anywhere else —
+  // or while the portrait is open — she follows as usual, bubble down.
+  function currentRoomId() {
+    const P = window.__PORTALS__;
+    if (TELEPORT && P) return P.currentRoomId();
+    const room = roomAt(camera.position.z);
+    return room ? room.id : null;
+  }
+  let companionPosted = false;
+  function refreshCompanionPost() {
+    if (!companion) return;
+    const want = currentRoomId() === 'finale' && !open;
+    if (want && !companionPosted) {
+      companionPosted = true;
+      if (typeof companion.parkAt === 'function') companion.parkAt(COMPANION_SPOT.x, COMPANION_SPOT.z);
+    } else if (!want && companionPosted) {
+      companionPosted = false;
+      if (typeof companion.unpark === 'function') companion.unpark();
+    }
+    if (typeof companion.setSpeechHint === 'function') companion.setSpeechHint(want);
+  }
+  // A whisper of a loop: the check is a couple of property reads and
+  // room changes are rare; this keeps every other module untouched.
+  // (While Portrait Mode is open the museum's own loop is paused, but
+  // this one simply re-asserts the same state.)
+  (function watchRooms() {
+    requestAnimationFrame(watchRooms);
+    refreshCompanionPost();
+  })();
+
+  return {
+    open: openPortrait,
+    close: closePortrait,
+    isOpen: () => open,
+    clickAim,
+    group,
+    roomId: () => curRoom,
+  };
 }
 
 // Our Museum — portals.js (inlined after portrait.js, before main.js)
@@ -6155,12 +6232,13 @@ async function bootMuseum() {
   let buddyHot = false;
   const cinema = createCinema(scene, player, camera, TELEPORT ? roomGroups.centrepiece : null);
   const finale = createFinale(scene, TELEPORT ? roomGroups.finale : null);
-  // Living Portrait (config "livingPortrait", museum-v7 test): Mina on
-  // the finale's west wall, driven by the centre-dot aim. Null for
-  // every other customer — portrait.js is fully gated on the flag.
-  // She hangs in the finale only, in both modes (Omar, 2026-11-01).
+  // Living Portrait (config "livingPortrait", museum-v7 test): Mina's
+  // EMPTY frame on the finale's west wall; clicking it opens Portrait
+  // Mode (her full-screen overlay), and the companion stands beside
+  // the picture inviting the click. Null for every other customer —
+  // portrait.js is fully gated on the flag. Finale only, both modes.
   const livingPortrait = (MUSEUM_CONFIG.livingPortrait && typeof createLivingPortrait === 'function')
-    ? createLivingPortrait({ scene, camera, domElement: renderer.domElement, roomGroups: TELEPORT ? roomGroups : null })
+    ? createLivingPortrait({ scene, camera, domElement: renderer.domElement, roomGroups: TELEPORT ? roomGroups : null, player, companion })
     : null;
   if (livingPortrait) window.__LIVING_PORTRAIT__ = livingPortrait;
   const audio = createAudio();
@@ -6236,6 +6314,10 @@ async function bootMuseum() {
   const clock = new THREE.Clock();
   renderer.setAnimationLoop(() => {
     const dt = Math.min(clock.getDelta(), 0.05); // clamp tab-switch jumps
+    // Portrait Mode (museum-v7): the museum freezes behind her
+    // overlay — no updates, no render — until Exit. Her own engine
+    // runs on its own rAF and has the screen (and the pointer) alone.
+    if (livingPortrait && livingPortrait.isOpen()) return;
     if (ceremony.started && !ceremony.done) {
       ceremony.t += dt;
       const k = Math.min(1, ceremony.t / ceremony.dur);
@@ -6310,7 +6392,6 @@ async function bootMuseum() {
     const curRoomId = portals ? portals.currentRoomId() : null;
     if (!portals || curRoomId === 'centrepiece' || curRoomId === 'finale') cinema.update(dt);
     if (!portals || curRoomId === 'finale') finale.update(dt);
-    if (livingPortrait) livingPortrait.tick();
     if (portals) portals.tick(dt);
     if (net) net.update(dt);
     if (!REDUCED_MOTION_MAIN) { // hearts bob in place, never leave their room
