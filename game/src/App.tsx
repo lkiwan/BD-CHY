@@ -7,7 +7,6 @@ import {
   Circle,
   Eye,
   EyeOff,
-  Github,
   Loader2,
 } from "lucide-react";
 
@@ -22,9 +21,9 @@ import {
     · on success the account is created via POST /api/auth/register,
       the signup coin grant is credited, the user is auto signed-in
       and redirected to the lobby (mirrors src/app/register/page.tsx)
-  Social: Loby only really supports Google (Gmail addresses only).
-  The Github button is part of the Aurora template design and has
-  no backend in Loby.
+  Social: Google is Loby's only social login (Gmail addresses only).
+  There is NO Github login in the real game (Omar, 2026-11-02), so the
+  Aurora template's Github button was removed.
 */
 
 const EMAIL_RE = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
@@ -213,9 +212,10 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Loby's only social login: Google (Gmail only).
+                  No Github — removed, it does not exist in the real game. */}
+              <div className="grid grid-cols-1 gap-4">
                 <SocialButton icon={<Chrome />} label="Google" onClick={handleGoogleRegister} />
-                <SocialButton icon={<Github />} label="Github" />
               </div>
 
               <div className="relative">

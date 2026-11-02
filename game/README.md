@@ -22,7 +22,9 @@ and **Loby's real login & registration functions** — only the skin changed.
   **PLAYM3ANA** wordmark (the Aurora logo style, for the game), heading
   “Join PLAYM3ANA”, 3 steps: *Register your identity → Claim your welcome
   coins → Enter the lobby & play*.
-- Right: “Create New Profile”, Google + Github social buttons, “Or” divider,
+- Right: “Create New Profile”, one social button — **Google** (Loby's only
+  social login; there is no Github login in the real game, so the template's
+  Github button was removed on Omar's order, 2026-11-02) — “Or” divider,
   form, white `Create Account` button (`h-14`), “Member of the team? Log in”.
 - One adaptation: Aurora's First/Last Name row is mapped to Loby's real top
   fields — **Username** + **Referral Code (optional)** — because Loby has no
@@ -47,6 +49,3 @@ email/Gmail + password, case-insensitive · banned accounts →
 referral code) · after login: back to the lobby, straight into a game when
 the link carries `?play=<game>&method=coins|ad`, and `/admin` for ADMIN
 role · JWT session carries id, username, displayName, coins, role.
-
-**Not in Loby:** Github login — it exists in the Aurora template design
-only, so the button is shown for design fidelity and labelled as such.
