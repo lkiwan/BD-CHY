@@ -15,8 +15,8 @@ Same functions as the real game (nerase.com / `lkiwan/loby`). Nothing invented, 
 | 1 | Splash / loading gate (SplashGate) + logo | boot | **Step 1 — DONE** `loading.html` |
 | 2 | Lobby / home (hero, ticker, featured Mafia, game grid, missions teaser, leaderboard teaser, referral, footer) | `/` | **Step 2 — DONE** `lobby.html` |
 | 3 | Login (username or Gmail + password, Google/Gmail only, banned/frozen states, `?play=` return) | `/login` | **Step 3 — DONE** `login.html` |
-| 4 | Register (username 3–20 `[a-z0-9_]`, email, no temp-mail, password 6+, confirm, referral code → +50 coins, signup grant) | `/register` | Step 4 — NEXT `register.html` |
-| 5 | Name gate + onboarding tour (first-run) | NameGate / OnboardingTour | Step 5 `welcome.html` |
+| 4 | Register (username 3–20 `[a-z0-9_]`, email, no temp-mail, password 6+, confirm, referral code → +50 coins, signup grant) | `/register` | **Step 4 — DONE** `register.html` |
+| 5 | Name gate + onboarding tour (first-run) | NameGate / OnboardingTour | Step 5 — NEXT `welcome.html` |
 | 6 | Profile (avatar/character, display name, change name + password) | `/profile` | Step 6 `profile.html` |
 | 7 | Wallet (coin balance + ledger) | `/profile/wallet` | Step 6b `wallet.html` |
 | 8 | Missions + daily check-in / streaks | `/missions` | Step 7 `missions.html` |
