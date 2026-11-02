@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Lobby</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero{position:relative;border-radius:var(--r-lg);padding:22px 20px 20px;overflow:hidden;
+    background:linear-gradient(140deg,#ffffff26,#ffffff08);border:1px solid var(--card-line);box-shadow:var(--shadow)}
+  .hero .logo{font-size:44px}
+  .hero p{font-weight:800;font-size:15px;color:#F3EFFF;margin:8px 0 16px;max-width:26ch}
+  .ticker{display:flex;gap:10px;overflow:hidden;margin:14px -18px 0;padding:8px 0;background:#170A3859;border-block:1px solid var(--card-line)}
+  .ticker .track{display:flex;gap:26px;white-space:nowrap;animation:tick 22s linear infinite;font-size:12.5px;font-weight:800;color:#EDE7FF;padding-left:18px}
+  @keyframes tick{to{transform:translateX(-50%)}}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin:22px 0 10px}
+  .sec-head h2{font-family:"Baloo 2",cursive;font-size:21px}
+  .sec-head a{color:#FFD9A8;font-size:13px;font-weight:900;text-decoration:none}
+  .reward{display:flex;align-items:center;gap:13px;padding:15px 16px;margin-top:14px}
+  .reward .gift{font-size:38px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+  .reward b{font-family:"Baloo 2",cursive;font-size:17px;display:block}
+  .reward span{font-size:12.5px;font-weight:700;color:#E4D9FF}
+  .reward .btn{margin-left:auto;padding:11px 18px;font-size:16px}
+  .featured{position:relative;border-radius:var(--r-lg);overflow:hidden;padding:20px;margin-top:2px;
+    background:linear-gradient(150deg,#312E81,#7C3AED 55%,#C2417E);border:1px solid var(--card-line);box-shadow:var(--shadow)}
+  .featured .face{font-size:74px;line-height:1;filter:drop-shadow(0 10px 16px rgba(0,0,0,.4))}
+  .featured h3{font-family:"Baloo 2",cursive;font-size:34px;letter-spacing:.5px;margin-top:6px}
+  .featured .desc{font-size:13px;font-weight:700;color:#EDE7FF;max-width:30ch}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 16px}
+  .playrow{display:flex;gap:9px}
+  .playrow .btn{flex:1.2;padding:13px 10px;font-size:17px}
+  .btn.ad{flex:1;background:linear-gradient(92deg,#FFC53D,#FF9F1C);color:#4A2A00;box-shadow:0 12px 26px -8px rgba(255,159,28,.7), inset 0 -4px 0 rgba(140,80,0,.35)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .game{border-radius:22px;padding:15px 14px 13px;border:1px solid var(--card-line);box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .game .ic{font-size:38px;line-height:1.1}
+  .game h4{font-family:"Baloo 2",cursive;font-size:17.5px;margin-top:5px;line-height:1.15}
+  .game .meta{font-size:11.5px;font-weight:800;color:#EFE9FF;opacity:.92;margin-top:2px}
+  .game .price{display:inline-flex;align-items:center;gap:5px;margin-top:10px;background:#00000038;border:1px solid var(--card-line);
+    padding:5px 10px;border-radius:999px;font-weight:900;font-size:13px;color:#FFD97A}
+  .game.soon{filter:saturate(.35);opacity:.75}
+  .soon-tag{position:absolute;top:11px;right:11px;background:#FFC53D;color:#4A2A00;font-size:10px;font-weight:900;padding:4px 8px;border-radius:999px;letter-spacing:.5px}
+  .g1{background:linear-gradient(150deg,#4338CA,#312E81)} .g2{background:linear-gradient(150deg,#0E7490,#155E75)}
+  .g3{background:linear-gradient(150deg,#B45309,#92400E)} .g4{background:linear-gradient(150deg,#15803D,#14532D)}
+  .g5{background:linear-gradient(150deg,#BE185D,#831843)} .g6{background:linear-gradient(150deg,#57534E,#292524)}
+  .days{display:flex;gap:7px}
+  .day{flex:1;text-align:center;background:var(--card);border:1px solid var(--card-line);border-radius:15px;padding:9px 2px 7px;font-size:10.5px;font-weight:900;color:#D9CCFF}
+  .day .c{font-size:14px;color:#FFD97A;display:block;margin:3px 0 1px}
+  .day.done{background:linear-gradient(180deg,#FFC53D33,#FFC53D14);border-color:#FFC53D88;color:#FFE9A8}
+  .day.today{outline:2px solid var(--coral);color:#fff}
+  .mission{display:flex;align-items:center;gap:11px;padding:12px 14px;margin-bottom:9px}
+  .mission .ic{font-size:22px}
+  .mission b{font-size:14.5px;display:block}
+  .mission .barw{height:8px;background:#ffffff1e;border-radius:99px;margin-top:6px;overflow:hidden;width:150px;max-width:38vw}
+  .mission .barf{height:100%;background:linear-gradient(90deg,#FFC53D,#FF6B57);border-radius:99px}
+  .mission .rw{margin-left:auto;text-align:right;font-weight:900;color:#FFD97A;font-size:13.5px;white-space:nowrap}
+  .mission .rw small{display:block;color:#CDBCF5;font-weight:800;font-size:11px}
+  .lbrow{display:flex;align-items:center;gap:11px;padding:11px 14px;margin-bottom:9px}
+  .lbrow .rk{font-family:"Baloo 2",cursive;font-weight:800;font-size:17px;width:22px;text-align:center}
+  .ava{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:19px;background:linear-gradient(140deg,#8B5CF6,#EC4899);border:2px solid #ffffff55;flex:0 0 38px}
+  .lbrow b{font-size:14.5px}.lbrow .xp{margin-left:auto;font-weight:900;color:#FFD97A;font-size:13.5px}
+  .friends{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none}
+  .friends::-webkit-scrollbar{display:none}
+  .friend{text-align:center;font-size:11px;font-weight:800;color:#EDE7FF;width:56px;flex:0 0 56px}
+  .friend .ava{width:52px;height:52px;font-size:25px;margin:0 auto 5px;position:relative}
+  .dot{position:absolute;bottom:1px;right:1px;width:12px;height:12px;border-radius:50%;background:#34D399;border:2px solid #2A1065}
+  .ref{display:flex;align-items:center;gap:12px;padding:16px}
+  .ref b{font-family:"Baloo 2",cursive;font-size:16.5px;display:block}
+  .ref span{font-size:12.5px;font-weight:700;color:#E4D9FF}
+  .code{margin-left:auto;background:#00000038;border:1.5px dashed #FFC53D99;border-radius:12px;padding:8px 11px;font-weight:900;letter-spacing:1px;font-size:13px;color:#FFD97A;white-space:nowrap}
+  .foot-links{display:flex;justify-content:center;gap:20px;padding:20px 0 6px;font-size:12.5px;font-weight:800}
+  .foot-links a{color:#CDBCF5;text-decoration:none}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="confetti"></div>
+
+    <div class="topbar">
+      <div class="logo" style="font-size:24px">PLAYM3ANA</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="coinpill"><span class="coin">★</span>250</div>
+        <a class="iconbtn" href="index.html" style="text-decoration:none">👤</a>
+      </div>
+    </div>
+
+    <div class="scroll" style="padding-top:8px">
+      <!-- HERO -->
+      <section class="hero">
+        <div class="logo">PLAYM3ANA</div>
+        <p>Catch your friend before he catches you 😏</p>
+        <a class="btn" href="#games" style="display:inline-flex;padding:13px 24px;font-size:17px">▶&nbsp; PLAY NOW</a>
+      </section>
+
+      <!-- LIVE TICKER (real function: live activity) -->
+      <div class="ticker"><div class="track" id="tickerTrack">
+        <span>🔥 Yassine won <b>120 coins</b> in Mafia</span><span>🎉 Sara just joined a room</span>
+        <span>🏆 Omar reached <b>Level 12</b></span><span>💰 Lina claimed her daily <b>+100</b></span>
+        <span>🎨 Karim is drawing in Paint Followers</span><span>⚡ New Dare room opened</span>
+      </div></div>
+
+      <!-- DAILY REWARD (real function: daily check-in claim) -->
+      <section class="card reward">
+        <div class="gift">🎁</div>
+        <div><b>Daily reward ready</b><span>Come back every day for bonus coins</span></div>
+        <a class="btn" href="#checkin">CLAIM</a>
+      </section>
+
+      <!-- FEATURED GAME (real function: featured Mafia, coin or ad unlock) -->
+      <div class="sec-head"><h2>⭐ Featured game</h2></div>
+      <section class="featured">
+        <div class="face">🕵️</div>
+        <h3>MAFIA D LHOUMA</h3>
+        <p class="desc">One of your friends is the mafia. Find him before the night ends.</p>
+        <div class="chips">
+          <span class="chip">👥 6+ players</span><span class="chip">⏱️ 25 min</span><span class="chip">🪙 25 coins</span>
+        </div>
+        <div class="playrow">
+          <a class="btn" href="#">🪙 Play · 25</a>
+          <a class="btn ad" href="#">📺 Watch ad · Free</a>
+        </div>
+      </section>
+
+      <!-- GAMES GRID (real games + prices from the real game) -->
+      <div class="sec-head" id="games"><h2>🎮 All games</h2><a href="#">See all</a></div>
+      <div class="grid">
+        <div class="game g1"><div class="ic">🕵️</div><h4>Mafia D Lhouma</h4><div class="meta">6+ players · 25 min</div><span class="price">🪙 25 coins</span></div>
+        <div class="game g2"><div class="ic">🙊</div><h4>Bara Salfa</h4><div class="meta">3–15 players · 15 min</div><span class="price">🪙 20 coins</span></div>
+        <div class="game g3"><div class="ic">🔮</div><h4>7azr Fazr</h4><div class="meta">3–15 players · 15 min</div><span class="price">🪙 15 coins</span></div>
+        <div class="game g4"><div class="ic">🎨</div><h4>Paint Followers</h4><div class="meta">3–15 players · 15 min</div><span class="price">🪙 15 coins</span></div>
+        <div class="game g5"><div class="ic">⚡</div><h4>Sowl wla Dir?</h4><div class="meta">3–8 players · 10 min</div><span class="price">🪙 15 coins</span></div>
+        <div class="game g6 soon"><span class="soon-tag">SOON</span><div class="ic">❓</div><h4>Trivia D Lhouma</h4><div class="meta">Coming soon</div><span class="price">🔒 Locked</span></div>
+        <div class="game g6 soon"><span class="soon-tag">SOON</span><div class="ic">🎤</div><h4>Karaoke Lhouma</h4><div class="meta">Coming soon</div><span class="price">🔒 Locked</span></div>
+      </div>
+
+      <!-- DAILY CHECK-IN (real function: 7-day ladder 25 → 250) -->
+      <div class="sec-head" id="checkin"><h2>📅 Daily check-in</h2><a href="#">Day 4 streak 🔥</a></div>
+      <div class="days">
+        <div class="day done">DAY 1<span class="c">🪙25</span>✓</div>
+        <div class="day done">DAY 2<span class="c">🪙40</span>✓</div>
+        <div class="day done">DAY 3<span class="c">🪙60</span>✓</div>
+        <div class="day today">DAY 4<span class="c">🪙80</span>CLAIM</div>
+        <div class="day">DAY 5<span class="c">🪙100</span>·</div>
+        <div class="day">DAY 6<span class="c">🪙150</span>·</div>
+        <div class="day">DAY 7<span class="c">🪙250</span>🎁</div>
+      </div>
+
+      <!-- MISSIONS TEASER (real function: daily/weekly missions) -->
+      <div class="sec-head"><h2>🎯 Today's missions</h2><a href="#">All missions</a></div>
+      <div class="card mission"><span class="ic">🎮</span><div><b>Play 3 games today</b><div class="barw"><div class="barf" style="width:66%"></div></div></div><div class="rw">+20 🪙<small>+10 XP · 2/3</small></div></div>
+      <div class="card mission"><span class="ic">🕵️</span><div><b>Win 1 Mafia game</b><div class="barw"><div class="barf" style="width:0%"></div></div></div><div class="rw">+30 🪙<small>0/1</small></div></div>
+      <div class="card mission"><span class="ic">👥</span><div><b>Invite a friend</b><div class="barw"><div class="barf" style="width:100%"></div></div></div><div class="rw">+50 🪙<small>Done ✓</small></div></div>
+
+      <!-- LEADERBOARD TEASER (real function: top players) -->
+      <div class="sec-head"><h2>🏆 Top players</h2><a href="#">Leaderboard</a></div>
+      <div class="card lbrow"><span class="rk" style="color:#FFD97A">1</span><span class="ava">🦁</span><b>Yassine</b><span class="xp">24,380 XP</span></div>
+      <div class="card lbrow"><span class="rk" style="color:#E5E7EB">2</span><span class="ava">🦊</span><b>Sara</b><span class="xp">22,150 XP</span></div>
+      <div class="card lbrow"><span class="rk" style="color:#FDBA74">3</span><span class="ava">🐼</span><b>Omar</b><span class="xp">19,940 XP</span></div>
+
+      <!-- FRIENDS (real function: friends panel / roster) -->
+      <div class="sec-head"><h2>👥 Friends</h2><a href="#">Invite +</a></div>
+      <div class="friends">
+        <div class="friend"><span class="ava">🦁<i class="dot"></i></span>Yassine</div>
+        <div class="friend"><span class="ava">🦊<i class="dot"></i></span>Sara</div>
+        <div class="friend"><span class="ava">🐼</span>Omar</div>
+        <div class="friend"><span class="ava">🦉<i class="dot"></i></span>Lina</div>
+        <div class="friend"><span class="ava">🐯</span>Karim</div>
+        <div class="friend"><span class="ava" style="background:#ffffff1a">➕</span>Invite</div>
+      </div>
+
+      <!-- REFERRAL (real function: referral code, +50 coins) -->
+      <section class="card ref">
+        <div style="font-size:32px">💌</div>
+        <div><b>Invite &amp; earn +50 🪙</b><span>Your friend joins with your code, you both win</span></div>
+        <button class="code" id="copyCode" type="button">OMAR-7K2P ⧉</button>
+      </section>
+
+      <div class="foot-links"><a href="#">Contact</a><a href="#">Privacy</a><a href="#">Terms</a></div>
+      <p style="text-align:center;font-size:11px;font-weight:700;color:#B9A8E8;padding-bottom:4px">PLAYM3ANA — بلاصة اللعب</p>
+    </div>
+
+    <nav class="tabbar">
+      <a class="active" href="lobby.html"><span class="ic">🏠</span>Home</a>
+      <a href="#games"><span class="ic">🎮</span>Games</a>
+      <a href="#checkin"><span class="ic">🎁</span>Rewards</a>
+      <a href="index.html"><span class="ic">👤</span>Profile</a>
+    </nav>
+  </div>
+<script>
+  // ticker: duplicate the track so the loop is seamless
+  var t=document.getElementById('tickerTrack'); t.innerHTML+=t.innerHTML;
+  // referral copy (same function as the real game: copy your code)
+  document.getElementById('copyCode').addEventListener('click',function(){
+    var code='OMAR-7K2P', btn=this;
+    if(navigator.clipboard){navigator.clipboard.writeText(code);}
+    btn.textContent='COPIED ✓'; setTimeout(function(){btn.textContent=code+' ⧉';},1600);
+  });
+</script>
+</body>
+</html>

@@ -13,8 +13,8 @@ Same functions as the real game (nerase.com / `lkiwan/loby`). Nothing invented, 
 | # | Real page / part | Route | Redesign step |
 |---|---|---|---|
 | 1 | Splash / loading gate (SplashGate) + logo | boot | **Step 1 — DONE** `loading.html` |
-| 2 | Lobby / home (hero, ticker, featured Mafia, game grid, missions teaser, leaderboard teaser, referral, footer) | `/` | Step 2 — NEXT `lobby.html` |
-| 3 | Login (username or Gmail + password, Google/Gmail only, banned/frozen states, `?play=` return) | `/login` | Step 3 `login.html` |
+| 2 | Lobby / home (hero, ticker, featured Mafia, game grid, missions teaser, leaderboard teaser, referral, footer) | `/` | **Step 2 — DONE** `lobby.html` |
+| 3 | Login (username or Gmail + password, Google/Gmail only, banned/frozen states, `?play=` return) | `/login` | Step 3 — NEXT `login.html` |
 | 4 | Register (username 3–20 `[a-z0-9_]`, email, no temp-mail, password 6+, confirm, referral code → +50 coins, signup grant) | `/register` | Step 4 `register.html` |
 | 5 | Name gate + onboarding tour (first-run) | NameGate / OnboardingTour | Step 5 `welcome.html` |
 | 6 | Profile (avatar/character, display name, change name + password) | `/profile` | Step 6 `profile.html` |
