@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Profile & wallet</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .tabs{display:flex;gap:8px;padding:12px 18px 0;position:relative;z-index:3}
+  .tabs button{flex:1;border:1.5px solid var(--card-line);background:var(--card);color:#CDBCF5;border-radius:999px;
+    padding:11px;font-family:"Baloo 2",cursive;font-weight:700;font-size:16px;cursor:pointer}
+  .tabs button.on{background:var(--grad-btn);color:#fff;border-color:transparent;box-shadow:0 10px 22px -8px rgba(244,63,94,.7)}
+  .view{display:none}.view.on{display:block}
+  .idcard{text-align:center;padding:22px 18px 18px}
+  .avatar{width:96px;height:96px;border-radius:50%;margin:0 auto;display:grid;place-items:center;font-size:50px;
+    background:linear-gradient(140deg,#8B5CF6,#EC4899);border:3px solid #ffffff66;box-shadow:0 16px 34px -10px rgba(10,2,40,.65);position:relative}
+  .avatar .edit{position:absolute;bottom:-2px;right:-2px;width:30px;height:30px;border-radius:50%;background:var(--gold);
+    display:grid;place-items:center;font-size:14px;border:2px solid #2A1065}
+  .idcard h1{font-family:"Baloo 2",cursive;font-size:25px;margin-top:12px}
+  .idcard .uname{font-weight:800;color:#CDBCF5;font-size:13.5px}
+  .lvl{margin-top:14px;background:#170A3866;border:1px solid var(--card-line);border-radius:16px;padding:12px 14px;text-align:left}
+  .lvl .row{display:flex;justify-content:space-between;font-weight:900;font-size:13px}
+  .lvl .barw{height:10px;background:#ffffff1e;border-radius:99px;margin-top:8px;overflow:hidden}
+  .lvl .barf{height:100%;width:62%;background:linear-gradient(90deg,#38BDF8,#8B5CF6);border-radius:99px}
+  .stats{display:flex;gap:9px;margin-top:12px}
+  .stat{flex:1;padding:13px 6px;text-align:center}
+  .stat b{font-family:"Baloo 2",cursive;font-size:19px;display:block}
+  .stat span{font-size:11px;font-weight:900;color:#CDBCF5;letter-spacing:.4px}
+  .sec{font-family:"Baloo 2",cursive;font-size:19px;margin:20px 0 10px}
+  label{display:block;font-size:12px;font-weight:900;letter-spacing:1.2px;color:#E4D9FF;margin:12px 0 7px}
+  .field{display:flex;align-items:center;background:#170A3866;border:1.5px solid var(--card-line);border-radius:16px;padding:0 6px 0 15px}
+  .field:focus-within{border-color:var(--violet);box-shadow:0 0 0 3px #8B5CF633}
+  .field input{flex:1;background:none;border:none;outline:none;color:#fff;font-family:"Nunito",sans-serif;font-weight:700;font-size:16px;padding:14px 0;min-width:0}
+  .field input::placeholder{color:#A793D8}
+  .field.locked{opacity:.65}
+  .eye{border:none;background:#ffffff14;color:#EDE7FF;width:40px;height:40px;border-radius:12px;font-size:17px;cursor:pointer;flex:0 0 40px}
+  .savebtn{width:100%;margin-top:14px;padding:13px;font-size:17px}
+  .msg{display:none;border-radius:14px;padding:11px 14px;font-size:13.5px;font-weight:800;margin-top:12px;line-height:1.45}
+  .msg.err{display:block;background:#F43F5E26;border:1.5px solid #F43F5E88;color:#FFD9DE}
+  .msg.ok{display:block;background:#10B98126;border:1.5px solid #10B98188;color:#CFFBEF}
+  .refrow{display:flex;align-items:center;gap:12px;padding:15px 16px}
+  .refrow b{font-family:"Baloo 2",cursive;font-size:16px;display:block}
+  .refrow span{font-size:12.5px;font-weight:700;color:#E4D9FF}
+  .code{margin-left:auto;background:#00000038;border:1.5px dashed #FFC53D99;border-radius:12px;padding:9px 12px;font-weight:900;letter-spacing:1px;font-size:13.5px;color:#FFD97A;white-space:nowrap;cursor:pointer}
+  .logout{width:100%;margin-top:22px;background:#ffffff10;border:1.5px solid #F43F5E77;color:#FFB3BC;border-radius:999px;
+    padding:14px;font-family:"Baloo 2",cursive;font-weight:700;font-size:16.5px;cursor:pointer}
+  .balance{text-align:center;padding:20px 16px 16px}
+  .balance .amt{font-family:"Baloo 2",cursive;font-size:44px;color:#FFD97A;line-height:1}
+  .balance span{font-weight:900;color:#CDBCF5;font-size:12.5px;letter-spacing:1px}
+  .tx{display:flex;align-items:center;gap:11px;padding:12px 14px;margin-bottom:9px}
+  .tx .ic{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;font-size:18px;background:#ffffff14;flex:0 0 38px}
+  .tx b{font-size:14.5px;display:block}
+  .tx small{color:#CDBCF5;font-weight:700;font-size:11.5px}
+  .tx .v{margin-left:auto;font-family:"Baloo 2",cursive;font-weight:800;font-size:16.5px;white-space:nowrap}
+  .plus{color:#6EE7B7}.minus{color:#FDA4AF}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="confetti"></div>
+
+    <div class="topbar">
+      <div class="logo" style="font-size:24px">PLAYM3ANA</div>
+      <div class="coinpill"><span class="coin">★</span>250</div>
+    </div>
+
+    <div class="tabs">
+      <button class="on" id="tabProfile" type="button">👤 Profile</button>
+      <button id="tabWallet" type="button">🪙 Wallet</button>
+    </div>
+
+    <div class="scroll">
+      <!-- ===== PROFILE VIEW (real /profile) ===== -->
+      <section class="view on" id="viewProfile">
+        <div class="card idcard">
+          <div class="avatar">🦁<span class="edit">✏️</span></div>
+          <h1 id="shownName">Omar The Lion</h1>
+          <div class="uname">@omar_7 · your character: 🦁 Lion</div>
+          <div class="lvl">
+            <div class="row"><span>⭐ Level 12</span><span>1,240 / 2,000 XP</span></div>
+            <div class="barw"><div class="barf"></div></div>
+          </div>
+          <div class="stats">
+            <div class="card stat"><b>250</b><span>COINS 🪙</span></div>
+            <div class="card stat"><b>7 🔥</b><span>DAY STREAK</span></div>
+            <div class="card stat"><b>43</b><span>GAMES PLAYED</span></div>
+          </div>
+        </div>
+
+        <h2 class="sec">✏️ Display name</h2>
+        <div class="field"><input id="nameInput" type="text" value="Omar The Lion" maxlength="30"></div>
+        <div class="msg" id="nameMsg"></div>
+        <button class="btn savebtn" id="saveName" type="button">SAVE NAME</button>
+
+        <h2 class="sec">🔒 Username</h2>
+        <div class="field locked"><input type="text" value="omar_7" disabled></div>
+        <p style="font-size:12px;font-weight:700;color:#B9A8E8;margin-top:6px">Your username never changes — it's how friends find you.</p>
+
+        <h2 class="sec">💌 Your referral code</h2>
+        <div class="card refrow">
+          <div><b>Invite &amp; earn +50 🪙</b><span>Per friend who joins with your code</span></div>
+          <button class="code" id="copyCode" type="button">OMAR-7K2P ⧉</button>
+        </div>
+
+        <h2 class="sec">🔑 Change password</h2>
+        <label for="curPass">CURRENT PASSWORD</label>
+        <div class="field"><input id="curPass" type="password" placeholder="Current password"><button class="eye" data-eye="curPass" type="button">👁️</button></div>
+        <label for="newPass">NEW PASSWORD</label>
+        <div class="field"><input id="newPass" type="password" placeholder="At least 6 characters"><button class="eye" data-eye="newPass" type="button">👁️</button></div>
+        <div class="msg" id="pwMsg"></div>
+        <button class="btn savebtn" id="savePw" type="button" style="background:linear-gradient(92deg,#38BDF8,#8B5CF6);box-shadow:0 12px 26px -8px rgba(56,189,248,.6), inset 0 -4px 0 rgba(20,40,120,.35)">UPDATE PASSWORD</button>
+
+        <button class="logout" id="logoutBtn" type="button">🚪 Log out</button>
+      </section>
+
+      <!-- ===== WALLET VIEW (real /profile/wallet: balance + ledger) ===== -->
+      <section class="view" id="viewWallet">
+        <div class="card balance">
+          <span>YOUR BALANCE</span>
+          <div class="amt">🪙 250</div>
+          <span>COINS NEVER EXPIRE</span>
+        </div>
+
+        <h2 class="sec">🧾 History</h2>
+        <div class="card tx"><span class="ic">🎁</span><div><b>Daily check-in · Day 4</b><small>Today</small></div><span class="v plus">+80</span></div>
+        <div class="card tx"><span class="ic">🕵️</span><div><b>Mafia D Lhouma — entry</b><small>Today</small></div><span class="v minus">−25</span></div>
+        <div class="card tx"><span class="ic">💌</span><div><b>Referral bonus — Sara joined</b><small>Yesterday</small></div><span class="v plus">+50</span></div>
+        <div class="card tx"><span class="ic">🎯</span><div><b>Mission: Play 3 games</b><small>Yesterday</small></div><span class="v plus">+20</span></div>
+        <div class="card tx"><span class="ic">📺</span><div><b>Watched ad — free game unlock</b><small>Yesterday</small></div><span class="v plus">+0 🎟️</span></div>
+        <div class="card tx"><span class="ic">🎉</span><div><b>Welcome bonus — new account</b><small>Last week</small></div><span class="v plus">+125</span></div>
+      </section>
+    </div>
+
+    <nav class="tabbar">
+      <a href="lobby.html"><span class="ic">🏠</span>Home</a>
+      <a href="lobby.html#games"><span class="ic">🎮</span>Games</a>
+      <a href="index.html"><span class="ic">🎁</span>Rewards</a>
+      <a class="active" href="profile.html"><span class="ic">👤</span>Profile</a>
+    </nav>
+  </div>
+<script>
+  // Tabs = the real /profile and /profile/wallet pages
+  var tp=document.getElementById('tabProfile'), tw=document.getElementById('tabWallet');
+  var vp=document.getElementById('viewProfile'), vw=document.getElementById('viewWallet');
+  function show(wallet){
+    tp.classList.toggle('on',!wallet); tw.classList.toggle('on',wallet);
+    vp.classList.toggle('on',!wallet); vw.classList.toggle('on',wallet);
+    document.querySelector('.scroll').scrollTo(0,0);
+  }
+  tp.addEventListener('click',function(){show(false);});
+  tw.addEventListener('click',function(){show(true);});
+  if(location.hash==='#wallet'){show(true);}
+
+  document.querySelectorAll('[data-eye]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var p=document.getElementById(btn.getAttribute('data-eye'));
+      var s=p.type==='password'; p.type=s?'text':'password'; btn.textContent=s?'🙈':'👁️';
+    });
+  });
+
+  function setMsg(id,type,text){var m=document.getElementById(id);m.className='msg '+type;m.textContent=text;}
+
+  // Real function: change display name
+  document.getElementById('saveName').addEventListener('click',function(){
+    var v=document.getElementById('nameInput').value.trim();
+    if(v.length<2){setMsg('nameMsg','err','Display name is too short.');return;}
+    document.getElementById('shownName').textContent=v;
+    setMsg('nameMsg','ok','✅ Display name saved — friends see it right away.');
+  });
+
+  // Real function: copy referral code
+  document.getElementById('copyCode').addEventListener('click',function(){
+    var code='OMAR-7K2P', btn=this;
+    if(navigator.clipboard){navigator.clipboard.writeText(code);}
+    btn.textContent='COPIED ✓'; setTimeout(function(){btn.textContent=code+' ⧉';},1600);
+  });
+
+  // Real function: change password (new password min 6, same rule as signup)
+  document.getElementById('savePw').addEventListener('click',function(){
+    var cur=document.getElementById('curPass').value, nw=document.getElementById('newPass').value;
+    if(!cur||!nw){setMsg('pwMsg','err','Fill in your current and new password.');return;}
+    if(nw.length<6){setMsg('pwMsg','err','New password must be at least 6 characters.');return;}
+    if(nw===cur){setMsg('pwMsg','err','New password must be different from the current one.');return;}
+    setMsg('pwMsg','ok','✅ Password updated.');
+    document.getElementById('curPass').value=''; document.getElementById('newPass').value='';
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click',function(){location.href='login.html';});
+</script>
+</body>
+</html>
