@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Redesign check hub</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .row{display:flex;align-items:center;gap:12px;padding:15px 16px;border-radius:var(--r-md);
+    background:var(--card);border:1px solid var(--card-line);margin-bottom:10px;text-decoration:none;color:var(--cream)}
+  .row .n{width:34px;height:34px;flex:0 0 34px;border-radius:12px;background:var(--grad-btn);display:grid;place-items:center;
+    font-family:"Baloo 2",cursive;font-weight:800;font-size:16px;color:#fff}
+  .row .t{font-weight:900;font-size:16px}
+  .row .s{margin-left:auto;font-size:11px;font-weight:900;padding:5px 10px;border-radius:999px;letter-spacing:.4px}
+  .done{background:#10B981;color:#04241A}.next{background:#ffffff22;color:#E4D9FF}.todo{background:#ffffff10;color:#B9A8E8}
+  .row.off{opacity:.55;pointer-events:none}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="confetti"></div>
+    <div class="topbar">
+      <div class="logo" style="font-size:26px">PLAYM3ANA</div>
+      <div class="coinpill"><span class="coin">★</span>250</div>
+    </div>
+    <div class="scroll">
+      <h1 class="title">Redesign — check hub</h1>
+      <p class="sub" style="margin:4px 0 18px">Adult-playful style. One page at a time, same functions as the real game, sized for phone screens.</p>
+
+      <a class="row" href="loading.html"><span class="n">1</span><span class="t">Loading page + logo</span><span class="s done">DONE</span></a>
+      <a class="row off" href="#"><span class="n">2</span><span class="t">Lobby (home)</span><span class="s next">NEXT</span></a>
+      <a class="row off" href="#"><span class="n">3</span><span class="t">Login</span><span class="s todo">QUEUED</span></a>
+      <a class="row off" href="#"><span class="n">4</span><span class="t">Register</span><span class="s todo">QUEUED</span></a>
+      <a class="row off" href="#"><span class="n">5</span><span class="t">Welcome: name gate + tour</span><span class="s todo">QUEUED</span></a>
+      <a class="row off" href="#"><span class="n">6</span><span class="t">Profile + character &amp; wallet</span><span class="s todo">QUEUED</span></a>
+      <a class="row off" href="#"><span class="n">7</span><span class="t">Missions + daily check-in</span><span class="s todo">QUEUED</span></a>
+      <a class="row off" href="#"><span class="n">8</span><span class="t">Leaderboard</span><span class="s todo">QUEUED</span></a>
+      <a class="row off" href="#"><span class="n">9</span><span class="t">Game page ×5 (Mafia first) + win page</span><span class="s todo">QUEUED</span></a>
+      <a class="row off" href="#"><span class="n">10</span><span class="t">Contact · Privacy · Terms</span><span class="s todo">QUEUED</span></a>
+    </div>
+    <nav class="tabbar">
+      <a class="active" href="index.html"><span class="ic">🏠</span>Home</a>
+      <a href="#"><span class="ic">🎮</span>Games</a>
+      <a href="#"><span class="ic">🎁</span>Rewards</a>
+      <a href="#"><span class="ic">👤</span>Profile</a>
+    </nav>
+  </div>
+</body>
+</html>

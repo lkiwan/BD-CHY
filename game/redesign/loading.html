@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Loading</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;position:relative;z-index:2;padding:24px}
+  .badge{width:118px;height:118px;border-radius:36px;background:linear-gradient(150deg,#8B5CF6,#5B21B6 55%,#3B1470);
+    display:grid;place-items:center;box-shadow:0 24px 50px -14px rgba(10,2,40,.7), inset 0 2px 0 #ffffff40, inset 0 -8px 18px rgba(0,0,0,.35);
+    animation:bob 2.2s ease-in-out infinite}
+  .badge .mark{font-family:"Baloo 2",cursive;font-weight:800;font-size:58px;background:var(--grad-logo);
+    -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(20,5,50,.5))}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-9px) rotate(2deg)}}
+  .logo{font-size:52px;text-align:center;animation:pop .7s cubic-bezier(.2,1.6,.4,1) both .15s}
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .tag{font-weight:800;color:#EDE7FF;font-size:15px;letter-spacing:.4px;text-align:center}
+  .barwrap{width:min(260px,72vw);height:14px;border-radius:999px;background:#ffffff1c;border:1px solid var(--card-line);overflow:hidden;margin-top:16px}
+  .bar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#FFC53D,#FF8E53,#F43F5E);animation:load 2.6s ease forwards}
+  @keyframes load{to{width:100%}}
+  .pct{font-family:"Baloo 2",cursive;font-weight:700;font-size:15px;color:#FFE1B8}
+  .enter{margin-top:8px;opacity:0;pointer-events:none;transition:opacity .4s}
+  .enter.show{opacity:1;pointer-events:auto}
+  .foot{padding:0 24px calc(20px + var(--sab));text-align:center;font-size:12px;font-weight:700;color:#D9CCFF;opacity:.85;position:relative;z-index:2}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="confetti"></div>
+    <div class="stage">
+      <div class="badge"><div class="mark">P3</div></div>
+      <div class="logo">PLAYM3ANA</div>
+      <div class="tag">The party starts with your friends 🎉</div>
+      <div class="barwrap"><div class="bar"></div></div>
+      <div class="pct" id="pct">0%</div>
+      <a class="btn enter" id="enter" href="index.html">ENTER&nbsp;→</a>
+    </div>
+    <div class="foot">Loading your lobby, coins &amp; missions…</div>
+  </div>
+<script>
+  // Same idea as the real game's boot: progress, then let the player in.
+  var pct=document.getElementById('pct'), enter=document.getElementById('enter'), start=Date.now();
+  var t=setInterval(function(){
+    var p=Math.min(100,Math.round((Date.now()-start)/2600*100));
+    pct.textContent=p+'%';
+    if(p>=100){clearInterval(t);enter.classList.add('show');}
+  },60);
+</script>
+</body>
+</html>

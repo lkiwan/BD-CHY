@@ -1,0 +1,81 @@
+/* PLAYM3ANA — Adult Playful design system
+   Phone-perfect: every page lives inside a .phone shell sized to the real
+   device screen (100dvh), max 430px wide, safe-area aware. */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap');
+
+:root{
+  --purple-900:#2A1065; --purple-700:#4C1D95; --purple-500:#7C3AED;
+  --violet:#8B5CF6; --coral:#FF6B57; --coral-2:#FF8E53; --pink:#F471B5;
+  --gold:#FFC53D; --gold-2:#FF9F1C; --cream:#FFF6EC; --ink:#1E1145;
+  --card:#ffffff14; --card-line:#ffffff26;
+  --grad-bg:linear-gradient(165deg,#3B1470 0%,#5B21B6 34%,#7C3AED 55%,#C2417E 82%,#FF6B57 115%);
+  --grad-logo:linear-gradient(92deg,#FF8E53,#FF6B57 38%,#F471B5 72%,#A78BFA);
+  --grad-btn:linear-gradient(92deg,#FF8E53,#FF6B57 55%,#F43F5E);
+  --r-lg:28px; --r-md:20px; --r-sm:14px;
+  --shadow:0 18px 40px -12px rgba(20,5,50,.55);
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:"Nunito",system-ui,sans-serif;color:var(--cream);
+  background:#170A38;display:flex;align-items:stretch;justify-content:center;
+}
+/* The phone shell: exactly the device screen, never wider than a big phone */
+.phone{
+  position:relative;width:100%;max-width:430px;height:100dvh;overflow:hidden;
+  background:var(--grad-bg);display:flex;flex-direction:column;
+  padding-top:var(--sat);
+}
+@media (min-width:480px){ .phone{box-shadow:0 0 0 1px #ffffff22,0 30px 80px -20px #000} }
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 18px 12px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+/* confetti dots layer */
+.confetti{position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:
+   radial-gradient(circle 3px at 12% 22%, #FFC53D 98%, transparent),
+   radial-gradient(circle 2px at 84% 14%, #F471B5 98%, transparent),
+   radial-gradient(circle 2.5px at 68% 34%, #7DD3FC 98%, transparent),
+   radial-gradient(circle 2px at 28% 58%, #FF8E53 98%, transparent),
+   radial-gradient(circle 3px at 91% 66%, #FFC53D 98%, transparent),
+   radial-gradient(circle 2px at 8% 82%, #A78BFA 98%, transparent),
+   radial-gradient(circle 2.5px at 52% 88%, #F471B5 98%, transparent),
+   radial-gradient(circle 2px at 40% 8%, #7DD3FC 98%, transparent);}
+
+/* Logo */
+.logo{font-family:"Baloo 2",cursive;font-weight:800;letter-spacing:.5px;line-height:1;
+  background:var(--grad-logo);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 4px 0 rgba(30,10,70,.45)) drop-shadow(0 10px 22px rgba(244,63,94,.35));}
+.logo .three{color:transparent}
+
+/* top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px 4px;position:relative;z-index:3}
+.coinpill{display:flex;align-items:center;gap:7px;background:linear-gradient(180deg,#FFD97A,#FFB92E);
+  color:#5B3400;font-weight:900;border-radius:999px;padding:7px 14px 7px 8px;font-size:15px;
+  box-shadow:0 6px 16px -4px rgba(255,159,28,.65), inset 0 -3px 0 rgba(160,90,0,.35)}
+.coinpill .coin{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 32% 30%,#FFE9A8,#FFC53D 55%,#E8930C);
+  display:grid;place-items:center;font-size:12px;color:#8a5a00;box-shadow:inset 0 -2px 3px rgba(160,90,0,.5)}
+.iconbtn{width:40px;height:40px;border-radius:14px;border:1px solid var(--card-line);background:var(--card);
+  display:grid;place-items:center;font-size:18px;color:var(--cream)}
+
+/* bottom nav */
+.tabbar{position:relative;z-index:4;margin:6px 14px calc(12px + var(--sab));
+  background:rgba(23,10,56,.82);backdrop-filter:blur(14px);border:1px solid var(--card-line);
+  border-radius:26px;display:flex;padding:8px;box-shadow:var(--shadow)}
+.tabbar a{flex:1;text-decoration:none;color:#CDBCF5;display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:11px;font-weight:800;padding:7px 0 5px;border-radius:18px}
+.tabbar a .ic{font-size:20px;line-height:1}
+.tabbar a.active{background:var(--grad-btn);color:#fff;box-shadow:0 8px 18px -6px rgba(244,63,94,.7)}
+
+/* cards & buttons */
+.card{background:var(--card);border:1px solid var(--card-line);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
+  font-family:"Baloo 2",cursive;font-weight:700;font-size:19px;color:#fff;background:var(--grad-btn);
+  border-radius:999px;padding:15px 26px;box-shadow:0 12px 26px -8px rgba(244,63,94,.75), inset 0 -4px 0 rgba(120,10,40,.35);
+  text-decoration:none}
+.btn:active{transform:translateY(2px)}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#ffffff1f;border:1px solid var(--card-line);
+  padding:7px 12px;border-radius:999px;font-weight:800;font-size:13px}
+h1.title{font-family:"Baloo 2",cursive;font-size:30px;font-weight:800}
+.sub{color:#E4D9FF;font-weight:700;font-size:14px;opacity:.92}
