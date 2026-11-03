@@ -79,3 +79,8 @@ body{
   padding:7px 12px;border-radius:999px;font-weight:800;font-size:13px}
 h1.title{font-family:"Baloo 2",cursive;font-size:30px;font-weight:800}
 .sub{color:#E4D9FF;font-weight:700;font-size:14px;opacity:.92}
+
+/* Bottom-bar icons: Solar Icons (open-source, CC BY 4.0 — 480 Design), recolored via currentColor
+   to the game palette (purple of the set is not used). */
+.tabbar a .sic{width:21px;height:21px;display:block}
+.tabbar a .icimg{width:23px;height:23px;border-radius:50%;object-fit:cover;border:1.5px solid #ffffff40;display:block}
