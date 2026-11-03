@@ -1,63 +1,185 @@
-# PLAYM3ANA — Redesign plan (adult-playful)
+# PLAYM3ANA Redesign — FULL Program (Store Posters direction)
 
-Style picked by Omar (2026-11-03): playful style, adult version — vivid purple → coral
-gradient, chunky rounded 3D cards, confetti, Baloo 2 / Nunito type, gold coins.
-Same functions as the real game (nerase.com / `lkiwan/loby`). Nothing invented, nothing removed.
+Goal: redesign **every page and every inside-game screen** of the real game
+(`lkiwan/loby`, live at nerase.com) in the **Store Posters** style, at full
+function parity with the real game. Previews live here in BD-CHY; the real
+`loby` repo stays untouched until Omar orders the port.
 
-## Phone sizing rules (every page)
-- Page = one `.phone` shell: width 100%, max 430px, height exactly `100dvh` (the real screen).
-- Safe-area insets respected (notch + home bar). Content scrolls inside `.scroll` only.
-- Bottom tab bar always visible, never covered. Checked at 390×844 and 360×740 before push.
+**Master checklist:** `FUNCTIONS.md` in this folder (146 functions, audited from
+the real code on 2026-11-03). No step is "done" until its FUNCTIONS.md items are
+checked off.
 
-## Verification rule (Omar's order, 2026-11-03)
+## Standing rules (apply to every step)
 
-**Every page: check the real content in the original game code FIRST** (`lkiwan/loby`),
-then design. No invented sections, prices, or functions. Applied retroactively to Steps 1–5
-(see "Corrections" below).
+1. **Real content first.** Before designing any page/screen, read its real code in
+   `lkiwan/loby` (page/component/game files) and copy the real sections, rules,
+   prices and states. Nothing invented — if the real game doesn't have it, the
+   redesign doesn't add it (exceptions already approved: the character picker).
+2. **English master copy.** All redesign pages are built in English. Arabic /
+   French / Spanish come at the dedicated localization step (Step 16), after all
+   pages are approved. Game titles (PLAYM3ANA, MAFIA D LHOUMA…) stay as brand
+   names. Never bake translated text into images.
+3. **Store Posters design system.** Near-black background, poster cards with
+   diagonal-cut corners, lime `#C6F542` accent, Nunito type — tokenised in
+   `style.css` and reused by every page.
+4. **Solar Icons only.** UI icons come from the Solar Icons set (bold style),
+   recoloured to game colours (lime = active/accent, white/dim = inactive).
+   No emoji as UI icons (emoji inside game content/art is fine).
+5. **Avatars system.** The 10 original characters + shared `avatars.js`
+   (localStorage `pm_avatar`) stay the profile identity system everywhere a
+   player appears.
+6. **Posters.** The 7 generated game posters are the game art everywhere a game
+   is shown; new art is generated in the same poster style when a screen needs it.
+7. **Phone-perfect sizing.** Every page: `.phone` shell max 430px, `100dvh`,
+   safe-area insets, scrolling only inside the content area, tab bar always
+   visible.
+8. **Every step ends with the same gate:**
+   a. Parity check — tick the step's items in `FUNCTIONS.md`, update statuses.
+   b. Screenshots at **390×844 and 360×740** (top + scrolled bottom for long
+      pages), visually inspected before pushing.
+   c. Push to BD-CHY (UTF-8 text only — images embedded as base64 or kept as
+      masters) and live-verify with curl after Pages propagates.
 
-## Corrections from the 2026-11-03 real-content check
+## Current state (2026-11-03)
 
-- **games.ts verified directly:** prices 25 / 20 / 15 / 15 / 15, players and durations as in
-  the lobby — the lobby page was already right. Game icons fixed to the real ones
-  (Mafia 💀, Bara Salfa 🤫, 7azr Fazr 🔍, Paint 🎨, Sowl ❓) and the lobby ticker now uses the
-  game's real 7 ticker lines.
-- **Profile rebuilt to the real `/profile/[username]` content:** letter avatar (first letter
-  of the username), LEVEL + XP with "% to next level", 4 stats (coins / sessions / current
-  streak / longest streak), referral code + copy ("you both win coins"), recent sessions
-  (+XP, score), member-since. The first version wrongly had an animal character, a wallet
-  tab and edit forms on this page.
-- **No `/profile/wallet` page exists** in the current game — wallet step removed.
-- **Change display name + change password live in the lobby Settings sheet** (with a name-
-  change cooldown and current/new/confirm password fields) — not on the profile page.
-- **Hero line:** the real animated hero is «فضح صاحبك قبل ما يفضحك» — the lobby's English
-  line is its translation, kept.
+DONE in Store style: loading (`loading-store.html`), lobby core
+(`lobby-store.html` — posters grid, featured Mafia, daily-reward strip, filter
+tabs), login (`login-store.html`), register (`register-store.html`), posters ×7,
+avatars ×10 + picker (on the playful `profile.html`), Solar bottom bars.
+Coverage vs FUNCTIONS.md: **≈ 24 %** (20 DONE / 29 PARTIAL / 97 MISSING).
 
-## Every page in the real game (audited 2026-11-03 from the repo)
-| # | Real page / part | Route | Redesign step |
-|---|---|---|---|
-| 1 | Splash / loading gate (SplashGate) + logo | boot | **Step 1 — DONE** `loading.html` |
-| 2 | Lobby / home (hero, ticker, featured Mafia, game grid, missions teaser, leaderboard teaser, referral, footer) | `/` | **Step 2 — DONE** `lobby.html` |
-| 3 | Login (username or Gmail + password, Google/Gmail only, banned/frozen states, `?play=` return) | `/login` | **Step 3 — DONE** `login.html` |
-| 4 | Register (username 3–20 `[a-z0-9_]`, email, no temp-mail, password 6+, confirm, referral code → +50 coins, signup grant) | `/register` | **Step 4 — DONE** `register.html` |
-| 5 | Profile — real content: letter avatar, username, level/XP bar, 4 stats, referral code + copy, recent sessions, member-since | `/profile/[username]` | **Step 5 — DONE, rebuilt after real-content check** `profile.html` |
-| 6 | ~~Wallet~~ — **no standalone wallet page exists in the current game** (coins show in the lobby pill + profile stats) | — | REMOVED |
-| 7 | Missions + daily check-in / streaks | `/missions` | Step 6 — NEXT `missions.html` |
-| 8 | Leaderboard | `/leaderboard` | Step 7 `leaderboard.html` |
-| 9 | Friends panel + saved roster | lobby component | inside Steps 2 + 5 |
-| 10 | Game page (unlock: pay coins OR watch ad → token) ×5: Mafia 25c, Bara Salfa 20c, 7azr Fazr 15c, Paint Followers 15c, Sowl wla Dir 15c | `/games/[gameId]` | Step 8 `game-mafia.html` first, then the other 4 |
-| 11 | Win / result page | `/play/win` | Step 8b `win.html` |
-| 12 | Contact | `/contact` | Step 9 `contact.html` |
-| 13 | Privacy / Terms | `/privacy` `/terms` | Step 9 `legal.html` |
-| — | Admin (`/admin`, `/admin/users`) | owner-only | not part of the player redesign |
-| — | Auth error page | `/auth/error` | small state inside login step |
+---
 
-Note on "characters": the real game has no separate characters page — the character is the
-profile avatar. Step 5 designs the profile + avatar/character area.
+## Step 1 — Design system consolidation
+Unify all Store pages on `style.css`: colour/type tokens, poster-card component,
+buttons (coins / ad / ghost), pills (coins, level), tab bar with Solar icons,
+sheet/modal shells, toast. Retrofit `lobby-store.html` onto the shared tokens.
+→ Gate: parity §0 (shell items), screenshots, push.
 
-Correction (2026-11-03): an earlier draft of this plan listed a "name gate + onboarding tour"
-step. Re-checking the actual repo (`src/components` + code search) shows **no NameGate and no
-OnboardingTour exist in the real game** — that step was removed and the profile moved up to Step 5.
+## Step 2 — Loading (Store style) ✔ built — finish & verify
+`loading-store.html` exists; add the missing real behaviours as design states:
+init-error state with reload button (§0). Confirm logo + loader match the real
+LoadingPage structure. → Gate: parity §0, screenshots, push.
 
-## Order of work
-One page at a time: build → screenshot-check at phone sizes → push online → Omar checks → next page.
-Check hub: `index.html` in this folder lists every page and its status.
+## Step 3 — Login (Store style) ✔ built — parity pass
+Verify against FUNCTIONS.md §11: identifier (username OR Gmail), eye toggle on
+password (add if missing), Google-only button, demo states for invalid / banned /
+frozen / gmail-only errors, `?play=` return note, admin-redirect note, register
+link, no forgot-password. → Gate: parity §11, screenshots (incl. error state), push.
+
+## Step 4 — Register (Store style) ✔ built — parity pass
+Verify against §12: username rules copy (3–20, `[a-z0-9_]`), email + temp-mail
+block note, password ≥ 6 + confirm + eye toggles, optional referral field,
+duplicate-account error demo, success screen (own code USERNAME-XXXX → auto
+sign-in → lobby), 100-coins gift chip, Google button, login link.
+→ Gate: parity §12, screenshots (incl. success state), push.
+
+## Step 5 — Lobby full parity (the big one)
+Bring `lobby-store.html` to full §1–§10 parity, in sub-steps, one push each:
+- **5a Header & status:** hamburger → settings (Step 10), sound + music toggles,
+  live coins pill + level pill, guest header state.
+- **5b Hero & ticker:** hero block + Play-now CTA, guest create-account CTA,
+  the 7 real ticker lines, ambiance cards — all in Store style.
+- **5c Games section:** rank badges + snap carousel behaviour on the poster grid,
+  per-card details disclosure, play-button states (loading / busy / insufficient),
+  ad button on every card, free-first-play-of-the-day state, coming-soon cards.
+  Decide the category row: real game = decorative chips; store = working filter
+  tabs (confirm with Omar or align to real).
+- **5d Check-in:** 7-day ladder (25→250) with today/upcoming/claimed states +
+  auto-claim toast demo.
+- **5e Referral panel:** code box + copy, "you both win coins".
+- **5f Footer + ad banner slot + consent banner.**
+→ Gate after each sub-step: parity §1–§5/§8, screenshots, push.
+
+## Step 6 — Profile + character picker (Store style)
+Rebuild `profile.html` in Store style at §14 parity: letter-avatar fallback,
+username, level + XP + %-to-next bar, 4 stats (coins / sessions / current streak /
+longest streak), referral code + copy, recent sessions (+XP, score), member-since,
+player-not-found state — with the avatar picker (10 characters, gold ring,
+`pm_avatar`) integrated as the profile's identity block.
+→ Gate: parity §14, screenshots, push.
+
+## Step 7 — Missions + check-in surfaces
+- MissionsPanel modal (§6): list, overall progress, mission cards (progress,
+  remaining badge, coin+XP), claimed/empty states, dawn-renewal footer.
+- Ad-claim view: native-ad placeholder, 5 s countdown, claim button.
+- Floating daily-missions widget: pill + pending badge, expandable mini-panel.
+- Lobby "Rewards" entry points wired to open them.
+→ Gate: parity §6 (+ §5 states), screenshots (panel + widget + ad-claim), push.
+
+## Step 8 — Leaderboard
+There is **no leaderboard page/panel in the real game** — only the
+`/api/leaderboard` endpoint and the playful redesign's teaser. Build nothing new
+here; if Omar wants a leaderboard surface, it is a new-feature decision for him,
+not parity work. (Step kept as a placeholder so the program stays honest:
+parity = endpoint noted in FUNCTIONS.md §24.) → No push.
+
+## Step 9 — Friends
+FriendsPanel (§7): list with colour letter avatars + "played N times", add form
+(≤14 chars, N/15 counter, full state), remove with loading state, loading /
+error-with-retry / empty states, roster footer note. Friends strip in the lobby
++ bottom-nav Friends tab (guests → auth sheet).
+→ Gate: parity §7, screenshots, push.
+
+## Step 10 — Settings sheet + guest auth sheet + nav finish
+- Settings sheet (§9): profile chip, coins row, sound toggle, music toggle,
+  change display name (30 chars, 7-day cooldown state), change password
+  (Google-account disabled state), guest CTA state, log out.
+- Guest auth sheet (§10): 100-coins pitch, login / register, "browse first".
+- Bottom nav (§10): real 4 tabs (Home / Games / Friends / Account) with the
+  liquid-pill indicator; toast demos for check-in / unlock / welcome-back.
+→ Gate: parity §9–§10, screenshots (both sheets), push.
+
+## Step 11 — Auth callback
+Spinner screen (§13) with the three redirect outcomes shown as design states
+(resume `?play=`, admin → /admin, else lobby). → Gate: parity §13, screenshots, push.
+
+## Step 12 — Five game host pages
+One Store-style host page template (§15), instantiated ×5 with each game's
+poster/icon: host loading screen (icon + progress, 3 s), roster strip (friends
+names going into the game), in-game ad overlay frame, exit-confirm modal,
+Game Over modal (trophy, coin balance, Play Again / Back to lobby), play-again
+pay-method logic shown as states, "table not found" state.
+→ Gate: parity §15, screenshots ×5 hosts, push.
+
+## Step 13 — Inside-game screens, game by game
+Rebuild each game's own screens in Store style (static, phone-sized, using its
+poster art direction + Solar icons). One game per sub-step, gate after each:
+- **13a Mafia (§16):** HOME → SETUP → DEAL_CARDS/PASS_AND_PLAY role reveal
+  (BOULIS / EISSABA / TBIB / WLADLH cards) → NIGHT_PHASE actions → dawn recap →
+  day VOTING → win screens (gang / villagers).
+- **13b Bara Salfa (§17):** home + "How?" → setup (3–15) → how-to → category
+  reveal → secret-word pass-and-play → discussion timer → voting → verdict reveal
+  (+ word-guess confirm) → scoreboard → end options → quit modal → ad slot.
+- **13c 7azr Fazr (§18):** home → setup → pass (word reveal, spy hidden) →
+  interrogation → reveal/judgement → final + again.
+- **13d Paint Followers (§19):** setup → roleReveal → drawing canvas (brush,
+  colours, stroke width) → voting → resolution → scoreboard.
+- **13e Sowl wla Dir (§20):** home → setup (3–8) → roulette → Ask-or-Do choice →
+  card + done/+0 → end screen → end options → quit modal → ad slot.
+- **13f Roster script behaviour (§21):** show the roster-applied state in the
+  host/game mock flow.
+→ Gate per game: parity for its section, screenshots of every screen at both
+sizes, push.
+
+## Step 14 — Win / results surfaces
+Cross-game results set: host Game Over modal (done in Step 12) + each game's own
+win/results screens (done inside Step 13) gathered into the hub as a "results"
+check page so Omar can review all outcomes in one place.
+→ Gate: parity §15–§20 win items, screenshots, push.
+
+## Step 15 — Contact / Privacy / Terms
+Store-style legal pages (§22) with the real content structure: contact (support
+email + 3 topic cards), privacy (5 sections), terms (5 sections), footer links
+wired from every lobby. → Gate: parity §22, screenshots, push.
+
+## Step 16 — Localization (after ALL pages approved)
+Add Arabic (RTL + Darija/MSA decision), French, Spanish to every approved page:
+UI text only, brand/game titles unchanged, posters/art untouched. Solar icons
+and layout mirrored for RTL. → Gate: full FUNCTIONS.md sweep in each language,
+screenshots, push.
+
+## Step 17 — Final parity sweep & port decision
+Re-run the whole FUNCTIONS.md checklist against the finished redesign; coverage
+target 100 % of in-scope items (admin excluded). Present the final hub to Omar;
+porting into the real `loby` repo happens only on his explicit order.
