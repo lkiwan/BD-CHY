@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Profile · Store Posters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* "Store Posters" profile — same design system as lobby-store.html: near-black screen,
+     lime accent, gold for coins/selection, diagonal-cut cards, dark bottom nav.
+     Content mirrors the REAL /profile/[username] page (audited in FUNCTIONS.md §14):
+     character avatar, username, LEVEL + XP "% to next level" bar, 4 stats (coins /
+     sessions / current streak / longest streak), referral code + copy, recent sessions
+     (+XP, score), member-since 🇲🇦. Name & password changes live in the lobby Settings
+     sheet in the real game — not on this page. No wallet page exists. */
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--sab:env(safe-area-inset-bottom,0px);--sat:env(safe-area-inset-top,0px);
+    --bg:#07070D;--panel:#12121C;--line:#FFFFFF17;--txt:#FFFFFF;--dim:#9C9CAE;--lime:#C6F542;--gold:#FFD97A}
+  html,body{height:100%}
+  body{font-family:"Nunito",system-ui,sans-serif;color:var(--txt);background:#000;display:flex;justify-content:center}
+  .phone{position:relative;width:100%;max-width:430px;height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:
+    radial-gradient(120% 46% at 85% -6%,#7C3AED33 0%,transparent 55%),
+    radial-gradient(90% 40% at -10% 30%,#DC262622 0%,transparent 55%),var(--bg)}
+  /* top bar */
+  .topbar{display:flex;align-items:center;gap:12px;padding:calc(13px + var(--sat)) 18px 6px;position:relative;z-index:3}
+  .backbtn{width:40px;height:40px;border-radius:50%;background:var(--panel);border:1px solid var(--line);
+    display:grid;place-items:center;color:#fff;text-decoration:none;font-size:19px;font-weight:900;flex:0 0 40px}
+  .topbar h1{font-size:20px;font-weight:900;letter-spacing:.4px}
+  .topbar .logo{margin-left:auto;font-weight:900;font-size:16px;letter-spacing:1.2px;color:var(--dim)}
+  .topbar .logo i{font-style:normal;color:var(--lime)}
+  .scroll{flex:1;overflow-y:auto;padding:10px 18px calc(16px + var(--sab));scrollbar-width:none;position:relative;z-index:2}
+  .scroll::-webkit-scrollbar{display:none}
+  /* identity card */
+  .idcard{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:22px;
+    padding:24px 18px 18px;text-align:center;overflow:hidden}
+  .idcard::before{content:"";position:absolute;top:0;right:0;width:40px;height:40px;background:var(--bg);
+    clip-path:polygon(0 0,100% 0,100% 100%);z-index:2}
+  .bigavatar{width:96px;height:96px;border-radius:50%;object-fit:cover;display:block;margin:0 auto;
+    border:3px solid var(--lime);box-shadow:0 0 26px #C6F54244,0 16px 30px -10px rgba(0,0,0,.65);background:#1A1A28}
+  .idcard h2{font-size:24px;font-weight:900;margin-top:12px;letter-spacing:.3px}
+  .lvlrow{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:7px}
+  .lvlbadge{background:var(--lime);color:#131803;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:900;letter-spacing:.6px}
+  .lvlrow span{font-size:13px;font-weight:800;color:var(--dim)}
+  .barw{height:11px;background:#FFFFFF14;border-radius:99px;margin-top:15px;overflow:hidden}
+  .barf{height:100%;width:68%;background:linear-gradient(90deg,#8FD41F,var(--lime),#E4FF8F);border-radius:99px}
+  .barlabels{display:flex;justify-content:space-between;font-size:11px;font-weight:900;color:var(--dim);margin-top:6px}
+  .barlabels .pct{color:#fff}
+  /* stats */
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px 8px 13px;text-align:center}
+  .stat b{font-size:23px;font-weight:900;display:block}
+  .stat span{font-size:10.5px;font-weight:900;color:var(--dim);letter-spacing:.6px}
+  /* sections */
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin:24px 2px 12px}
+  .sec-head h2{font-size:18px;font-weight:900}
+  .sec-head span{font-size:12px;font-weight:800;color:var(--dim)}
+  /* character picker */
+  .pickgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+  .pickgrid button{padding:0;border:3px solid transparent;border-radius:50%;background:none;cursor:pointer;line-height:0}
+  .pickgrid button img{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover;display:block}
+  .pickgrid button.sel{border-color:#FFC53D;box-shadow:0 0 14px #FFC53D66}
+  .picknote{font-size:12px;font-weight:700;color:var(--dim);margin-top:10px}
+  /* referral */
+  .refcard{position:relative;background:linear-gradient(92deg,#C6F5421F,#C6F54208);border:1px solid #C6F5423D;
+    border-radius:18px;padding:15px 16px;display:flex;align-items:center;gap:12px;overflow:hidden}
+  .refcard::before{content:"";position:absolute;top:0;right:0;width:32px;height:32px;background:var(--bg);
+    clip-path:polygon(0 0,100% 0,100% 100%);z-index:2}
+  .refcard b{font-size:15px;display:block}
+  .refcard span{font-size:12.5px;font-weight:700;color:var(--dim)}
+  .codebtn{margin-left:auto;background:#00000059;border:1.5px dashed #FFD97A99;border-radius:12px;padding:10px 12px;
+    font-weight:900;letter-spacing:1px;font-size:13px;color:var(--gold);white-space:nowrap;cursor:pointer;font-family:inherit}
+  /* recent sessions */
+  .sess{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:12px 14px;margin-bottom:9px}
+  .sess .ic{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-size:21px;background:#FFFFFF0F;flex:0 0 42px}
+  .sess b{font-size:15px;display:block}
+  .sess small{color:var(--dim);font-weight:700;font-size:12px}
+  .sess .right{margin-left:auto;text-align:right}
+  .sess .xp{font-weight:900;color:var(--lime);font-size:15.5px;display:block}
+  .sess .sc{font-size:12px;font-weight:800;color:var(--dim)}
+  .since{text-align:center;font-size:12.5px;font-weight:800;color:var(--dim);margin-top:20px}
+  /* bottom nav */
+  .tabbar{display:flex;background:#0C0C14F2;border-top:1px solid var(--line);padding:8px 10px calc(9px + var(--sab));position:relative;z-index:3}
+  .tabbar a{flex:1;text-align:center;color:var(--dim);text-decoration:none;font-size:11px;font-weight:800;padding:5px 0 3px}
+  .tabbar a .sic{width:22px;height:22px;display:block;margin:0 auto 2px}
+  .tabbar a .icimg{display:block;width:24px;height:24px;border-radius:50%;object-fit:cover;margin:0 auto 2px;border:1.5px solid #FFFFFF33}
+  .tabbar a.active{color:var(--lime)}
+  .tabbar a.active .icimg{border-color:var(--lime)}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <a class="backbtn" href="lobby-store.html" aria-label="Back to lobby">←</a>
+      <h1>Profile</h1>
+      <span class="logo">PLAY<i>M3ANA</i></span>
+    </div>
+
+    <div class="scroll">
+      <!-- IDENTITY: chosen character, username, level + XP (real profile content) -->
+      <section class="idcard">
+        <img class="bigavatar" id="myAvatar" alt="Your character">
+        <h2>omar_7</h2>
+        <div class="lvlrow"><span class="lvlbadge">⭐ LEVEL 7</span><span>· 612 XP</span></div>
+        <div class="barw"><div class="barf"></div></div>
+        <div class="barlabels"><span>LV.7</span><span class="pct">68% to next level</span><span>LV.8</span></div>
+      </section>
+
+      <!-- 4 REAL STATS -->
+      <div class="stats">
+        <div class="stat"><b style="color:var(--gold)">250</b><span>COINS 🪙</span></div>
+        <div class="stat"><b style="color:#6EE7B7">43</b><span>SESSIONS 🎮</span></div>
+        <div class="stat"><b style="color:#FDA4AF">7 🔥</b><span>CURRENT STREAK</span></div>
+        <div class="stat"><b style="color:#FDBA74">21 days</b><span>LONGEST STREAK</span></div>
+      </div>
+
+      <!-- CHARACTER PICKER (redesign addition — Omar's direction) -->
+      <div class="sec-head"><h2>🎭 Choose your character</h2></div>
+      <div class="pickgrid" id="pickGrid"></div>
+      <p class="picknote">Your character shows here, at the top of the lobby, and everywhere your picture appears.</p>
+
+      <!-- REFERRAL (real: code + copy, "you both win coins") -->
+      <div class="sec-head"><h2>💌 Your referral code</h2></div>
+      <section class="refcard">
+        <div><b>Share &amp; win together</b><span>Share your code with a friend — you both win coins 🎁</span></div>
+        <button class="codebtn" id="copyCode" type="button">OMAR-7K2P ⧉</button>
+      </section>
+
+      <!-- RECENT SESSIONS (real: game, +XP, score) -->
+      <div class="sec-head"><h2>🕹️ Recent sessions</h2></div>
+      <div class="sess"><span class="ic">💀</span><div><b>Mafia D Lhouma</b><small>Nov 2, 2026</small></div><span class="right"><span class="xp">+40 XP</span><span class="sc">850 pts</span></span></div>
+      <div class="sess"><span class="ic">🤫</span><div><b>Bara Salfa</b><small>Nov 1, 2026</small></div><span class="right"><span class="xp">+25 XP</span><span class="sc">300 pts</span></span></div>
+      <div class="sess"><span class="ic">🎨</span><div><b>Paint Followers</b><small>Oct 31, 2026</small></div><span class="right"><span class="xp">+15 XP</span><span class="sc">120 pts</span></span></div>
+      <div class="sess"><span class="ic">🔍</span><div><b>7azr Fazr</b><small>Oct 30, 2026</small></div><span class="right"><span class="xp">+20 XP</span><span class="sc">410 pts</span></span></div>
+
+      <p class="since">Member since October 2026 🇲🇦</p>
+    </div>
+
+    <!-- BOTTOM NAV: the real tabs — Home / Games / Friends / Account -->
+    <nav class="tabbar">
+      <a href="lobby-store.html"><svg class="sic" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg>Home</a>
+      <a href="lobby-store.html"><svg class="sic" aria-hidden="true" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.6669 6.13443L10.165 5.77922C9.44862 5.27225 8.59264 5 7.71504 5H7.10257C6.69838 5 6.29009 5.02549 5.90915 5.16059C3.52645 6.00566 1.88749 9.09504 2.00604 16.1026C2.02992 17.5145 2.3603 19.075 3.63423 19.6842C4.03121 19.8741 4.49667 20 5.02671 20C5.66273 20 6.1678 19.8187 6.55763 19.5632C6.96641 19.2953 7.32633 18.9471 7.68612 18.599C8.13071 18.1688 8.57511 17.7389 9.11125 17.4609C9.69519 17.1581 10.3434 17 11.0011 17H12.9989C13.6566 17 14.3048 17.1581 14.8888 17.4609C15.4249 17.7389 15.8693 18.1688 16.3139 18.599C16.6737 18.9471 17.0336 19.2953 17.4424 19.5632C17.8322 19.8187 18.3373 20 18.9733 20C19.5033 20 19.9688 19.8741 20.3658 19.6842C21.6397 19.075 21.9701 17.5145 21.994 16.1026C22.1125 9.09503 20.4735 6.00566 18.0908 5.16059C17.7099 5.02549 17.3016 5 16.8974 5H16.2849C15.4074 5 14.5514 5.27225 13.8351 5.77922L13.3332 6.13441C12.9434 6.41029 12.4776 6.55844 12 6.55844C11.5225 6.55844 11.0567 6.41029 10.6669 6.13443ZM16.75 9C17.1642 9 17.5 9.33579 17.5 9.75C17.5 10.1642 17.1642 10.5 16.75 10.5C16.3358 10.5 16 10.1642 16 9.75C16 9.33579 16.3358 9 16.75 9ZM7.5 9.25C7.91421 9.25 8.25 9.58579 8.25 10V10.75H9C9.41421 10.75 9.75 11.0858 9.75 11.5C9.75 11.9142 9.41421 12.25 9 12.25H8.25V13C8.25 13.4142 7.91421 13.75 7.5 13.75C7.08579 13.75 6.75 13.4142 6.75 13V12.25H6C5.58579 12.25 5.25 11.9142 5.25 11.5C5.25 11.0858 5.58579 10.75 6 10.75H6.75V10C6.75 9.58579 7.08579 9.25 7.5 9.25ZM19 11.25C19 11.6642 18.6642 12 18.25 12C17.8358 12 17.5 11.6642 17.5 11.25C17.5 10.8358 17.8358 10.5 18.25 10.5C18.6642 10.5 19 10.8358 19 11.25ZM15.25 12C15.6642 12 16 11.6642 16 11.25C16 10.8358 15.6642 10.5 15.25 10.5C14.8358 10.5 14.5 10.8358 14.5 11.25C14.5 11.6642 14.8358 12 15.25 12ZM17.5 12.75C17.5 12.3358 17.1642 12 16.75 12C16.3358 12 16 12.3358 16 12.75C16 13.1642 16.3358 13.5 16.75 13.5C17.1642 13.5 17.5 13.1642 17.5 12.75Z" clip-rule="evenodd"/></svg>Games</a>
+      <a href="profile-store.html"><svg class="sic" aria-hidden="true" viewBox="0 0 24 24"><g fill="currentColor"><path d="M9.00098 13.001C12.867 13.001 16.001 14.7918 16.001 17.001C16.001 19.2101 12.867 21.001 9.00098 21.001C5.13498 21.001 2.00098 19.2101 2.00098 17.001C2.00098 14.7918 5.13498 13.001 9.00098 13.001Z"/><path d="M16.4766 14.001C18.9615 14.0011 20.9996 15.3434 21 17C21 18.6569 18.9638 20 16.4785 20C17.2107 19.1997 17.7148 18.1955 17.7148 17.002C17.7148 15.8071 17.2099 14.8017 16.4766 14.001Z"/><path d="M9.00098 2C11.2101 2 13.001 3.79086 13.001 6C13.001 8.20914 11.2101 10 9.00098 10C6.79184 10 5.00098 8.20914 5.00098 6C5.00098 3.79086 6.79184 2 9.00098 2Z"/><path d="M15 3.00098C16.6567 3.00118 18 4.34425 18 6.00098C17.9999 7.6576 16.6566 9.00078 15 9.00098C14.6388 9.00098 14.2924 8.93633 13.9717 8.81934C14.4445 7.98748 14.7148 7.02523 14.7148 6C14.7148 4.97534 14.4449 4.0132 13.9727 3.18164C14.2931 3.06489 14.6392 3.00098 15 3.00098Z"/></g></svg>Friends</a>
+      <a class="active" href="profile-store.html"><img class="icimg pm-avatar" alt="">Account</a>
+    </nav>
+  </div>
+<script src="avatars.js"></script>
+<script>
+  // Character picker: 10 selectable avatars; the pick is saved and shown everywhere
+  (function(){
+    var grid=document.getElementById('pickGrid'), big=document.getElementById('myAvatar');
+    var cur=parseInt(localStorage.getItem('pm_avatar')||'0',10);
+    if(isNaN(cur)||cur<0||cur>=window.PM_AVATARS.length)cur=0;
+    function render(){
+      big.src=window.PM_AVATARS[cur];
+      document.querySelectorAll('.pm-avatar').forEach(function(im){im.src=window.PM_AVATARS[cur];});
+      grid.innerHTML='';
+      window.PM_AVATARS.forEach(function(src,i){
+        var b=document.createElement('button');
+        b.type='button'; if(i===cur)b.className='sel';
+        b.setAttribute('aria-label','Character '+(i+1));
+        b.innerHTML='<img src="'+src+'" alt="">';
+        b.addEventListener('click',function(){
+          cur=i; localStorage.setItem('pm_avatar',String(i)); render();
+        });
+        grid.appendChild(b);
+      });
+    }
+    render();
+  })();
+</script>
+<script>
+  // Real function: copy referral code (same as the original profile page)
+  document.getElementById('copyCode').addEventListener('click',function(){
+    var code='OMAR-7K2P', btn=this;
+    if(navigator.clipboard){navigator.clipboard.writeText(code);}
+    btn.textContent='COPIED ✓'; setTimeout(function(){btn.textContent=code+' ⧉';},1800);
+  });
+</script>
+</body>
+</html>
