@@ -26,6 +26,9 @@
   .coinpill{display:flex;align-items:center;gap:7px;background:#FFD97A1A;border:1px solid #FFD97A44;border-radius:999px;padding:7px 13px 7px 8px;font-weight:900;font-size:15px;color:var(--gold)}
   .coinpill .coin{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF3C4,#FFC53D 60%,#E8A00C);display:grid;place-items:center;font-size:12px;color:#7A5200}
   .iconbtn{width:40px;height:40px;border-radius:50%;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;font-size:17px;text-decoration:none;color:#fff}
+  .avatarbtn{width:42px;height:42px;border-radius:50%;overflow:hidden;border:2px solid var(--lime);display:block;flex:0 0 42px}
+  .avatarbtn img{width:100%;height:100%;object-fit:cover;display:block}
+  .tabbar a .icimg{display:block;width:24px;height:24px;border-radius:50%;object-fit:cover;margin:0 auto 2px;border:1.5px solid #FFFFFF33}
   .scroll{flex:1;overflow-y:auto;padding:8px 18px calc(16px + var(--sab));scrollbar-width:none;position:relative;z-index:2}
   .scroll::-webkit-scrollbar{display:none}
   /* daily reward strip */
@@ -83,7 +86,7 @@
       <div class="logo">PLAY<i>M3ANA</i></div>
       <div class="right">
         <div class="coinpill"><span class="coin">★</span>250</div>
-        <a class="iconbtn" href="profile.html">👤</a>
+        <a class="avatarbtn" href="profile.html"><img class="pm-avatar" alt="Your character"></a>
       </div>
     </div>
 
@@ -165,9 +168,14 @@
       <a class="active" href="lobby-store.html"><span class="ic">🧭</span>Explore</a>
       <a href="#grid"><span class="ic">🎮</span>Games</a>
       <a href="lobby-glass.html"><span class="ic">🎁</span>Rewards</a>
-      <a href="profile.html"><span class="ic">👤</span>Profile</a>
+      <a href="profile.html"><img class="icimg pm-avatar" alt="">Profile</a>
     </nav>
   </div>
+<script src="avatars.js"></script>
+<script>
+  // Show the player's chosen character (picked on the Profile page) everywhere his picture appears
+  document.querySelectorAll('.pm-avatar').forEach(function(img){ img.src = window.PM_getAvatar(); });
+</script>
 <script>
   // Category tabs filter the poster grid (All / Playable / Coming soon)
   var tabs=document.querySelectorAll('#tabs button');
