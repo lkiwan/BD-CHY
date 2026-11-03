@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy — PLAYM3ANA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--bg:#07070D;--panel:#101019;--panel2:#15151F;--line:#23232f;--txt:#fff;--dim:#9a9aad;--lime:#C6F542;--gold:#FFC93C}
+  body{background:#000;font-family:'Nunito',system-ui,sans-serif;color:var(--txt);display:flex;justify-content:center}
+  .phone{width:100%;max-width:430px;height:100dvh;background:radial-gradient(120% 60% at 85% -5%,#3d0a2e55,transparent 60%),radial-gradient(120% 55% at 0% 0%,#123a0d44,transparent 55%),var(--bg);display:flex;flex-direction:column;overflow:hidden}
+  .top{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 16px 10px}
+  .back{width:40px;height:40px;border-radius:13px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;color:#fff;text-decoration:none;font-size:19px;font-weight:900;flex:none}
+  .top h1{font-size:21px;font-weight:900}
+  .top .wm{margin-left:auto;font-weight:900;font-size:13px;letter-spacing:.4px;color:#cfcfe0}.top .wm i{color:var(--lime);font-style:normal}
+  .scroll{flex:1;overflow-y:auto;padding:6px 16px calc(20px + env(safe-area-inset-bottom));scrollbar-width:none}.scroll::-webkit-scrollbar{display:none}
+  [dir="rtl"]{text-align:right}
+  .sub{color:var(--gold);font-weight:800;font-size:16px;margin:6px 2px 2px}
+  .upd{color:var(--dim);font-weight:700;font-size:12.5px;margin:0 2px 10px}
+  .intro{color:var(--dim);font-weight:600;font-size:14.5px;line-height:1.75;margin:0 2px 16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+  .card h2{font-size:16.5px;font-weight:900;margin-bottom:8px;color:var(--lime)}
+  .card p,.card li{color:#cfcfe0;font-weight:600;font-size:14px;line-height:1.8}
+  .card ul{list-style:none}
+  .card li{padding-right:16px;position:relative;margin-bottom:6px}
+  .card li::before{content:"•";position:absolute;right:0;color:var(--gold)}
+  .card a{color:var(--lime);font-weight:800;text-decoration:none}
+  .links{margin-top:14px;display:flex;justify-content:center;gap:18px}
+  .links a{color:var(--dim);font-weight:800;font-size:13.5px;text-decoration:none}
+  .links a.on{color:var(--lime)}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="top">
+    <a class="back" href="lobby-store.html">←</a>
+    <h1>Privacy</h1>
+    <span class="wm">PLAY<i>M3ANA</i></span>
+  </div>
+  <div class="scroll">
+    <p class="sub" dir="rtl">سياسة الخصوصية</p>
+    <p class="upd" dir="rtl">آخر ميزاجور: 20 شتنبر 2026</p>
+    <p class="intro" dir="rtl">PLAYM3ANA بلاطفورم د ألعاب جماعية بالدارجة خدامة فالمتصفح. هاد الورقة كتشرح شنو كنجمعو ديال المعلومات وعلاش باش نخدمو اللعبة ف أمان.</p>
+
+    <div class="card" dir="rtl">
+      <h2>1. المعلومات لي كنجمعو</h2>
+      <ul>
+        <li>معلومات الكونط: السمية، النمرة د التيليفون (إيلا بغيتي)، والمودپاس مخزن مشفر.</li>
+        <li>معلومات اللعب: اللعبات لي لعبتي، النقط، الكوينز، والنيڤو ديالك — هادشي ضروري باش يخدم الاقتصاد والمهام د كل نهار.</li>
+        <li>معلومات الجهاز: البصمة د الجهاز و لادريس IP مخزنين مشفرين (Hash) باش نحبسو الكونطات الوهميين.</li>
+        <li>سجلات الإشهارات: شحال د الإشهارات شفتي باش نتبعوها مع المعلنين.</li>
+      </ul>
+    </div>
+
+    <div class="card" dir="rtl">
+      <h2>2. الإشهارات</h2>
+      <p>كنخدمو بـ Google AdSense باش نبيّنو إشهارات ڤيديو بالمكافآت. الإشهارات كيبانو غير إيلا كليكتي عليها لراسك، وماكنديروهاش تبان أوتوماتيك. Google تقدر تستعمل المعرفات ديالها باش تبين ليك إشهارات مناسبة ليك؛ تقدر تحكم فهادشي من إعدادات Google ديالك.</p>
+    </div>
+
+    <div class="card" dir="rtl">
+      <h2>3. فين كنخزنو المعلومات</h2>
+      <p>المعلومات مخزنة ف سيرفورات آمنة (قواعد بيانات و Redis). ماكنبيعوها لتا شي حد، وما كنشاركوها مع تا واحد من غير إيلا فرضها القانون.</p>
+    </div>
+
+    <div class="card" dir="rtl">
+      <h2>4. الحقوق ديالك</h2>
+      <p>تقدر تطلب تشوف معلوماتك، تصححها، ولا تمسحها. ف حالة المسح، كنخليو السجل المالي (Ledger) للمدة لي كيفرضها القانون، وكنمسحو كاع داكشي لاخور. تواصل معانا ف صفحة <a href="contact-store.html">تواصل معانا</a> ولا على <a dir="ltr" href="mailto:support@playm3ana.ma">support@playm3ana.ma</a>.</p>
+    </div>
+
+    <div class="card" dir="rtl">
+      <h2>5. الدراري الصغار</h2>
+      <p>الخدمة للكبار والصغار لي معاهم شي حد كبير. ماكنجمعو تا معلومات شخصية د شي حد قل من 13 عام من غير إذن ديال والديه.</p>
+    </div>
+
+    <div class="links">
+      <a class="on" href="privacy-store.html">Privacy</a>
+      <a href="terms-store.html">Terms</a>
+      <a href="contact-store.html">Contact</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
