@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Login · Store Posters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* "Store Posters" login — same design tokens as lobby-store.html.
+     Rules mirror the REAL login (checked in the game code): username OR email + password
+     (case-insensitive), Google = Gmail only (NO Github login exists), NO forgot-password,
+     banned / frozen accounts are blocked, ?play= return to the picked game is preserved. */
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--sab:env(safe-area-inset-bottom,0px);--sat:env(safe-area-inset-top,0px);
+    --bg:#07070D;--panel:#12121C;--line:#FFFFFF17;--txt:#FFFFFF;--dim:#9C9CAE;--lime:#C6F542;--gold:#FFD97A}
+  html,body{height:100%}
+  body{font-family:"Nunito",system-ui,sans-serif;color:var(--txt);background:#000;display:flex;justify-content:center}
+  .phone{position:relative;width:100%;max-width:430px;height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:
+    radial-gradient(120% 46% at 85% -6%,#7C3AED33 0%,transparent 55%),
+    radial-gradient(90% 40% at -10% 30%,#DC262622 0%,transparent 55%),var(--bg)}
+  .wrap{flex:1;overflow-y:auto;padding:calc(12px + var(--sat)) 22px calc(18px + var(--sab));scrollbar-width:none;position:relative;z-index:2}
+  .wrap::-webkit-scrollbar{display:none}
+  .back{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:13px;border:1px solid var(--line);
+    background:var(--panel);color:#fff;text-decoration:none;font-size:19px}
+  .head{text-align:center;margin:18px 0 4px}
+  .logo{font-weight:900;font-size:32px;letter-spacing:2px}
+  .logo i{font-style:normal;color:var(--lime)}
+  .head h1{font-size:22px;font-weight:900;margin-top:12px}
+  .head p{font-size:13px;font-weight:700;color:var(--dim);margin-top:3px}
+  .card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:22px;
+    padding:20px 18px 18px;margin-top:18px}
+  .card::before{content:"";position:absolute;top:-1px;right:-1px;width:34px;height:34px;background:var(--bg);
+    clip-path:polygon(0 0,100% 0,100% 100%);z-index:2}
+  .gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:11px;background:#fff;color:#23232B;
+    border:none;border-radius:999px;padding:14px;font-family:inherit;font-weight:900;font-size:16px;cursor:pointer}
+  .gbtn .g{font-weight:900;font-size:19px;background:linear-gradient(90deg,#4285F4 25%,#EA4335 25% 50%,#FBBC05 50% 75%,#34A853 75%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .gnote{text-align:center;font-size:11.5px;font-weight:800;color:var(--dim);margin-top:7px}
+  .or{display:flex;align-items:center;gap:12px;margin:18px 0 4px;color:var(--dim);font-size:11.5px;font-weight:900;letter-spacing:1.5px}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:#FFFFFF1F}
+  label{display:block;font-size:11.5px;font-weight:900;letter-spacing:1.2px;color:var(--dim);margin:14px 0 7px}
+  .field{display:flex;align-items:center;background:#0B0B13;border:1.5px solid var(--line);border-radius:15px;padding:0 6px 0 15px}
+  .field:focus-within{border-color:var(--lime);box-shadow:0 0 0 3px #C6F5422B}
+  .field input{flex:1;background:none;border:none;outline:none;color:#fff;font-family:inherit;font-weight:700;font-size:16px;padding:14px 0;min-width:0}
+  .field input::placeholder{color:#62627A}
+  .eye{border:none;background:#FFFFFF12;color:#EDEDF5;width:40px;height:40px;border-radius:11px;font-size:16px;cursor:pointer;flex:0 0 40px}
+  .msg{display:none;border-radius:14px;padding:12px 14px;font-size:13.5px;font-weight:800;margin-top:16px;line-height:1.45}
+  .msg.err{display:block;background:#F43F5E21;border:1.5px solid #F43F5E77;color:#FFD9DE}
+  .msg.ok{display:block;background:#34D3991F;border:1.5px solid #34D39977;color:#D2F9E8}
+  .msg.info{display:block;background:#38BDF821;border:1.5px solid #38BDF877;color:#D9F2FF}
+  .submit{width:100%;margin-top:20px;background:var(--lime);color:#131803;border:none;border-radius:14px;
+    padding:15px;font-family:inherit;font-weight:900;font-size:16px;cursor:pointer}
+  .playnote{margin-top:14px;text-align:center;background:#FFD97A14;border:1.5px dashed #FFD97A55;color:var(--gold);
+    border-radius:12px;padding:9px;font-size:12.5px;font-weight:800}
+  .demo{margin-top:20px}
+  .demo .dl{font-size:11px;font-weight:900;letter-spacing:1.2px;color:var(--dim);text-align:center}
+  .demo .row{display:flex;gap:8px;margin-top:9px}
+  .demo button{flex:1;background:#FFFFFF0D;border:1px solid var(--line);color:#E7E7F0;border-radius:11px;
+    padding:9px 4px;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer}
+  .alt{text-align:center;margin-top:20px;font-size:14px;font-weight:800;color:var(--dim)}
+  .alt a{color:var(--lime);text-decoration:none;font-weight:900}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="wrap">
+      <a class="back" href="index.html" aria-label="Back">←</a>
+
+      <div class="head">
+        <div class="logo">PLAY<i>M3ANA</i></div>
+        <h1>Welcome back</h1>
+        <p>Log in to your lobby, coins &amp; missions</p>
+      </div>
+
+      <div class="card">
+        <!-- Real function: Google sign-in, Gmail only. No other social login exists. -->
+        <button class="gbtn" id="googleBtn" type="button"><span class="g">G</span> Continue with Google</button>
+        <div class="gnote">Gmail only (@gmail.com)</div>
+
+        <div class="or">OR</div>
+
+        <!-- Real function: username OR email/Gmail + password (case-insensitive). No forgot-password exists. -->
+        <form id="loginForm" novalidate>
+          <label for="ident">USERNAME OR GMAIL</label>
+          <div class="field">
+            <input id="ident" type="text" placeholder="e.g. omar_7 or you@gmail.com" autocomplete="username" autocapitalize="none">
+          </div>
+
+          <label for="pass">PASSWORD</label>
+          <div class="field">
+            <input id="pass" type="password" placeholder="Your password" autocomplete="current-password">
+            <button class="eye" id="eyeBtn" type="button" aria-label="Show password">👁️</button>
+          </div>
+
+          <div class="msg" id="msgBox" role="alert"></div>
+
+          <button class="submit" id="submitBtn" type="submit">LOG IN&nbsp;→</button>
+        </form>
+
+        <div class="playnote" id="playNote">🎮 After login you return to the game you picked</div>
+
+        <!-- Demo: preview the three real error states of the live game -->
+        <div class="demo">
+          <div class="dl">PREVIEW ERROR STATES</div>
+          <div class="row">
+            <button type="button" data-state="invalid">Wrong password</button>
+            <button type="button" data-state="banned">🚫 Banned</button>
+            <button type="button" data-state="frozen">🧊 Frozen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="alt">New here? <a href="register-store.html">Create your account →</a></div>
+    </div>
+  </div>
+<script>
+  // Demo of the real login rules (preview only — the live game checks the server):
+  // · identifier = username OR email/Gmail, case-insensitive
+  // · banned account → blocked, frozen account → blocked
+  // · Google sign-in accepts Gmail only · there is NO forgot-password
+  // · ?play=<game> in the URL is kept, so after login you return to the game you picked
+  var params=new URLSearchParams(location.search);
+  if(params.get('play')){
+    document.getElementById('playNote').textContent='🎮 After login you return to "'+params.get('play')+'" — the game you picked';
+  }
+
+  var msg=document.getElementById('msgBox');
+  function show(type,text){msg.className='msg '+type;msg.textContent=text;}
+  function hide(){msg.className='msg';msg.textContent='';}
+
+  var STATES={
+    invalid:'Wrong username or password. Check and try again.',
+    banned:'🚫 This account is banned. Please contact support.',
+    frozen:'🧊 This account is frozen right now. Please try again later.'
+  };
+  document.querySelectorAll('[data-state]').forEach(function(btn){
+    btn.addEventListener('click',function(){show('err',STATES[btn.getAttribute('data-state')]);});
+  });
+
+  document.getElementById('eyeBtn').addEventListener('click',function(){
+    var p=document.getElementById('pass');
+    var s=p.type==='password';
+    p.type=s?'text':'password';
+    this.textContent=s?'🙈':'👁️';
+  });
+
+  document.getElementById('googleBtn').addEventListener('click',function(){
+    show('info','Opening Google… only Gmail accounts (@gmail.com) can sign in.');
+    setTimeout(function(){location.href='lobby-store.html';},1200);
+  });
+
+  document.getElementById('loginForm').addEventListener('submit',function(e){
+    e.preventDefault(); hide();
+    var id=document.getElementById('ident').value.trim().toLowerCase();
+    var pw=document.getElementById('pass').value;
+    if(!id||!pw){show('err','Please fill in your username/Gmail and your password.');return;}
+    if(id==='banned'){show('err',STATES.banned);return;}
+    if(id==='frozen'){show('err',STATES.frozen);return;}
+    if(pw==='wrong'){show('err',STATES.invalid);return;}
+    var btn=document.getElementById('submitBtn');
+    btn.textContent='WELCOME BACK! 🎉'; btn.disabled=true;
+    show('ok','Login OK — taking you to your lobby…');
+    setTimeout(function(){location.href='lobby-store.html';},1000);
+  });
+</script>
+</body>
+</html>
