@@ -40,13 +40,18 @@ checked off.
    c. Push to BD-CHY (UTF-8 text only — images embedded as base64 or kept as
       masters) and live-verify with curl after Pages propagates.
 
-## Current state (2026-11-03)
+## Current state (2026-11-03 — post-QA + finishing pass)
 
-DONE in Store style: loading (`loading-store.html`), lobby core
-(`lobby-store.html` — posters grid, featured Mafia, daily-reward strip, filter
-tabs), login (`login-store.html`), register (`register-store.html`), posters ×7,
-avatars ×10 + picker (on the playful `profile.html`), Solar bottom bars.
-Coverage vs FUNCTIONS.md: **≈ 24 %** (20 DONE / 29 PARTIAL / 97 MISSING).
+DONE in Store style: loading, lobby (full parity build), login, register,
+auth callback, profile + character picker, legal trio (contact / privacy /
+terms), game host page, and all 5 inside-game pages (Mafia, Bara, 7azr, Paint,
+Sowl). Posters ×7 now ship **text-free** with HTML titles (lobby cards, host
+loading screen, every game home/win banner). QA exercised the whole checklist:
+**236 functions tested, 230 PASS** (`QA-REPORT.md`); the 6 game-page defects
+(Bara timer, Mafia min-6, Mafia demo-jump crash, host unknown-game, host play
+counting, host token/roster URL) were **FIXED** in the finishing pass — see the
+coverage note in `FUNCTIONS.md`. Remaining: guest states (PORT-PLAN step 2),
+localization (Step 16), and the port itself (Step 17 — only on Omar's order).
 
 ---
 

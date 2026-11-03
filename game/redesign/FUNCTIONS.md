@@ -11,6 +11,26 @@ Night Glass (`lobby-glass.html`) versions, the status is PARTIAL and the note sa
 Status key: **DONE** = present in the Store track · **PARTIAL** = only in another style
 track, or present but incomplete · **MISSING** = not in the redesign folder at all.
 
+> **Coverage update (2026-11-03, post-QA + finishing pass):** the full checklist was
+> exercised by Playwright QA — **236 functions tested, 230 PASS** (see `QA-REPORT.md`).
+> The only 6 failures were in the game pages and are now **FIXED** (finishing pass,
+> 2026-11-03): ① Bara discussion timer never counted down → now ticks (1 s interval,
+> ring depletes, low-time colour ≤20 s, time-up starts the vote); ② Mafia 6-player
+> minimum was display-only → the start CTA is now disabled/blocked below 6, like the
+> real game; ③ Mafia demo-jump to NIGHT/DAWN without dealing crashed `buildDawn`
+> (TypeError reading 'lab') → demo jumps now deal a demo game first, with guards in
+> `buildDawn`/`roleCardHTML`; ④ Host `?g=<unknown>` loaded Mafia instead of the
+> "table not found" state → any unknown `g` now shows it; ⑤ Host play counting never
+> incremented → Game Over (postMessage or demo trigger) now counts the play and shows
+> "Counted this session"; ⑥ Host embed URL carried no token/roster → it now follows
+> the real contract (`?token=demo&p=<JSON roster>`, ROSTER_PARAM `p` from
+> `src/lib/roster.ts`; placeholder token only, never a real one) and the games read
+> the roster from the URL. The BOULIS card subtitle flagged in QA ("المحامي") was
+> verified **verbatim against the real game** (`game_mafia.js` role map: BOULIS sub
+> is "المحامي" in the shipped game itself) and kept; the WLADLH card was aligned to
+> the same real table ("ولاد الحومة" / "المدنيين"). Known remaining gap: guest states
+> (see QA-REPORT §4 / PORT-PLAN step 2); localization is Step 16.
+
 Real-game economy rules (from `src/lib/config.ts` / `ledger.ts`, for reference in every
 step): signup grant **100 coins** · check-in ladder **[25, 35, 50, 75, 100, 150, 250]**
 over a 7-day streak cycle · rewarded-ad reward **25 coins** · referral bonus **50 coins**
@@ -257,10 +277,16 @@ over a 7-day streak cycle · rewarded-ad reward **25 coins** · referral bonus *
 - [ ] **Token-gated game embed** — the game runs in an iframe at
   `/game-files/<id>/index.html?token=…&roster=…`; the token comes from the unlock
   redirect. (Token values are secrets — never display or reuse them in previews.) — MISSING
+  → **FIXED (finishing pass 2026-11-03):** the preview embed URL now matches the real
+  contract's shape — `?token=demo&p=<JSON roster>` (`p` = ROSTER_PARAM in
+  `src/lib/roster.ts`); the token is the literal placeholder `demo`, never a real value.
 - [ ] **Host loading screen** — game icon + progress bar; force-hides after 3 s. — MISSING
 - [ ] **Roster passing** — the player's friends list (merged with a per-session
   override) is encoded per game (`src/lib/roster.ts`) and handed to the game; the
   game confirms with a `roster-applied` postMessage. — MISSING
+  → **FIXED (finishing pass 2026-11-03):** the host passes the demo roster in the
+  embed URL (`p` param); `game-mafia.html` / `game-bara.html` read it and the games
+  report the names back via `roster-applied`.
 - [ ] **In-game ad overlay** — `GameAdOverlay` is displayed over the game while
   playing. — MISSING
 - [ ] **Exit-confirm modal** — top-right ✕ asks first: progress will be lost;
@@ -272,13 +298,22 @@ over a 7-day streak cycle · rewarded-ad reward **25 coins** · referral bonus *
   handles the game's `replay-requested` message. — MISSING
 - [ ] **Play counting** — a finished play is recorded via POST `/api/friends/plays`
   with the roster names (feeds friends' "played N times" and mission progress). — MISSING
+  → **FIXED (finishing pass 2026-11-03):** Game Over (real `game-over` postMessage
+  or the demo trigger) now increments "Counted this session" in the host.
 - [ ] **Unknown game** — an invalid gameId shows a "table not found" page. — MISSING
+  → **FIXED (finishing pass 2026-11-03):** `game-host.html?g=<anything unknown>`
+  now shows the "table not found" state, like the real host.
 
 ## 16. Inside the game — Mafia D Lhouma (React app in `public/game-files/mafia/`)
 
 - [ ] **HOME screen** — title screen with the game's art and start. — MISSING
 - [ ] **SETUP screen** — enter the players (6+); role mix is dealt from the player
   count. — MISSING
+  → **FIXED (finishing pass 2026-11-03):** the 6-player minimum is now enforced —
+  below 6 the deal CTA is disabled and `deal()` returns early (the real game's
+  `startGame` does the same). The demo-jump soft-lock is also FIXED: jumping to
+  NIGHT/DAWN without dealing now deals a demo game first (no more TypeError in
+  `buildDawn`).
 - [ ] **DEAL_CARDS + PASS_AND_PLAY role reveal** — the phone is passed around; each
   player privately flips their role card. Roles: **BOULIS** (police), **EISSABA**
   (the mafia gang), **TBIB** (doctor), **WLADLH** (villagers) — each with its own
@@ -306,6 +341,9 @@ over a 7-day streak cycle · rewarded-ad reward **25 coins** · referral bonus *
   and does not get the real word. — MISSING
 - [ ] **Discussion timer** — timed discussion with a ring/clock countdown; "skip
   discussion and vote now" shortcut. — MISSING
+  → **FIXED (finishing pass 2026-11-03):** the countdown now actually ticks (1 s
+  interval, ring depletes, terra colour under 20 s, time-up moves to the vote);
+  the skip / vote-now buttons still cut it short.
 - [ ] **Voting** — "let's vote now" vote round to accuse one player. — MISSING
 - [ ] **Verdict reveal** — "Caught! <name> is out of the topic!" or "He escaped —
   <name> was out of the topic!"; then the accused can still guess the word
