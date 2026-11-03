@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Sowl wla Dir? · Store Posters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Inside-game screens for SOWL WLA DIR? in the Store Posters system (tokens from
+     profile-store.html). Flow + copy mirror the REAL game (FUNCTIONS.md §20, read from
+     game-files/sowl-wla-dir): home → setup (3–8 players) → roulette (picks the player
+     AND the round type) → chosen (Ask-or-Do choice screen) → challenge card
+     (✅ done — +N / ❌ سالت — +0) → end (podium) + quit modal. 10 rounds, real
+     POINTS table. UI chrome icons are Solar bold (currentColor); the game's own
+     brand icons (❓ 🔮 💪) and Darija copy are kept as they are. */
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--sab:env(safe-area-inset-bottom,0px);--sat:env(safe-area-inset-top,0px);
+    --bg:#07070D;--panel:#12121C;--panel2:#171726;--line:#FFFFFF17;--txt:#FFFFFF;--dim:#9C9CAE;
+    --lime:#C6F542;--gold:#FFD97A;--red:#FF6B57;--violet:#A78BFA;--pink:#F9A8D4}
+  html,body{height:100%}
+  body{font-family:"Nunito",system-ui,sans-serif;color:var(--txt);background:#000;display:flex;justify-content:center}
+  .phone{position:relative;width:100%;max-width:430px;height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:
+    radial-gradient(120% 46% at 85% -6%,#EA580C38 0%,transparent 55%),
+    radial-gradient(90% 40% at -10% 30%,#7C3AED22 0%,transparent 55%),var(--bg)}
+  .topbar{display:flex;align-items:center;gap:12px;padding:calc(13px + var(--sat)) 18px 6px;position:relative;z-index:3}
+  .backbtn{width:40px;height:40px;border-radius:50%;background:var(--panel);border:1px solid var(--line);
+    display:grid;place-items:center;color:#fff;text-decoration:none;font-size:19px;font-weight:900;flex:0 0 40px}
+  .topbar h1{font-size:19px;font-weight:900;letter-spacing:.3px}
+  .topbar h1 small{display:block;font-size:11px;color:var(--dim);letter-spacing:1.4px;font-weight:800}
+  .topbar .logo{margin-left:auto;font-weight:900;font-size:15px;letter-spacing:1.2px;color:var(--dim)}
+  .topbar .logo i{font-style:normal;color:var(--lime)}
+  .scroll{flex:1;overflow-y:auto;padding:8px 18px calc(58px + var(--sab));scrollbar-width:none;position:relative;z-index:2}
+  .scroll::-webkit-scrollbar{display:none}
+  .screen{display:none;flex-direction:column;min-height:100%}
+  .screen.on{display:flex}
+  .bar{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+  .bar b{font-size:16.5px;font-weight:900}
+  .pill{font-size:10px;font-weight:900;letter-spacing:1.2px;color:var(--gold);border:1px solid #FFD97A55;
+    padding:4px 9px;border-radius:999px;background:#FFD97A14}
+  .exitbtn{margin-inline-start:auto;background:var(--panel);border:1px solid var(--line);color:#fff;
+    border-radius:999px;padding:8px 13px;font-family:inherit;font-size:12.5px;font-weight:900;cursor:pointer}
+  .sic{width:1.18em;height:1.18em;vertical-align:-.22em;fill:currentColor;flex:none}
+  .btn .sic,.exitbtn .sic,.backbtn .sic{vertical-align:-.2em}
+  .feat .ic .sic{width:24px;height:24px;vertical-align:middle}
+  .bar .sic{vertical-align:-.2em}
+  .poster{width:100%;height:172px;object-fit:cover;object-position:top;border-radius:20px;border:1px solid var(--line);display:block}
+  .badge{display:inline-block;margin:14px auto 0;background:#C6F5421A;border:1px solid #C6F54244;color:var(--lime);
+    font-weight:900;font-size:12.5px;padding:6px 14px;border-radius:999px}
+  .gtitle{font-size:38px;font-weight:900;text-align:center;margin-top:12px;line-height:1.25}
+  .tagline{text-align:center;color:var(--dim);font-weight:700;font-size:15px;line-height:1.9;margin-top:10px}
+  .heroemoji{font-size:54px;text-align:center;line-height:1.1}
+  .feats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:18px}
+  .feat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px 6px;text-align:center}
+  .feat .ic{font-size:22px;display:block}
+  .feat .lb{font-size:12.5px;font-weight:900;line-height:1.5;display:block;margin-top:4px}
+  .spacer{flex:1;min-height:16px}
+  .btn{display:block;width:100%;border:none;cursor:pointer;font-family:inherit;text-align:center;text-decoration:none;
+    background:linear-gradient(180deg,#D9FF6A,var(--lime));color:#131803;font-size:18px;font-weight:900;
+    padding:17px;border-radius:16px;box-shadow:0 10px 24px -10px #C6F54266;margin-top:12px}
+  .btn:disabled{opacity:.35;box-shadow:none}
+  .btn.ghost{background:var(--panel);color:#fff;border:1px solid var(--line);box-shadow:none;font-size:15.5px;padding:14px}
+  .btn.skip{background:var(--panel);color:#FFB4A6;border:1px solid #FF6B5744;box-shadow:none;font-size:15.5px;padding:14px}
+  .btn.q{background:linear-gradient(180deg,#C4B5FD,#8B5CF6);color:#1D1038;box-shadow:0 10px 24px -10px #8B5CF666;font-size:19px}
+  .btn.a{background:linear-gradient(180deg,#FBCFE8,#EC4899);color:#38091F;box-shadow:0 10px 24px -10px #EC489966;font-size:19px}
+  .row2{display:flex;gap:11px}.row2 .btn{flex:1}
+  .card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:14px;overflow:hidden}
+  .card.cut::before{content:"";position:absolute;top:0;right:0;width:36px;height:36px;background:var(--bg);
+    clip-path:polygon(0 0,100% 0,100% 100%);z-index:2}
+  h2.sec{font-size:19px;font-weight:900;margin:20px 2px 10px}
+  .hintline{font-size:13px;font-weight:700;color:var(--dim);margin-top:8px}
+  .center{text-align:center}
+  .big-emoji{font-size:56px;line-height:1.1}
+  .nameplaque{font-size:31px;font-weight:900;margin-top:6px}
+  /* setup */
+  .addrow{display:flex;gap:9px}
+  .nameinput{flex:1;background:var(--panel2);border:1.5px solid var(--line);border-radius:13px;color:#fff;
+    font-family:inherit;font-weight:800;font-size:15px;padding:13px 14px;text-align:right;min-width:0}
+  .nameinput:focus{outline:none;border-color:var(--lime)}
+  .addbtn{flex:0 0 54px;border:none;border-radius:13px;cursor:pointer;font-family:inherit;
+    background:linear-gradient(180deg,#C4B5FD,#8B5CF6);color:#fff;font-size:24px;font-weight:900;
+    display:grid;place-items:center;box-shadow:0 6px 16px -6px #8B5CF666}
+  .addbtn:disabled{opacity:.35}
+  .error{background:#FF6B5714;border:1px solid #FF6B5755;color:#FFB4A6;border-radius:13px;
+    padding:11px 14px;font-weight:800;font-size:14px;margin-top:11px;text-align:center}
+  .pchip{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:11px 14px;margin-top:9px}
+  .avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:900;
+    font-size:17px;border:2px solid;flex:0 0 40px}
+  .pchip .nm{font-weight:900;font-size:16px}
+  .pchip .rm{margin-inline-start:auto;width:34px;height:34px;border-radius:50%;background:var(--panel2);
+    border:1px solid var(--line);color:var(--red);cursor:pointer;display:grid;place-items:center;font-family:inherit}
+  .pchip .rm .sic{width:16px;height:16px}
+  /* round bar + roulette */
+  .roundbar{display:flex;align-items:center;justify-content:space-between;font-weight:800;color:var(--dim);font-size:14.5px}
+  .roundbar b{color:#fff}
+  .roundbar .who{display:flex;align-items:center;gap:6px}
+  .prog{height:9px;background:#FFFFFF14;border-radius:99px;overflow:hidden;margin-top:9px}
+  .prog i{display:block;height:100%;background:linear-gradient(90deg,#EC4899,var(--gold));border-radius:99px;transition:width .4s}
+  .slot{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:center;margin-top:13px}
+  .slot .lb{font-size:12px;font-weight:900;color:var(--dim);letter-spacing:1.5px}
+  .slot .val{font-size:29px;font-weight:900;margin-top:5px;min-height:40px}
+  .slot .val.tick{animation:tickpop .18s ease}
+  @keyframes tickpop{0%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .dots{display:flex;gap:8px;justify-content:center;margin-top:20px}
+  .dots span{width:9px;height:9px;border-radius:50%;background:#FFFFFF2A;animation:blink 1s infinite}
+  .dots span:nth-child(2){animation-delay:.18s}.dots span:nth-child(3){animation-delay:.36s}
+  @keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+  /* chosen */
+  .bigavatar{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;font-size:38px;
+    font-weight:900;border:3px solid;margin:8px auto 0}
+  /* challenge */
+  .chead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .cplayer{display:flex;align-items:center;gap:9px;font-weight:900;font-size:16px}
+  .cdot{width:13px;height:13px;border-radius:50%;flex:none}
+  .ctype{font-weight:900;font-size:14.5px;padding:8px 15px;border-radius:999px;border:1px solid}
+  .ctype.q{color:var(--violet);border-color:#8B5CF677;background:#8B5CF61A}
+  .ctype.a{color:var(--pink);border-color:#EC489977;background:#EC48991A}
+  .catpill{font-size:12px;font-weight:900;color:var(--gold);border:1px solid #FFD97A55;padding:5px 12px;border-radius:999px;background:#FFD97A12}
+  .ccard{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px 20px;text-align:center;margin-top:16px;
+    position:relative;overflow:hidden}
+  .ccard::before{content:"";position:absolute;top:0;right:0;width:38px;height:38px;background:var(--bg);
+    clip-path:polygon(0 0,100% 0,100% 100%)}
+  .ctext{font-size:22px;font-weight:900;line-height:1.85}
+  .ptsbadge{display:inline-block;margin-top:18px;background:#FFD97A1A;border:1px dashed #FFD97A88;color:var(--gold);
+    font-weight:900;font-size:15px;padding:9px 18px;border-radius:999px}
+  .adinline{margin-top:16px;border:1px dashed #FFFFFF22;border-radius:13px;color:#55556A;text-align:center;
+    font-size:10.5px;font-weight:900;letter-spacing:2.5px;padding:13px}
+  /* end */
+  .scorerow{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:12px 15px;margin-bottom:9px}
+  .scorerow.winner{border-color:#FFD97A77;background:#FFD97A0D}
+  .scorerow .rk{font-size:19px;width:30px;text-align:center}
+  .scorerow b{font-size:16px}
+  .scorerow .pts{margin-inline-start:auto;font-weight:900;color:var(--gold);font-size:17px}
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.82);z-index:30;display:none;place-items:center;padding:22px}
+  .overlay.on{display:grid}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px 20px;width:100%;text-align:center}
+  .modal h2{font-size:21px;font-weight:900;margin-bottom:8px}
+  .modal p{color:var(--dim);font-weight:700;font-size:14.5px;line-height:1.85}
+  .toast{position:absolute;left:50%;bottom:calc(64px + var(--sab));transform:translateX(-50%) translateY(20px);
+    background:var(--lime);color:#131803;font-weight:900;font-size:16.5px;padding:12px 22px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:.3s;z-index:40;box-shadow:0 14px 30px -10px #C6F54277;white-space:nowrap}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .adslot{position:absolute;left:0;right:0;bottom:0;height:calc(40px + var(--sab));z-index:5;
+    display:flex;align-items:flex-start;justify-content:center;padding-top:7px;
+    background:#0A0A13;border-top:1px solid var(--line);color:#55556A;font-size:10.5px;font-weight:900;letter-spacing:2.5px}
+  .quitbtn{position:absolute;top:calc(62px + var(--sat));inset-inline-end:16px;z-index:20;width:38px;height:38px;
+    border-radius:50%;background:var(--panel);border:1px solid var(--line);color:#fff;cursor:pointer;
+    display:none;place-items:center;font-family:inherit}
+  .quitbtn.on{display:grid}
+  #scr-selecting,#scr-chosen,#scr-challenge{padding-top:48px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a class="backbtn" href="lobby-store.html"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M20 11.25C20.4142 11.25 20.75 11.5858 20.75 12C20.75 12.4142 20.4142 12.75 20 12.75H10.75L10.75 18C10.75 18.3034 10.5673 18.5768 10.287 18.6929C10.0068 18.809 9.68417 18.7449 9.46967 18.5304L3.46967 12.5304C3.32902 12.3897 3.25 12.1989 3.25 12C3.25 11.8011 3.32902 11.6103 3.46967 11.4697L9.46967 5.46969C9.68417 5.25519 10.0068 5.19103 10.287 5.30711C10.5673 5.4232 10.75 5.69668 10.75 6.00002L10.75 11.25H20Z"/></svg></a>
+    <h1>SOWL WLA DIR?<small>INSIDE THE GAME</small></h1>
+    <span class="logo">PLAY<i>M3ANA</i></span>
+  </div>
+  <button class="quitbtn" id="quitBtn" onclick="openModal('quit')" aria-label="خروج من اللعبة"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg></button>
+
+  <div class="scroll" id="scroll">
+
+    <!-- ══ HOME ══ -->
+    <section class="screen on" id="scr-home">
+      <img class="poster" style="object-position:50% 34%" src="data:image/webp;base64,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" alt="Sowl wla Dir poster">
+      <div class="heroemoji" style="margin-top:16px">❓</div>
+      <h2 class="gtitle" dir="rtl">سول ولا دير؟</h2>
+      <p class="tagline" dir="rtl">الحقيقة ولا التحدي — الاختيار عليك 🇲🇦</p>
+      <div style="text-align:center"><span class="badge" dir="rtl">من 3 ل 8 لاعبين</span></div>
+      <div class="feats">
+        <div class="feat"><span class="ic">🔮</span><span class="lb" dir="rtl">100 سؤال</span></div>
+        <div class="feat"><span class="ic">💪</span><span class="lb" dir="rtl">100 تحدي</span></div>
+        <div class="feat"><span class="ic"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M18.2577 3.50828C18.538 3.62437 18.7207 3.89785 18.7207 4.20119V8.44383C18.7207 8.85805 18.3849 9.19383 17.9707 9.19383H13.728C13.4247 9.19383 13.1512 9.0111 13.0351 8.73085C12.9191 8.45059 12.9832 8.128 13.1977 7.9135L14.8007 6.3105C12.1674 5.20912 9.01606 5.7309 6.87348 7.87348C4.04217 10.7048 4.04217 15.2952 6.87348 18.1265C9.70478 20.9578 14.2952 20.9578 17.1265 18.1265C18.7727 16.4803 19.4622 14.2401 19.1935 12.0937C19.142 11.6827 19.4335 11.3078 19.8445 11.2563C20.2555 11.2049 20.6304 11.4963 20.6819 11.9073C21.0057 14.4934 20.1746 17.1997 18.1872 19.1872C14.7701 22.6043 9.2299 22.6043 5.81282 19.1872C2.39573 15.7701 2.39573 10.2299 5.81282 6.81282C8.55119 4.07444 12.6515 3.5312 15.9309 5.18028L17.4404 3.67086C17.6549 3.45637 17.9774 3.3922 18.2577 3.50828Z"/></svg></span><span class="lb" dir="rtl">10 جولات</span></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="goSetup()">بدا اللعب <svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.03429 5.96305L6.49114 8.49856C6.02369 8.9646 5.59488 9.3921 5.25624 9.77856C5.03877 10.0267 4.82145 10.2984 4.63737 10.5985L4.61259 10.5738C4.56555 10.5269 4.54201 10.5034 4.51839 10.4805C4.07636 10.0516 3.55641 9.71062 2.98636 9.47575C2.9559 9.4632 2.92498 9.45095 2.86314 9.42645L2.48449 9.27641C1.97153 9.07315 1.83482 8.41279 2.22514 8.02365C3.34535 6.90684 4.69032 5.56594 5.33941 5.29662C5.91185 5.05911 6.53023 4.98008 7.12664 5.06822C7.67311 5.14898 8.19006 5.42968 9.03429 5.96305Z"/><path d="M13.3767 19.3132C13.5816 19.5212 13.7177 19.6681 13.8408 19.8251C14.0031 20.0322 14.1483 20.2523 14.2748 20.4829C14.4172 20.7426 14.5278 21.02 14.749 21.5748C14.929 22.0265 15.5272 22.1459 15.8746 21.7995L15.9586 21.7157C17.0788 20.5988 18.4237 19.2579 18.6938 18.6108C18.9321 18.04 19.0113 17.4235 18.9229 16.8289C18.8419 16.2841 18.5605 15.7688 18.0256 14.9273L15.474 17.4713C14.9959 17.9479 14.5576 18.385 14.1612 18.7273C13.9236 18.9325 13.6637 19.1376 13.3767 19.3132Z"/><path fill-rule="evenodd" d="M14.4467 16.3769L20.2935 10.5476C21.1356 9.70811 21.5566 9.28836 21.7783 8.75458C22.0001 8.22081 22.0001 7.62719 22.0001 6.43996V5.87277C22.0001 4.04713 22.0001 3.13431 21.4312 2.56715C20.8624 2 19.9468 2 18.1157 2H17.5468C16.356 2 15.7606 2 15.2252 2.2211C14.6898 2.4422 14.2688 2.86195 13.4268 3.70146L7.57991 9.53078C6.59599 10.5117 5.98591 11.12 5.74966 11.7075C5.67502 11.8931 5.6377 12.0767 5.6377 12.2692C5.6377 13.0713 6.2851 13.7168 7.57991 15.0077L7.75393 15.1812L9.79245 13.1123C10.0832 12.8172 10.558 12.8137 10.8531 13.1044C11.1481 13.3951 11.1516 13.87 10.8609 14.1651L8.8162 16.2403L8.95326 16.3769C10.2481 17.6679 10.8955 18.3133 11.7 18.3133C11.8777 18.3133 12.0478 18.2818 12.2189 18.2188C12.8222 17.9966 13.438 17.3826 14.4467 16.3769ZM17.1935 9.5312C16.435 10.2874 15.2053 10.2874 14.4468 9.5312C13.6883 8.775 13.6883 7.54895 14.4468 6.79274C15.2053 6.03653 16.435 6.03653 17.1935 6.79274C17.952 7.54895 17.952 8.775 17.1935 9.5312Z" clip-rule="evenodd"/></g></svg></button>
+    </section>
+
+    <!-- ══ SETUP ══ -->
+    <section class="screen" id="scr-setup">
+      <div class="bar"><b dir="rtl">إعداد اللعبة</b><span class="pill">SET UP</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <h2 style="font-size:23px;font-weight:900;text-align:center" dir="rtl">شكون غادي يلعب؟</h2>
+      <p class="tagline" dir="rtl">من 3 ل 8 لاعبين — على تيليفون وحد</p>
+      <div class="addrow" style="margin-top:16px">
+        <input class="nameinput" id="nameInput" type="text" maxlength="20" dir="rtl"
+          placeholder="دخل السمية..." autocomplete="off">
+        <button class="addbtn" id="addBtn" onclick="addPlayer()" aria-label="زيد لاعب">+</button>
+      </div>
+      <div class="error" id="nameError" style="display:none" dir="rtl"></div>
+      <div id="playerList"></div>
+      <div class="spacer"></div>
+      <p class="hintline center" id="setupHint" dir="rtl"></p>
+      <button class="btn" id="startBtn" onclick="startGame()"></button>
+      <button class="btn ghost" onclick="show('home')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> رجع للبيت</button>
+    </section>
+
+    <!-- ══ ROULETTE (SELECTING) ══ -->
+    <section class="screen" id="scr-selecting">
+      <div class="roundbar" dir="rtl">
+        <span>الجولة <b id="roulRound">1</b> / 10</span>
+        <span class="who"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.00098 13.001C12.867 13.001 16.001 14.7918 16.001 17.001C16.001 19.2101 12.867 21.001 9.00098 21.001C5.13498 21.001 2.00098 19.2101 2.00098 17.001C2.00098 14.7918 5.13498 13.001 9.00098 13.001Z"/><path d="M16.4766 14.001C18.9615 14.0011 20.9996 15.3434 21 17C21 18.6569 18.9638 20 16.4785 20C17.2107 19.1997 17.7148 18.1955 17.7148 17.002C17.7148 15.8071 17.2099 14.8017 16.4766 14.001Z"/><path d="M9.00098 2C11.2101 2 13.001 3.79086 13.001 6C13.001 8.20914 11.2101 10 9.00098 10C6.79184 10 5.00098 8.20914 5.00098 6C5.00098 3.79086 6.79184 2 9.00098 2Z"/><path d="M15 3.00098C16.6567 3.00118 18 4.34425 18 6.00098C17.9999 7.6576 16.6566 9.00078 15 9.00098C14.6388 9.00098 14.2924 8.93633 13.9717 8.81934C14.4445 7.98748 14.7148 7.02523 14.7148 6C14.7148 4.97534 14.4449 4.0132 13.9727 3.18164C14.2931 3.06489 14.6392 3.00098 15 3.00098Z"/></g></svg> <span id="roulCount">4</span></span>
+      </div>
+      <div class="prog"><i id="roulProg" style="width:0%"></i></div>
+      <p class="center" style="font-weight:900;font-size:16.5px;color:var(--dim);margin-top:26px" dir="rtl">🎰 الرولي كيدور…</p>
+      <div class="slot"><div class="lb">اللاعب</div><div class="val" id="roulName">؟</div></div>
+      <div class="slot"><div class="lb">النوع</div><div class="val" id="roulType">⚡</div></div>
+      <div class="dots"><span></span><span></span><span></span></div>
+      <div class="spacer"></div>
+    </section>
+
+    <!-- ══ CHOSEN ══ -->
+    <section class="screen" id="scr-chosen">
+      <div class="roundbar" dir="rtl">
+        <span>الجولة <b id="chRound">1</b> / 10</span>
+        <span id="chName" style="font-weight:900"></span>
+      </div>
+      <div class="prog"><i id="chProg" style="width:0%"></i></div>
+      <div class="center" style="margin-top:22px">
+        <div class="bigavatar" id="chAvatar">؟</div>
+        <p class="tagline" dir="rtl" style="margin-top:14px">الدور ديالك يا</p>
+        <div class="nameplaque" id="chNameBig">لاعب</div>
+        <p style="font-weight:900;font-size:18px;margin-top:20px" dir="rtl">شنو بغيتي؟</p>
+      </div>
+      <div class="spacer"></div>
+      <div class="row2">
+        <button class="btn q" onclick="pickType('question')">🔮 سول</button>
+        <button class="btn a" onclick="pickType('action')">💪 دير</button>
+      </div>
+    </section>
+
+    <!-- ══ CHALLENGE ══ -->
+    <section class="screen" id="scr-challenge">
+      <div class="chead">
+        <div class="cplayer"><span class="cdot" id="ccDot"></span><span id="ccName" dir="rtl">لاعب</span></div>
+        <div class="ctype q" id="ccType">🔮 سول</div>
+      </div>
+      <div class="roundbar" dir="rtl" style="margin-top:14px">
+        <span class="catpill" id="ccCat">جماعة</span>
+        <span>الجولة <b id="ccRound" style="color:var(--pink)">1</b> / 10</span>
+      </div>
+      <div class="ccard">
+        <div class="ctext" id="ccText" dir="rtl"></div>
+        <span class="ptsbadge">🌟 +<span id="ccPts">15</span> نقطة</span>
+      </div>
+      <div class="adinline">AD · إعلان</div>
+      <div class="spacer"></div>
+      <button class="btn" id="doneBtn" onclick="complete(true)"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM16.0303 8.96967C16.3232 9.26256 16.3232 9.73744 16.0303 10.0303L11.0303 15.0303C10.7374 15.3232 10.2626 15.3232 9.96967 15.0303L7.96967 13.0303C7.67678 12.7374 7.67678 12.2626 7.96967 11.9697C8.26256 11.6768 8.73744 11.6768 9.03033 11.9697L10.5 13.4393L12.7348 11.2045L14.9697 8.96967C15.2626 8.67678 15.7374 8.67678 16.0303 8.96967Z" clip-rule="evenodd"/></svg> جاوبت — +15</button>
+      <button class="btn skip" onclick="complete(false)"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> سالت — +0</button>
+    </section>
+
+    <!-- ══ END ══ -->
+    <section class="screen" id="scr-end">
+      <div class="center" style="margin-top:14px">
+        <div class="big-emoji">🏆</div>
+        <h2 style="font-size:26px;font-weight:900;margin-top:8px" dir="rtl">سالات اللعبة!</h2>
+        <p class="tagline" dir="rtl">الريصولتا النهائية</p>
+      </div>
+      <div id="scoreList" style="margin-top:10px"></div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="replayGame()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M18.2577 3.50828C18.538 3.62437 18.7207 3.89785 18.7207 4.20119V8.44383C18.7207 8.85805 18.3849 9.19383 17.9707 9.19383H13.728C13.4247 9.19383 13.1512 9.0111 13.0351 8.73085C12.9191 8.45059 12.9832 8.128 13.1977 7.9135L14.8007 6.3105C12.1674 5.20912 9.01606 5.7309 6.87348 7.87348C4.04217 10.7048 4.04217 15.2952 6.87348 18.1265C9.70478 20.9578 14.2952 20.9578 17.1265 18.1265C18.7727 16.4803 19.4622 14.2401 19.1935 12.0937C19.142 11.6827 19.4335 11.3078 19.8445 11.2563C20.2555 11.2049 20.6304 11.4963 20.6819 11.9073C21.0057 14.4934 20.1746 17.1997 18.1872 19.1872C14.7701 22.6043 9.2299 22.6043 5.81282 19.1872C2.39573 15.7701 2.39573 10.2299 5.81282 6.81282C8.55119 4.07444 12.6515 3.5312 15.9309 5.18028L17.4404 3.67086C17.6549 3.45637 17.9774 3.3922 18.2577 3.50828Z"/></svg> عاودو اللعب</button>
+      <button class="btn ghost" onclick="changePlayers()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.00098 13.001C12.867 13.001 16.001 14.7918 16.001 17.001C16.001 19.2101 12.867 21.001 9.00098 21.001C5.13498 21.001 2.00098 19.2101 2.00098 17.001C2.00098 14.7918 5.13498 13.001 9.00098 13.001Z"/><path d="M16.4766 14.001C18.9615 14.0011 20.9996 15.3434 21 17C21 18.6569 18.9638 20 16.4785 20C17.2107 19.1997 17.7148 18.1955 17.7148 17.002C17.7148 15.8071 17.2099 14.8017 16.4766 14.001Z"/><path d="M9.00098 2C11.2101 2 13.001 3.79086 13.001 6C13.001 8.20914 11.2101 10 9.00098 10C6.79184 10 5.00098 8.20914 5.00098 6C5.00098 3.79086 6.79184 2 9.00098 2Z"/><path d="M15 3.00098C16.6567 3.00118 18 4.34425 18 6.00098C17.9999 7.6576 16.6566 9.00078 15 9.00098C14.6388 9.00098 14.2924 8.93633 13.9717 8.81934C14.4445 7.98748 14.7148 7.02523 14.7148 6C14.7148 4.97534 14.4449 4.0132 13.9727 3.18164C14.2931 3.06489 14.6392 3.00098 15 3.00098Z"/></g></svg> بدلو اللاعبين</button>
+      <a class="btn ghost" href="lobby-store.html"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> رجع للساحة</a>
+    </section>
+  </div>
+
+  <div class="adslot">AD · إعلان</div>
+  <div class="toast" id="toast">+15 ⭐</div>
+
+  <!-- quit modal — real copy -->
+  <div class="overlay" id="modal-quit">
+    <div class="modal">
+      <h2 dir="rtl">بغيتي تخرج؟</h2>
+      <p dir="rtl">غادي يضيع التقدم ديال الجولة الحالية.</p>
+      <div class="row2">
+        <button class="btn ghost" onclick="closeModals()">لا، كمّل</button>
+        <button class="btn" style="background:linear-gradient(180deg,#FF8570,#FF6B57);color:#2A0A06;box-shadow:none" onclick="confirmQuit()">إيه، خرج</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const scrollEl=$('#scroll');
+const GAME_PHASES=['selecting','chosen','challenge'];
+function show(id){document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id==='scr-'+id));
+  $('#quitBtn').classList.toggle('on',GAME_PHASES.includes(id));scrollEl.scrollTop=0;}
+function openModal(n){stopSpin();$('#modal-'+n).classList.add('on');}
+function closeModals(){document.querySelectorAll('.overlay').forEach(e=>e.classList.remove('on'));
+  if($('#scr-selecting').classList.contains('on')&&!S.spinning&&!S.currentPlayer)startSpin();}
+function confirmQuit(){closeModals();stopSpin();S.currentPlayer=null;show('home');}
+function shuffled(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+/* real data: player colours, POINTS table, sample cards read from the game */
+const COLORS=['#F472B6','#A855F7','#34D399','#60A5FA','#FBBF24','#F97316','#F43F5E','#14B8A6'];
+const POINTS={question_easy:10,question_medium:10,question_hard:15,question_very_hard:20,question_expert:25,
+  action_easy:20,action_medium:20,action_hard:30,action_very_hard:40,action_expert:50};
+const QUESTIONS=[
+ {cat:'جماعة',diff:'hard',text:'شكون من هاد المجموعة كيعجبك أكثر؟ وعلاش؟'},
+ {cat:'جماعة',diff:'hard',text:'شكون من هاد المجموعة كتقدر تثيق فيه أكثر واحد؟'},
+ {cat:'جماعة',diff:'hard',text:'شكون من هاد المجموعة إلا عيط ليك دابا غادي تجاوب بسرعة؟'},
+ {cat:'جماعة',diff:'hard',text:'شكون من هاد المجموعة ممكن تحكيلو سر كبير؟'},
+ {cat:'جماعة',diff:'hard',text:'شكون من هاد المجموعة كتظن يقدر ينجح أكثر فالحياة؟'}];
+const ACTIONS=[
+ {cat:'صعب',diff:'hard',text:'دير خطاب رسمي على أكبر غلطة درتيها.'},
+ {cat:'صعب',diff:'hard',text:'مثّل أنك كتعتذر لشي واحد على خطأ خيالي.'},
+ {cat:'صعب',diff:'hard',text:'قل 3 عيوب فيك بطريقة مضحكة.'},
+ {cat:'صعب جداً',diff:'very_hard',text:'مثل اعتراف بأنك كنت كتفهم شي واحد غلط.'}];
+const TYPES=[{label:'🔮 سول',color:'#c4b5fd'},{label:'💪 دير',color:'#f9a8d4'}];
+const TOTAL=10;
+const pts=c=>POINTS[c.type+'_'+c.diff]||(c.type==='question'?10:20);
+
+const S={players:[],round:0,currentPlayer:null,prevId:null,type:null,card:null,usedQ:new Set(),usedA:new Set(),spinning:false,spinTimer:null};
+
+/* ── setup ── */
+function goSetup(){S.players=[];$('#nameInput').value='';hideError();renderPlayers();show('setup');}
+function hideError(){$('#nameError').style.display='none';}
+function showError(m){const e=$('#nameError');e.textContent=m;e.style.display='block';}
+function renderPlayers(){
+  const w=$('#playerList');w.innerHTML='';
+  S.players.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='pchip';
+    d.innerHTML=`<span class="avatar" style="background:${p.color}20;color:${p.color};border-color:${p.color}50">${p.name.charAt(0).toUpperCase()}</span><span class="nm" dir="rtl">${p.name}</span>`;
+    const rm=document.createElement('button');rm.className='rm';rm.setAttribute('aria-label','حذف '+p.name);
+    rm.innerHTML='<svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg>';
+    rm.onclick=()=>{S.players.splice(i,1);renderPlayers();};
+    d.appendChild(rm);w.appendChild(d);
+  });
+  $('#addBtn').disabled=S.players.length>=8;
+  syncSetup();
+}
+function syncSetup(){
+  const n=S.players.length;
+  const hint=$('#setupHint');
+  hint.textContent=n===0?'زيد اللاعبين':n===1?'زيد لاعب آخر على الأقل 2':n===2?'خاصك لاعب آخر واحد على الأقل':'';
+  const b=$('#startBtn');
+  b.disabled=n<3;
+  b.innerHTML=n<3?`بداو اللعب (${n}/3)`:`بداو اللعب — ${n} لاعبين <svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M10.6669 6.13443L10.165 5.77922C9.44862 5.27225 8.59264 5 7.71504 5H7.10257C6.69838 5 6.29009 5.02549 5.90915 5.16059C3.52645 6.00566 1.88749 9.09504 2.00604 16.1026C2.02992 17.5145 2.3603 19.075 3.63423 19.6842C4.03121 19.8741 4.49667 20 5.02671 20C5.66273 20 6.1678 19.8187 6.55763 19.5632C6.96641 19.2953 7.32633 18.9471 7.68612 18.599C8.13071 18.1688 8.57511 17.7389 9.11125 17.4609C9.69519 17.1581 10.3434 17 11.0011 17H12.9989C13.6566 17 14.3048 17.1581 14.8888 17.4609C15.4249 17.7389 15.8693 18.1688 16.3139 18.599C16.6737 18.9471 17.0336 19.2953 17.4424 19.5632C17.8322 19.8187 18.3373 20 18.9733 20C19.5033 20 19.9688 19.8741 20.3658 19.6842C21.6397 19.075 21.9701 17.5145 21.994 16.1026C22.1125 9.09503 20.4735 6.00566 18.0908 5.16059C17.7099 5.02549 17.3016 5 16.8974 5H16.2849C15.4074 5 14.5514 5.27225 13.8351 5.77922L13.3332 6.13441C12.9434 6.41029 12.4776 6.55844 12 6.55844C11.5225 6.55844 11.0567 6.41029 10.6669 6.13443ZM16.75 9C17.1642 9 17.5 9.33579 17.5 9.75C17.5 10.1642 17.1642 10.5 16.75 10.5C16.3358 10.5 16 10.1642 16 9.75C16 9.33579 16.3358 9 16.75 9ZM7.5 9.25C7.91421 9.25 8.25 9.58579 8.25 10V10.75H9C9.41421 10.75 9.75 11.0858 9.75 11.5C9.75 11.9142 9.41421 12.25 9 12.25H8.25V13C8.25 13.4142 7.91421 13.75 7.5 13.75C7.08579 13.75 6.75 13.4142 6.75 13V12.25H6C5.58579 12.25 5.25 11.9142 5.25 11.5C5.25 11.0858 5.58579 10.75 6 10.75H6.75V10C6.75 9.58579 7.08579 9.25 7.5 9.25ZM19 11.25C19 11.6642 18.6642 12 18.25 12C17.8358 12 17.5 11.6642 17.5 11.25C17.5 10.8358 17.8358 10.5 18.25 10.5C18.6642 10.5 19 10.8358 19 11.25ZM15.25 12C15.6642 12 16 11.6642 16 11.25C16 10.8358 15.6642 10.5 15.25 10.5C14.8358 10.5 14.5 10.8358 14.5 11.25C14.5 11.6642 14.8358 12 15.25 12ZM17.5 12.75C17.5 12.3358 17.1642 12 16.75 12C16.3358 12 16 12.3358 16 12.75C16 13.1642 16.3358 13.5 16.75 13.5C17.1642 13.5 17.5 13.1642 17.5 12.75Z" clip-rule="evenodd"/></svg>`;
+}
+function addPlayer(){
+  const name=$('#nameInput').value.trim();
+  if(!name){showError('دخل السمية خاصها تكون كاملة');return;}
+  if(S.players.length>=8)return;
+  hideError();
+  S.players.push({id:'p'+Date.now()+Math.random(),name,color:COLORS[S.players.length%COLORS.length],score:0});
+  $('#nameInput').value='';renderPlayers();
+}
+$('#nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')addPlayer();});
+$('#nameInput').addEventListener('input',hideError);
+
+/* ── game flow ── */
+function startGame(){
+  if(S.players.length<3)return;
+  S.round=1;S.prevId=null;S.currentPlayer=null;S.usedQ=new Set();S.usedA=new Set();
+  S.players.forEach(p=>p.score=0);
+  goSelecting();
+}
+function goSelecting(){
+  S.currentPlayer=null;
+  $('#roulRound').textContent=S.round;$('#roulCount').textContent=S.players.length;
+  $('#roulProg').style.width=((S.round-1)/TOTAL*100)+'%';
+  $('#roulName').textContent='؟';$('#roulType').textContent='⚡';$('#roulType').style.color='';
+  show('selecting');startSpin();
+}
+function stopSpin(){S.spinning=false;if(S.spinTimer){clearTimeout(S.spinTimer);S.spinTimer=null;}}
+function startSpin(){
+  stopSpin();S.spinning=true;
+  const nameEl=$('#roulName'),typeEl=$('#roulType');
+  let count=0;const MAX=16;let delay=70;
+  const winnerPool=S.players.filter(p=>p.id!==S.prevId);
+  const winner=pick(winnerPool.length?winnerPool:S.players);
+  const type=Math.random()<0.5?'question':'action';
+  function tick(){
+    if(!S.spinning)return;
+    const p=pick(S.players);
+    nameEl.textContent=p.name;nameEl.classList.remove('tick');void nameEl.offsetWidth;nameEl.classList.add('tick');
+    const t=TYPES[Math.floor(Math.random()*2)];
+    typeEl.textContent=t.label;typeEl.style.color='';typeEl.classList.remove('tick');void typeEl.offsetWidth;typeEl.classList.add('tick');
+    count++;
+    if(count<MAX){delay=Math.round(delay*1.12);S.spinTimer=setTimeout(tick,Math.min(delay,650));}
+    else{
+      const tf=type==='question'?TYPES[0]:TYPES[1];
+      nameEl.textContent=winner.name;
+      typeEl.textContent=tf.label;typeEl.style.color=tf.color;typeEl.style.fontWeight='900';
+      S.spinTimer=setTimeout(()=>{S.spinning=false;S.currentPlayer=winner;S.prevId=winner.id;S.type=type;renderChosen();show('chosen');},1400);
+    }
+  }
+  S.spinTimer=setTimeout(tick,delay);
+}
+function renderChosen(){
+  const p=S.currentPlayer;
+  $('#chRound').textContent=S.round;
+  $('#chProg').style.width=((S.round-1)/TOTAL*100)+'%';
+  $('#chName').textContent=p.name;$('#chName').style.color=p.color;
+  const av=$('#chAvatar');
+  av.textContent=p.name.charAt(0).toUpperCase();
+  av.style.background=p.color+'20';av.style.borderColor=p.color+'60';av.style.color=p.color;
+  $('#chNameBig').textContent=p.name+'!';$('#chNameBig').style.color=p.color;
+}
+function getCard(type){
+  const pool=type==='question'?QUESTIONS:ACTIONS,used=type==='question'?S.usedQ:S.usedA;
+  let avail=pool.filter((_,i)=>!used.has(i));
+  if(!avail.length){used.clear();avail=pool;}
+  const card=pick(avail);used.add(pool.indexOf(card));
+  return {...card,type};
+}
+function pickType(type){
+  S.type=type;S.card=getCard(type);renderChallenge();show('challenge');
+}
+function renderChallenge(){
+  const p=S.currentPlayer,c=S.card,isQ=c.type==='question',n=pts(c);
+  $('#ccDot').style.background=p.color;
+  $('#ccName').textContent=p.name;
+  const t=$('#ccType');t.textContent=isQ?'🔮 سول':'💪 دير';t.className='ctype '+(isQ?'q':'a');
+  $('#ccCat').textContent=c.cat;
+  $('#ccRound').textContent=S.round;
+  $('#ccText').textContent=c.text;
+  $('#ccPts').textContent=n;
+  $('#doneBtn').innerHTML=`<svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM16.0303 8.96967C16.3232 9.26256 16.3232 9.73744 16.0303 10.0303L11.0303 15.0303C10.7374 15.3232 10.2626 15.3232 9.96967 15.0303L7.96967 13.0303C7.67678 12.7374 7.67678 12.2626 7.96967 11.9697C8.26256 11.6768 8.73744 11.6768 9.03033 11.9697L10.5 13.4393L12.7348 11.2045L14.9697 8.96967C15.2626 8.67678 15.7374 8.67678 16.0303 8.96967Z" clip-rule="evenodd"/></svg> ${isQ?'جاوبت':'درتها'} — +${n}`;
+}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1400);}
+function complete(ok){
+  if(ok&&S.currentPlayer&&S.card){const n=pts(S.card);S.currentPlayer.score+=n;toast('+'+n+' ⭐');}
+  if(S.round>=TOTAL){setTimeout(()=>{renderEnd();show('end');},450);}
+  else{S.round++;setTimeout(goSelecting,ok?500:60);}
+}
+function renderEnd(){
+  const sorted=[...S.players].sort((a,b)=>b.score-a.score);
+  const max=sorted[0]?sorted[0].score:0;
+  $('#scoreList').innerHTML=sorted.map((p,i)=>`
+    <div class="scorerow ${p.score===max&&i===0?'winner':''}">
+      <span class="rk">${['🥇','🥈','🥉'][i]||(i+1)}</span>
+      <span class="avatar" style="background:${p.color}20;color:${p.color};border-color:${p.color}50">${p.name.charAt(0).toUpperCase()}</span>
+      <b dir="rtl">${p.name}</b><span class="pts">${p.score}</span>
+    </div>`).join('');
+}
+function replayGame(){
+  S.round=1;S.prevId=null;S.currentPlayer=null;S.usedQ=new Set();S.usedA=new Set();
+  S.players.forEach(p=>p.score=0);goSelecting();
+}
+function changePlayers(){$('#nameInput').value='';hideError();renderPlayers();show('setup');}
+
+/* deep-link demo states: #setup #roulette #chosen #card #end */
+(function(){
+  const h=location.hash.replace('#','');
+  const seed=()=>{['Yassine','Sara','Omar','Lina'].forEach((n,i)=>S.players.push({id:'d'+i,name:n,color:COLORS[i],score:0}));};
+  if(!h||h==='home')return;
+  if(h==='setup'){seed();renderPlayers();show('setup');return;}
+  seed();
+  S.players[0].score=45;S.players[1].score=30;S.players[2].score=25;S.players[3].score=10;
+  if(h==='roulette'){S.round=3;goSelecting();}
+  else if(h==='chosen'){S.round=3;S.currentPlayer=S.players[1];S.type='question';renderChosen();show('chosen');}
+  else if(h==='card'){S.round=3;S.currentPlayer=S.players[0];S.type='question';S.card={...QUESTIONS[0],type:'question'};renderChallenge();show('challenge');}
+  else if(h==='card-dare'){S.round=5;S.currentPlayer=S.players[2];S.type='action';S.card={...ACTIONS[0],type:'action'};renderChallenge();show('challenge');}
+  else if(h==='end'){renderEnd();show('end');}
+})();
+</script>
+</body>
+</html>

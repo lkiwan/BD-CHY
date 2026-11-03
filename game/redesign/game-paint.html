@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Paint Followers · Store Posters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Inside-game screens for PAINT FOLLOWERS in the Store Posters system (tokens from
+     profile-store.html). Flow + copy mirror the REAL game (FUNCTIONS.md §19, read from
+     game-files/paint-followers): home → setup (3–15 players, 8 real categories)
+     → roleReveal (press-and-hold; imposter: "مثل أنك تعرف الكلمة!")
+     → drawing (shared canvas, colours + 4 brush sizes) → voting → resolution
+     (imposter guesses the word) → scoreboard. Scoring = real rules: correct voters
+     +1 when the imposter is caught, imposter +1 for a right word guess. */
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--sab:env(safe-area-inset-bottom,0px);--sat:env(safe-area-inset-top,0px);
+    --bg:#07070D;--panel:#12121C;--panel2:#171726;--line:#FFFFFF17;--txt:#FFFFFF;--dim:#9C9CAE;
+    --lime:#C6F542;--gold:#FFD97A;--red:#FF6B57;--teal:#3FBA9A}
+  html,body{height:100%}
+  body{font-family:"Nunito",system-ui,sans-serif;color:var(--txt);background:#000;display:flex;justify-content:center}
+  .phone{position:relative;width:100%;max-width:430px;height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:
+    radial-gradient(120% 46% at 85% -6%,#0D948840 0%,transparent 55%),
+    radial-gradient(90% 40% at -10% 30%,#7C3AED22 0%,transparent 55%),var(--bg)}
+  .topbar{display:flex;align-items:center;gap:12px;padding:calc(13px + var(--sat)) 18px 6px;position:relative;z-index:3}
+  .backbtn{width:40px;height:40px;border-radius:50%;background:var(--panel);border:1px solid var(--line);
+    display:grid;place-items:center;color:#fff;text-decoration:none;font-size:19px;font-weight:900;flex:0 0 40px}
+  .topbar h1{font-size:19px;font-weight:900;letter-spacing:.3px}
+  .topbar h1 small{display:block;font-size:11px;color:var(--dim);letter-spacing:1.4px;font-weight:800}
+  .topbar .logo{margin-left:auto;font-weight:900;font-size:15px;letter-spacing:1.2px;color:var(--dim)}
+  .topbar .logo i{font-style:normal;color:var(--lime)}
+  .scroll{flex:1;overflow-y:auto;padding:8px 18px calc(58px + var(--sab));scrollbar-width:none;position:relative;z-index:2}
+  .scroll::-webkit-scrollbar{display:none}
+  .screen{display:none;flex-direction:column;min-height:100%}
+  .screen.on{display:flex}
+  .bar{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+  .bar b{font-size:16.5px;font-weight:900}
+  .pill{font-size:10px;font-weight:900;letter-spacing:1.2px;color:var(--gold);border:1px solid #FFD97A55;
+    padding:4px 9px;border-radius:999px;background:#FFD97A14}
+  .exitbtn{margin-inline-start:auto;background:var(--panel);border:1px solid var(--line);color:#fff;
+    border-radius:999px;padding:8px 13px;font-family:inherit;font-size:12.5px;font-weight:900;cursor:pointer}
+  .poster{width:100%;height:172px;object-fit:cover;object-position:top;border-radius:20px;border:1px solid var(--line);display:block}
+  .badge{display:inline-block;margin:14px auto 0;background:#C6F5421A;border:1px solid #C6F54244;color:var(--lime);
+    font-weight:900;font-size:12.5px;padding:6px 14px;border-radius:999px}
+  .gtitle{font-size:40px;font-weight:900;text-align:center;margin-top:10px;line-height:1.2}
+  .gtitle .t2{color:var(--teal)}
+  .tagline{text-align:center;color:var(--dim);font-weight:700;font-size:15px;line-height:1.9;margin-top:10px}
+  .feats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:18px}
+  .feat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px 6px;text-align:center}
+  .feat .ic{font-size:22px;display:block}
+  .feat .lb{font-size:12.5px;font-weight:900;line-height:1.5;display:block;margin-top:4px}
+  .spacer{flex:1;min-height:16px}
+  .btn{display:block;width:100%;border:none;cursor:pointer;font-family:inherit;text-align:center;text-decoration:none;
+    background:linear-gradient(180deg,#D9FF6A,var(--lime));color:#131803;font-size:18px;font-weight:900;
+    padding:17px;border-radius:16px;box-shadow:0 10px 24px -10px #C6F54266;margin-top:12px}
+  .btn:disabled{opacity:.35;box-shadow:none}
+  .btn.ghost{background:var(--panel);color:#fff;border:1px solid var(--line);box-shadow:none;font-size:15.5px;padding:14px}
+  .btn.teal{background:linear-gradient(180deg,#5EDDBE,var(--teal));color:#06231B;box-shadow:0 10px 24px -10px #3FBA9A66}
+  .card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:14px;overflow:hidden}
+  .card.cut::before{content:"";position:absolute;top:0;right:0;width:36px;height:36px;background:var(--bg);
+    clip-path:polygon(0 0,100% 0,100% 100%);z-index:2}
+  .card p.lead{font-size:15.5px;font-weight:700;line-height:1.95;color:#EDEDF4}
+  .card p.sm{font-size:13px;font-weight:700;color:var(--dim);margin-top:8px}
+  h2.sec{font-size:19px;font-weight:900;margin:20px 2px 10px}
+  h2.sec:first-child{margin-top:4px}
+  .hintline{font-size:13px;font-weight:700;color:var(--dim);margin-top:8px}
+  .center{text-align:center}
+  .big-emoji{font-size:56px;line-height:1.1}
+  .nameplaque{font-size:31px;font-weight:900;margin-top:6px;text-shadow:2px 2px 0 #FFD97A55}
+  /* setup */
+  .prow{display:flex;gap:9px;align-items:center;margin-bottom:9px}
+  .pdot{flex:0 0 38px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+    font-weight:900;font-size:16px;border:2px solid}
+  .nameinput{flex:1;background:var(--panel2);border:1.5px solid var(--line);border-radius:13px;color:#fff;
+    font-family:inherit;font-weight:800;font-size:15px;padding:12px 14px;text-align:right;min-width:0}
+  .nameinput:focus{outline:none;border-color:var(--lime)}
+  .rm{flex:0 0 40px;width:40px;height:44px;border-radius:12px;background:var(--panel);border:1px solid var(--line);
+    color:var(--red);font-size:19px;font-weight:900;cursor:pointer;font-family:inherit}
+  .addbtn{width:100%;background:#C6F54210;border:1.5px dashed #C6F54255;color:var(--lime);border-radius:13px;
+    padding:13px;font-family:inherit;font-weight:900;font-size:15px;cursor:pointer}
+  .cats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .cat{background:var(--panel);border:1.5px solid var(--line);border-radius:16px;padding:14px 12px;cursor:pointer;
+    color:#fff;font-family:inherit;display:flex;align-items:center;gap:10px;font-weight:900;font-size:15.5px}
+  .cat .em{font-size:23px}
+  .cat.on{border-color:var(--lime);background:#C6F54212}
+  .warn{background:#FF6B5714;border:1px solid #FF6B5755;color:#FFB4A6;border-radius:13px;
+    padding:11px 14px;font-weight:800;font-size:14px;margin-top:12px;text-align:center}
+  /* hold reveal */
+  .holdzone{margin-top:16px;background:var(--panel);border:1.5px dashed #FFFFFF2E;border-radius:20px;
+    padding:30px 18px;text-align:center;cursor:pointer;user-select:none;touch-action:none}
+  .holdzone .ring{width:96px;height:96px;border-radius:50%;margin:0 auto;display:grid;place-items:center;
+    background:conic-gradient(var(--lime) calc(var(--p,0)*1turn),#FFFFFF1C 0)}
+  .holdzone .ringin{width:76px;height:76px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-size:34px}
+  .holdzone .hint{margin-top:13px;font-weight:900;font-size:15px;color:var(--dim)}
+  .wordbig{font-size:36px;font-weight:900;margin-top:10px}
+  .rolebadge{display:inline-block;font-size:12.5px;font-weight:900;padding:6px 13px;border-radius:999px;border:1px solid}
+  .rolebadge.spy{color:#FF9580;border-color:#FF6B5777;background:#FF6B5722}
+  .rolebadge.safe{color:#7FE7C8;border-color:#3FBA9A77;background:#3FBA9A1F}
+  /* drawing */
+  .canvaswrap{background:#FFF9EC;border-radius:20px;padding:8px;margin-top:6px}
+  canvas#cv{width:100%;height:380px;display:block;border-radius:13px;touch-action:none;background:#FFF9EC}
+  .palette{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px;justify-content:center}
+  .swatch{width:37px;height:37px;border-radius:50%;border:3px solid transparent;cursor:pointer;padding:0}
+  .swatch.on{border-color:#fff;box-shadow:0 0 0 2px var(--lime)}
+  .brushes{display:flex;gap:9px;margin-top:12px}
+  .brush{flex:1;background:var(--panel);border:1.5px solid var(--line);color:#fff;border-radius:12px;
+    padding:11px 0;font-family:inherit;font-weight:900;font-size:14px;cursor:pointer}
+  .brush.on{background:var(--lime);color:#131803;border-color:var(--lime)}
+  /* voting */
+  .cand{display:flex;align-items:center;gap:12px;width:100%;background:var(--panel);border:1.5px solid var(--line);
+    border-radius:16px;padding:14px 16px;color:#fff;font-family:inherit;cursor:pointer;margin-bottom:10px;text-align:right}
+  .cand b{font-size:17px;font-weight:900}
+  .cand .self{margin-inline-start:auto;font-size:12px;font-weight:800;color:var(--dim)}
+  .cand:disabled{opacity:.45;cursor:default}
+  .cand.voted{border-color:var(--lime);background:#C6F54212}
+  /* resolution + scores */
+  .banner{border-radius:20px;padding:22px 18px;text-align:center;margin-top:14px;border:1px solid}
+  .banner.caught{background:#3FBA9A14;border-color:#3FBA9A66}
+  .banner.escaped{background:#FF6B5712;border-color:#FF6B5766}
+  .banner h2{font-size:24px;font-weight:900}
+  .guess{display:block;width:100%;background:var(--panel);border:1.5px solid var(--line);border-radius:14px;
+    padding:15px;color:#fff;font-family:inherit;font-weight:900;font-size:17px;cursor:pointer;margin-bottom:10px}
+  .guess.right{border-color:var(--teal);background:#3FBA9A1A}
+  .guess.wrong{border-color:var(--red);background:#FF6B5714}
+  .scorerow{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:12px 15px;margin-bottom:9px}
+  .scorerow .rk{font-size:19px;width:30px;text-align:center}
+  .scorerow b{font-size:16px}
+  .scorerow .pts{margin-inline-start:auto;font-weight:900;color:var(--gold);font-size:17px}
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.82);z-index:30;display:none;place-items:center;padding:22px}
+  .overlay.on{display:grid}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px 20px;width:100%;text-align:center}
+  .modal h2{font-size:21px;font-weight:900;margin-bottom:8px}
+  .modal p{color:var(--dim);font-weight:700;font-size:14.5px;line-height:1.85}
+  .step{display:flex;gap:12px;align-items:flex-start;background:#FFFFFF08;border:1px solid var(--line);
+    border-radius:15px;padding:13px 14px;margin-top:10px;text-align:right}
+  .step .n{flex:0 0 auto;font-size:12px;font-weight:900;color:var(--gold);border:1px solid #FFD97A55;
+    padding:4px 10px;border-radius:999px;margin-top:2px}
+  .step p{font-size:14.5px;font-weight:700;line-height:1.85;color:#EDEDF4}
+  .adslot{position:absolute;left:0;right:0;bottom:0;height:calc(40px + var(--sab));z-index:5;
+    display:flex;align-items:flex-start;justify-content:center;padding-top:7px;
+    background:#0A0A13;border-top:1px solid var(--line);color:#55556A;font-size:10.5px;font-weight:900;letter-spacing:2.5px}
+
+  .sic{width:1.18em;height:1.18em;vertical-align:-.22em;fill:currentColor;flex:none}
+  .btn .sic,.exitbtn .sic,.backbtn .sic{vertical-align:-.2em}
+  .feat .ic .sic{width:24px;height:24px;vertical-align:middle}
+  .holdzone .ringin .sic,.holdcard .ringin .sic{width:34px;height:34px;vertical-align:middle}
+  .bar .sic{vertical-align:-.2em}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a class="backbtn" href="lobby-store.html"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M20 11.25C20.4142 11.25 20.75 11.5858 20.75 12C20.75 12.4142 20.4142 12.75 20 12.75H10.75L10.75 18C10.75 18.3034 10.5673 18.5768 10.287 18.6929C10.0068 18.809 9.68417 18.7449 9.46967 18.5304L3.46967 12.5304C3.32902 12.3897 3.25 12.1989 3.25 12C3.25 11.8011 3.32902 11.6103 3.46967 11.4697L9.46967 5.46969C9.68417 5.25519 10.0068 5.19103 10.287 5.30711C10.5673 5.4232 10.75 5.69668 10.75 6.00002L10.75 11.25H20Z"/></svg></a>
+    <h1>PAINT FOLLOWERS<small>INSIDE THE GAME</small></h1>
+    <span class="logo">PLAY<i>M3ANA</i></span>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- ══ HOME ══ -->
+    <section class="screen on" id="scr-home">
+      <img class="poster" src="data:image/webp;base64,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" alt="Paint Followers poster">
+      <div style="text-align:center"><span class="badge">🇲🇦 بالدارجة</span></div>
+      <h2 class="gtitle"><span dir="rtl">ارسم <span class="t2">كلمة</span></span></h2>
+      <p class="tagline" dir="rtl">ارسم كلمة 🕵️ بالدارجة 100% • كل واحد يرسم والمحتال يخمّم ✦</p>
+      <div class="feats">
+        <div class="feat"><span class="ic"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.00098 13.001C12.867 13.001 16.001 14.7918 16.001 17.001C16.001 19.2101 12.867 21.001 9.00098 21.001C5.13498 21.001 2.00098 19.2101 2.00098 17.001C2.00098 14.7918 5.13498 13.001 9.00098 13.001Z"/><path d="M16.4766 14.001C18.9615 14.0011 20.9996 15.3434 21 17C21 18.6569 18.9638 20 16.4785 20C17.2107 19.1997 17.7148 18.1955 17.7148 17.002C17.7148 15.8071 17.2099 14.8017 16.4766 14.001Z"/><path d="M9.00098 2C11.2101 2 13.001 3.79086 13.001 6C13.001 8.20914 11.2101 10 9.00098 10C6.79184 10 5.00098 8.20914 5.00098 6C5.00098 3.79086 6.79184 2 9.00098 2Z"/><path d="M15 3.00098C16.6567 3.00118 18 4.34425 18 6.00098C17.9999 7.6576 16.6566 9.00078 15 9.00098C14.6388 9.00098 14.2924 8.93633 13.9717 8.81934C14.4445 7.98748 14.7148 7.02523 14.7148 6C14.7148 4.97534 14.4449 4.0132 13.9727 3.18164C14.2931 3.06489 14.6392 3.00098 15 3.00098Z"/></g></svg></span><span class="lb" dir="rtl">3–15 لاعبين</span></div>
+        <div class="feat"><span class="ic"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12.0516 2H11.9484C10.2682 1.99999 8.93732 1.99997 7.89575 2.14245C6.82382 2.28908 5.95621 2.59803 5.27199 3.29418C4.58778 3.99033 4.28413 4.87308 4.14001 5.9637C3.99997 7.02343 3.99999 8.37751 4 10.087V13.9129C3.99999 15.6225 3.99997 16.9766 4.14001 18.0363C4.28413 19.1269 4.58778 20.0097 5.27199 20.7058C5.95621 21.402 6.82382 21.7109 7.89575 21.8575C8.93731 22 10.2682 22 11.9484 22H12.0516C13.7318 22 15.0627 22 16.1043 21.8575C17.1762 21.7109 18.0438 21.402 18.728 20.7058C19.4122 20.0097 19.7159 19.1269 19.86 18.0363C20 16.9766 20 15.6225 20 13.913V10.0871C20 8.37754 20 7.02343 19.86 5.9637C19.7159 4.87308 19.4122 3.99033 18.728 3.29418C18.0438 2.59803 17.1762 2.28908 16.1043 2.14245C15.0627 1.99997 13.7318 1.99999 12.0516 2ZM8.57143 18.5116C8.57143 18.1263 8.87843 17.814 9.25714 17.814H14.7429C15.1216 17.814 15.4286 18.1263 15.4286 18.5116C15.4286 18.8969 15.1216 19.2093 14.7429 19.2093H9.25714C8.87843 19.2093 8.57143 18.8969 8.57143 18.5116Z" clip-rule="evenodd"/></svg></span><span class="lb" dir="rtl">تيليفون واحد</span></div>
+        <div class="feat"><span class="ic"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M10 6V18C10 19.4001 10 20.1002 9.72752 20.635C9.48783 21.1054 9.10538 21.4878 8.63498 21.7275C8.1002 22 7.40013 22 6 22C4.59987 22 3.8998 22 3.36502 21.7275C2.89462 21.4878 2.51217 21.1054 2.27248 20.635C2 20.1002 2 19.4001 2 18V6C2 4.59987 2 3.8998 2.27248 3.36502C2.51217 2.89462 2.89462 2.51217 3.36502 2.27248C3.8998 2 4.59987 2 6 2C7.40013 2 8.1002 2 8.63498 2.27248C9.10538 2.51217 9.48783 2.89462 9.72752 3.36502C10 3.8998 10 4.59987 10 6ZM7 19.75C7.41421 19.75 7.75 19.4142 7.75 19C7.75 18.5858 7.41421 18.25 7 18.25H5C4.58579 18.25 4.25 18.5858 4.25 19C4.25 19.4142 4.58579 19.75 5 19.75H7Z" clip-rule="evenodd"/><path d="M19.0599 10.6144L13.2219 16.704C12.492 17.4653 12.1271 17.8459 11.8135 17.7199C11.5 17.5939 11.5 17.0666 11.5 16.0119L11.5 7.7738C11.5012 7.11381 11.7633 6.48107 12.2291 6.01357L13.2839 4.95882L13.7141 4.62987C14.7183 3.86212 15.2204 3.47825 15.7673 3.3603C16.2175 3.26322 16.6857 3.29236 17.1204 3.4445C17.6484 3.62934 18.099 4.0725 19.0003 4.95883C19.9999 5.95839 20.4997 6.45818 20.685 7.03056C20.843 7.51871 20.847 8.04366 20.6964 8.53417C20.5199 9.10931 20.0332 9.61101 19.0599 10.6144Z"/><path d="M12.7897 22H17.8994C19.2995 22 19.9996 22 20.5344 21.7275C21.0048 21.4878 21.3872 21.1054 21.6269 20.635C21.8994 20.1002 21.8994 19.4001 21.8994 18C21.8994 16.5999 21.8994 15.8998 21.6269 15.365C21.3872 14.8946 21.0048 14.5122 20.5344 14.2725C19.9996 14 19.2995 14 17.8994 14H17.6797L11.878 19.798C11.636 20.0399 11.5 20.3391 11.5 20.6813C11.5 21.3936 12.0774 22 12.7897 22Z"/></g></svg></span><span class="lb" dir="rtl">رسم و تخمين</span></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="show('setup')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.03429 5.96305L6.49114 8.49856C6.02369 8.9646 5.59488 9.3921 5.25624 9.77856C5.03877 10.0267 4.82145 10.2984 4.63737 10.5985L4.61259 10.5738C4.56555 10.5269 4.54201 10.5034 4.51839 10.4805C4.07636 10.0516 3.55641 9.71062 2.98636 9.47575C2.9559 9.4632 2.92498 9.45095 2.86314 9.42645L2.48449 9.27641C1.97153 9.07315 1.83482 8.41279 2.22514 8.02365C3.34535 6.90684 4.69032 5.56594 5.33941 5.29662C5.91185 5.05911 6.53023 4.98008 7.12664 5.06822C7.67311 5.14898 8.19006 5.42968 9.03429 5.96305Z"/><path d="M13.3767 19.3132C13.5816 19.5212 13.7177 19.6681 13.8408 19.8251C14.0031 20.0322 14.1483 20.2523 14.2748 20.4829C14.4172 20.7426 14.5278 21.02 14.749 21.5748C14.929 22.0265 15.5272 22.1459 15.8746 21.7995L15.9586 21.7157C17.0788 20.5988 18.4237 19.2579 18.6938 18.6108C18.9321 18.04 19.0113 17.4235 18.9229 16.8289C18.8419 16.2841 18.5605 15.7688 18.0256 14.9273L15.474 17.4713C14.9959 17.9479 14.5576 18.385 14.1612 18.7273C13.9236 18.9325 13.6637 19.1376 13.3767 19.3132Z"/><path fill-rule="evenodd" d="M14.4467 16.3769L20.2935 10.5476C21.1356 9.70811 21.5566 9.28836 21.7783 8.75458C22.0001 8.22081 22.0001 7.62719 22.0001 6.43996V5.87277C22.0001 4.04713 22.0001 3.13431 21.4312 2.56715C20.8624 2 19.9468 2 18.1157 2H17.5468C16.356 2 15.7606 2 15.2252 2.2211C14.6898 2.4422 14.2688 2.86195 13.4268 3.70146L7.57991 9.53078C6.59599 10.5117 5.98591 11.12 5.74966 11.7075C5.67502 11.8931 5.6377 12.0767 5.6377 12.2692C5.6377 13.0713 6.2851 13.7168 7.57991 15.0077L7.75393 15.1812L9.79245 13.1123C10.0832 12.8172 10.558 12.8137 10.8531 13.1044C11.1481 13.3951 11.1516 13.87 10.8609 14.1651L8.8162 16.2403L8.95326 16.3769C10.2481 17.6679 10.8955 18.3133 11.7 18.3133C11.8777 18.3133 12.0478 18.2818 12.2189 18.2188C12.8222 17.9966 13.438 17.3826 14.4467 16.3769ZM17.1935 9.5312C16.435 10.2874 15.2053 10.2874 14.4468 9.5312C13.6883 8.775 13.6883 7.54895 14.4468 6.79274C15.2053 6.03653 16.435 6.03653 17.1935 6.79274C17.952 7.54895 17.952 8.775 17.1935 9.5312Z" clip-rule="evenodd"/></g></svg> يلا نبداو</button>
+      <button class="btn ghost" onclick="openModal('howto')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM12 7.75C11.3787 7.75 10.875 8.25368 10.875 8.875C10.875 9.28921 10.5392 9.625 10.125 9.625C9.71079 9.625 9.375 9.28921 9.375 8.875C9.375 7.42525 10.5503 6.25 12 6.25C13.4497 6.25 14.625 7.42525 14.625 8.875C14.625 9.58584 14.3415 10.232 13.883 10.704C13.7907 10.7989 13.7027 10.8869 13.6187 10.9708C13.4029 11.1864 13.2138 11.3753 13.0479 11.5885C12.8289 11.8699 12.75 12.0768 12.75 12.25V13C12.75 13.4142 12.4142 13.75 12 13.75C11.5858 13.75 11.25 13.4142 11.25 13V12.25C11.25 11.5948 11.555 11.0644 11.8642 10.6672C12.0929 10.3733 12.3804 10.0863 12.6138 9.85346C12.6842 9.78321 12.7496 9.71789 12.807 9.65877C13.0046 9.45543 13.125 9.18004 13.125 8.875C13.125 8.25368 12.6213 7.75 12 7.75ZM12 17C12.5523 17 13 16.5523 13 16C13 15.4477 12.5523 15 12 15C11.4477 15 11 15.4477 11 16C11 16.5523 11.4477 17 12 17Z" clip-rule="evenodd"/></svg> كيفاش نلعبو؟</button>
+      <p class="tagline" style="font-size:12.5px" dir="rtl">لعبة رفيق المكتب — اكتشف المحتال قبل ما يفوتك</p>
+    </section>
+
+    <!-- ══ SETUP ══ -->
+    <section class="screen" id="scr-setup">
+      <div class="bar"><b dir="rtl">إعداد اللعبة</b><span class="pill">SET UP</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <h2 class="sec" dir="rtl">👥 اللاعبين</h2>
+      <div id="playerList"></div>
+      <button class="addbtn" id="addBtn" onclick="addPlayer()">+ زيد لاعب</button>
+      <div class="warn" id="minWarn" style="display:none" dir="rtl"></div>
+      <h2 class="sec" dir="rtl">🎨 الفئة</h2>
+      <div class="cats" id="catGrid"></div>
+      <div class="spacer"></div>
+      <button class="btn" id="startBtn" onclick="startGame()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.03429 5.96305L6.49114 8.49856C6.02369 8.9646 5.59488 9.3921 5.25624 9.77856C5.03877 10.0267 4.82145 10.2984 4.63737 10.5985L4.61259 10.5738C4.56555 10.5269 4.54201 10.5034 4.51839 10.4805C4.07636 10.0516 3.55641 9.71062 2.98636 9.47575C2.9559 9.4632 2.92498 9.45095 2.86314 9.42645L2.48449 9.27641C1.97153 9.07315 1.83482 8.41279 2.22514 8.02365C3.34535 6.90684 4.69032 5.56594 5.33941 5.29662C5.91185 5.05911 6.53023 4.98008 7.12664 5.06822C7.67311 5.14898 8.19006 5.42968 9.03429 5.96305Z"/><path d="M13.3767 19.3132C13.5816 19.5212 13.7177 19.6681 13.8408 19.8251C14.0031 20.0322 14.1483 20.2523 14.2748 20.4829C14.4172 20.7426 14.5278 21.02 14.749 21.5748C14.929 22.0265 15.5272 22.1459 15.8746 21.7995L15.9586 21.7157C17.0788 20.5988 18.4237 19.2579 18.6938 18.6108C18.9321 18.04 19.0113 17.4235 18.9229 16.8289C18.8419 16.2841 18.5605 15.7688 18.0256 14.9273L15.474 17.4713C14.9959 17.9479 14.5576 18.385 14.1612 18.7273C13.9236 18.9325 13.6637 19.1376 13.3767 19.3132Z"/><path fill-rule="evenodd" d="M14.4467 16.3769L20.2935 10.5476C21.1356 9.70811 21.5566 9.28836 21.7783 8.75458C22.0001 8.22081 22.0001 7.62719 22.0001 6.43996V5.87277C22.0001 4.04713 22.0001 3.13431 21.4312 2.56715C20.8624 2 19.9468 2 18.1157 2H17.5468C16.356 2 15.7606 2 15.2252 2.2211C14.6898 2.4422 14.2688 2.86195 13.4268 3.70146L7.57991 9.53078C6.59599 10.5117 5.98591 11.12 5.74966 11.7075C5.67502 11.8931 5.6377 12.0767 5.6377 12.2692C5.6377 13.0713 6.2851 13.7168 7.57991 15.0077L7.75393 15.1812L9.79245 13.1123C10.0832 12.8172 10.558 12.8137 10.8531 13.1044C11.1481 13.3951 11.1516 13.87 10.8609 14.1651L8.8162 16.2403L8.95326 16.3769C10.2481 17.6679 10.8955 18.3133 11.7 18.3133C11.8777 18.3133 12.0478 18.2818 12.2189 18.2188C12.8222 17.9966 13.438 17.3826 14.4467 16.3769ZM17.1935 9.5312C16.435 10.2874 15.2053 10.2874 14.4468 9.5312C13.6883 8.775 13.6883 7.54895 14.4468 6.79274C15.2053 6.03653 16.435 6.03653 17.1935 6.79274C17.952 7.54895 17.952 8.775 17.1935 9.5312Z" clip-rule="evenodd"/></g></svg> يلا نبداو</button>
+      <button class="btn ghost" onclick="show('home')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> رجع للبيت</button>
+    </section>
+
+    <!-- ══ ROLE REVEAL ══ -->
+    <section class="screen" id="scr-reveal">
+      <div class="bar"><b dir="rtl">اللاعب <span id="revNum">1</span> من <span id="revTotal">4</span></b><span class="pill">ROLE</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center">
+        <p style="font-size:19px;font-weight:900" dir="rtl">عطيو التيليفون لـ</p>
+        <div class="nameplaque" id="revName">لاعب 1</div>
+      </div>
+      <div class="holdzone" id="holdZone">
+        <div class="ring" id="holdRing"><div class="ringin"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M10 6V18C10 19.4001 10 20.1002 9.72752 20.635C9.48783 21.1054 9.10538 21.4878 8.63498 21.7275C8.1002 22 7.40013 22 6 22C4.59987 22 3.8998 22 3.36502 21.7275C2.89462 21.4878 2.51217 21.1054 2.27248 20.635C2 20.1002 2 19.4001 2 18V6C2 4.59987 2 3.8998 2.27248 3.36502C2.51217 2.89462 2.89462 2.51217 3.36502 2.27248C3.8998 2 4.59987 2 6 2C7.40013 2 8.1002 2 8.63498 2.27248C9.10538 2.51217 9.48783 2.89462 9.72752 3.36502C10 3.8998 10 4.59987 10 6ZM7 19.75C7.41421 19.75 7.75 19.4142 7.75 19C7.75 18.5858 7.41421 18.25 7 18.25H5C4.58579 18.25 4.25 18.5858 4.25 19C4.25 19.4142 4.58579 19.75 5 19.75H7Z" clip-rule="evenodd"/><path d="M19.0599 10.6144L13.2219 16.704C12.492 17.4653 12.1271 17.8459 11.8135 17.7199C11.5 17.5939 11.5 17.0666 11.5 16.0119L11.5 7.7738C11.5012 7.11381 11.7633 6.48107 12.2291 6.01357L13.2839 4.95882L13.7141 4.62987C14.7183 3.86212 15.2204 3.47825 15.7673 3.3603C16.2175 3.26322 16.6857 3.29236 17.1204 3.4445C17.6484 3.62934 18.099 4.0725 19.0003 4.95883C19.9999 5.95839 20.4997 6.45818 20.685 7.03056C20.843 7.51871 20.847 8.04366 20.6964 8.53417C20.5199 9.10931 20.0332 9.61101 19.0599 10.6144Z"/><path d="M12.7897 22H17.8994C19.2995 22 19.9996 22 20.5344 21.7275C21.0048 21.4878 21.3872 21.1054 21.6269 20.635C21.8994 20.1002 21.8994 19.4001 21.8994 18C21.8994 16.5999 21.8994 15.8998 21.6269 15.365C21.3872 14.8946 21.0048 14.5122 20.5344 14.2725C19.9996 14 19.2995 14 17.8994 14H17.6797L11.878 19.798C11.636 20.0399 11.5 20.3391 11.5 20.6813C11.5 21.3936 12.0774 22 12.7897 22Z"/></g></svg></div></div>
+        <p class="hint" dir="rtl">اضغط مطولاً لكشف دورك</p>
+      </div>
+      <div class="card cut" id="revSecret" style="display:none;text-align:center"></div>
+      <div class="spacer"></div>
+      <p class="center hintline" dir="rtl">خبي دورك وعطي التيليفون للي بعدك</p>
+      <button class="btn" id="revNext" onclick="nextReveal()" disabled><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM16.0303 8.96967C16.3232 9.26256 16.3232 9.73744 16.0303 10.0303L11.0303 15.0303C10.7374 15.3232 10.2626 15.3232 9.96967 15.0303L7.96967 13.0303C7.67678 12.7374 7.67678 12.2626 7.96967 11.9697C8.26256 11.6768 8.73744 11.6768 9.03033 11.9697L10.5 13.4393L12.7348 11.2045L14.9697 8.96967C15.2626 8.67678 15.7374 8.67678 16.0303 8.96967Z" clip-rule="evenodd"/></svg> التالي</button>
+    </section>
+
+    <!-- ══ DRAWING ══ -->
+    <section class="screen" id="scr-draw">
+      <div class="bar"><b dir="rtl"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M10 6V18C10 19.4001 10 20.1002 9.72752 20.635C9.48783 21.1054 9.10538 21.4878 8.63498 21.7275C8.1002 22 7.40013 22 6 22C4.59987 22 3.8998 22 3.36502 21.7275C2.89462 21.4878 2.51217 21.1054 2.27248 20.635C2 20.1002 2 19.4001 2 18V6C2 4.59987 2 3.8998 2.27248 3.36502C2.51217 2.89462 2.89462 2.51217 3.36502 2.27248C3.8998 2 4.59987 2 6 2C7.40013 2 8.1002 2 8.63498 2.27248C9.10538 2.51217 9.48783 2.89462 9.72752 3.36502C10 3.8998 10 4.59987 10 6ZM7 19.75C7.41421 19.75 7.75 19.4142 7.75 19C7.75 18.5858 7.41421 18.25 7 18.25H5C4.58579 18.25 4.25 18.5858 4.25 19C4.25 19.4142 4.58579 19.75 5 19.75H7Z" clip-rule="evenodd"/><path d="M19.0599 10.6144L13.2219 16.704C12.492 17.4653 12.1271 17.8459 11.8135 17.7199C11.5 17.5939 11.5 17.0666 11.5 16.0119L11.5 7.7738C11.5012 7.11381 11.7633 6.48107 12.2291 6.01357L13.2839 4.95882L13.7141 4.62987C14.7183 3.86212 15.2204 3.47825 15.7673 3.3603C16.2175 3.26322 16.6857 3.29236 17.1204 3.4445C17.6484 3.62934 18.099 4.0725 19.0003 4.95883C19.9999 5.95839 20.4997 6.45818 20.685 7.03056C20.843 7.51871 20.847 8.04366 20.6964 8.53417C20.5199 9.10931 20.0332 9.61101 19.0599 10.6144Z"/><path d="M12.7897 22H17.8994C19.2995 22 19.9996 22 20.5344 21.7275C21.0048 21.4878 21.3872 21.1054 21.6269 20.635C21.8994 20.1002 21.8994 19.4001 21.8994 18C21.8994 16.5999 21.8994 15.8998 21.6269 15.365C21.3872 14.8946 21.0048 14.5122 20.5344 14.2725C19.9996 14 19.2995 14 17.8994 14H17.6797L11.878 19.798C11.636 20.0399 11.5 20.3391 11.5 20.6813C11.5 21.3936 12.0774 22 12.7897 22Z"/></g></svg> الرسم</b><span class="pill">DRAWING</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center">
+        <div class="nameplaque" style="font-size:25px" id="drawName">لاعب 1</div>
+        <p style="font-weight:900;font-size:17px;margin-top:2px" dir="rtl">دورك باش ترسم!</p>
+        <p class="hintline" id="drawInfo" dir="rtl"></p>
+      </div>
+      <div class="canvaswrap"><canvas id="cv" width="700" height="760"></canvas></div>
+      <div class="palette" id="palette"></div>
+      <div class="brushes" id="brushes"></div>
+      <div id="drawDone" style="display:none" class="card" >
+        <p class="lead center" dir="rtl">الكل رسم — تقدرو تكملو الرسم أو تصوتو</p>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="drawNext" onclick="nextDrawer()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM16.0303 8.96967C16.3232 9.26256 16.3232 9.73744 16.0303 10.0303L11.0303 15.0303C10.7374 15.3232 10.2626 15.3232 9.96967 15.0303L7.96967 13.0303C7.67678 12.7374 7.67678 12.2626 7.96967 11.9697C8.26256 11.6768 8.73744 11.6768 9.03033 11.9697L10.5 13.4393L12.7348 11.2045L14.9697 8.96967C15.2626 8.67678 15.7374 8.67678 16.0303 8.96967Z" clip-rule="evenodd"/></svg> كملت — التالي</button>
+      <button class="btn teal" id="toVote" style="display:none" onclick="startVoting()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.5 2C8.67157 2 8 2.67157 8 3.5V4.5C8 5.32843 8.67157 6 9.5 6H14.5C15.3284 6 16 5.32843 16 4.5V3.5C16 2.67157 15.3284 2 14.5 2H9.5Z"/><path fill-rule="evenodd" d="M6.5 4.03662C5.24209 4.10719 4.44798 4.30764 3.87868 4.87694C3 5.75562 3 7.16983 3 9.99826V15.9983C3 18.8267 3 20.2409 3.87868 21.1196C4.75736 21.9983 6.17157 21.9983 9 21.9983H15C17.8284 21.9983 19.2426 21.9983 20.1213 21.1196C21 20.2409 21 18.8267 21 15.9983V9.99826C21 7.16983 21 5.75562 20.1213 4.87694C19.552 4.30764 18.7579 4.10719 17.5 4.03662V4.5C17.5 6.15685 16.1569 7.5 14.5 7.5H9.5C7.84315 7.5 6.5 6.15685 6.5 4.5V4.03662ZM15.5117 12.5483C15.8146 12.2657 15.8309 11.7911 15.5483 11.4883C15.2657 11.1855 14.7911 11.1691 14.4883 11.4517L10.7143 14.9741L9.51174 13.8517C9.20893 13.5691 8.73434 13.5855 8.45171 13.8883C8.16909 14.1911 8.18545 14.6657 8.48826 14.9483L10.2025 16.5483C10.4907 16.8172 10.9379 16.8172 11.226 16.5483L15.5117 12.5483Z" clip-rule="evenodd"/></g></svg> يلا نصوتو!</button>
+      <button class="btn ghost" onclick="startVoting()">تخطى للتصويت <svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M20 11.25C20.4142 11.25 20.75 11.5858 20.75 12C20.75 12.4142 20.4142 12.75 20 12.75H10.75L10.75 18C10.75 18.3034 10.5673 18.5768 10.287 18.6929C10.0068 18.809 9.68417 18.7449 9.46967 18.5304L3.46967 12.5304C3.32902 12.3897 3.25 12.1989 3.25 12C3.25 11.8011 3.32902 11.6103 3.46967 11.4697L9.46967 5.46969C9.68417 5.25519 10.0068 5.19103 10.287 5.30711C10.5673 5.4232 10.75 5.69668 10.75 6.00002L10.75 11.25H20Z"/></svg></button>
+    </section>
+
+    <!-- ══ VOTING GATE ══ -->
+    <section class="screen" id="scr-votegate">
+      <div class="bar"><b dir="rtl">الجولة <span id="vgRound">1</span> · التصويت</b><span class="pill">VOTE</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center" style="margin-top:30px">
+        <div class="big-emoji">📱</div>
+        <p style="font-size:19px;font-weight:900;margin-top:12px" dir="rtl">مرر الجهاز لـ</p>
+        <div class="nameplaque" id="vgName">لاعب 1</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="vgBtn" onclick="openBallot()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M21.4086 9.35258C23.5305 10.5065 23.5305 13.4935 21.4086 14.6474L8.59662 21.6145C6.53435 22.736 4 21.2763 4 18.9671L4 5.0329C4 2.72368 6.53435 1.26402 8.59661 2.38548L21.4086 9.35258Z"/></svg> التالي</button>
+    </section>
+
+    <!-- ══ VOTING BALLOT ══ -->
+    <section class="screen" id="scr-vote">
+      <div class="bar"><b dir="rtl">صوت <span id="vtName">لاعب 1</span></b><span class="pill">VOTE</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center">
+        <h2 style="font-size:23px;font-weight:900" dir="rtl">من المحتال؟ 🕵️</h2>
+        <p class="tagline" dir="rtl">🤔 من عندك برأيك هو اللي ما يعرفش الكلمة؟</p>
+      </div>
+      <div id="candList" style="margin-top:16px"></div>
+      <div class="spacer"></div>
+    </section>
+
+    <!-- ══ VOTE DONE ══ -->
+    <section class="screen" id="scr-votedone">
+      <div class="bar"><b dir="rtl">التصويت</b><span class="pill">VOTE</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center" style="margin-top:30px">
+        <div class="big-emoji">🗳️</div>
+        <h2 style="font-size:24px;font-weight:900;margin-top:10px" dir="rtl">الكل صوّت — يلا نشوفو المحتال!</h2>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="resolveRound()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.75 12C9.75 10.7574 10.7574 9.75 12 9.75C13.2426 9.75 14.25 10.7574 14.25 12C14.25 13.2426 13.2426 14.25 12 14.25C10.7574 14.25 9.75 13.2426 9.75 12Z"/><path fill-rule="evenodd" d="M2 12C2 13.6394 2.42496 14.1915 3.27489 15.2957C4.97196 17.5004 7.81811 20 12 20C16.1819 20 19.028 17.5004 20.7251 15.2957C21.575 14.1915 22 13.6394 22 12C22 10.3606 21.575 9.80853 20.7251 8.70433C19.028 6.49956 16.1819 4 12 4C7.81811 4 4.97196 6.49956 3.27489 8.70433C2.42496 9.80853 2 10.3606 2 12ZM12 8.25C9.92893 8.25 8.25 9.92893 8.25 12C8.25 14.0711 9.92893 15.75 12 15.75C14.0711 15.75 15.75 14.0711 15.75 12C15.75 9.92893 14.0711 8.25 12 8.25Z" clip-rule="evenodd"/></g></svg> كشف النتيجة</button>
+    </section>
+
+    <!-- ══ RESOLUTION ══ -->
+    <section class="screen" id="scr-resolution">
+      <div class="bar"><b dir="rtl">النتيجة</b><span class="pill">RESOLUTION</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center">
+        <h2 style="font-size:23px;font-weight:900" dir="rtl">مين هو المحتال؟</h2>
+      </div>
+      <div id="resReveal">
+        <button class="btn" style="margin-top:22px" onclick="revealImposter()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.75 12C9.75 10.7574 10.7574 9.75 12 9.75C13.2426 9.75 14.25 10.7574 14.25 12C14.25 13.2426 13.2426 14.25 12 14.25C10.7574 14.25 9.75 13.2426 9.75 12Z"/><path fill-rule="evenodd" d="M2 12C2 13.6394 2.42496 14.1915 3.27489 15.2957C4.97196 17.5004 7.81811 20 12 20C16.1819 20 19.028 17.5004 20.7251 15.2957C21.575 14.1915 22 13.6394 22 12C22 10.3606 21.575 9.80853 20.7251 8.70433C19.028 6.49956 16.1819 4 12 4C7.81811 4 4.97196 6.49956 3.27489 8.70433C2.42496 9.80853 2 10.3606 2 12ZM12 8.25C9.92893 8.25 8.25 9.92893 8.25 12C8.25 14.0711 9.92893 15.75 12 15.75C14.0711 15.75 15.75 14.0711 15.75 12C15.75 9.92893 14.0711 8.25 12 8.25Z" clip-rule="evenodd"/></g></svg> كشف المحتال!</button>
+      </div>
+      <div id="resBody" style="display:none">
+        <div class="banner" id="resBanner"><h2 id="resTitle" dir="rtl"></h2>
+          <p class="lead" dir="rtl" style="margin-top:6px">كان المحتال <b id="resImpName"></b></p></div>
+        <div class="card cut" id="guessCard">
+          <p class="lead center" dir="rtl">🎯 يا <b id="guessName"></b>، خمن الكلمة!</p>
+          <p class="sm center" dir="rtl">اختر الكلمة الصحيحة من القائمة — نقطة إضافية إذا صح!</p>
+          <div id="guessList" style="margin-top:14px"></div>
+        </div>
+        <div class="card" id="guessResult" style="display:none">
+          <p class="lead center" id="guessResultTxt" dir="rtl"></p>
+        </div>
+        <button class="btn" onclick="showScores()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M21.9999 8.16234L21.9999 8.23487C21.9999 9.09561 21.9999 9.52598 21.7927 9.8781C21.5855 10.2302 21.2093 10.4392 20.4569 10.8572L19.6636 11.298C20.2102 9.44984 20.3926 7.46414 20.4601 5.76597C20.4629 5.69316 20.4662 5.61945 20.4695 5.54497L20.4718 5.49279C21.1231 5.71896 21.4887 5.88758 21.7168 6.20408C22 6.59692 22 7.11873 21.9999 8.16234Z"/><path d="M2 8.16234L2 8.23487C2.00003 9.09561 2.00004 9.52598 2.20723 9.8781C2.41442 10.2302 2.79063 10.4392 3.54305 10.8572L4.33681 11.2982C3.79007 9.45001 3.60767 7.46422 3.54025 5.76597C3.53736 5.69316 3.5341 5.61945 3.53081 5.54497L3.5285 5.49266C2.87701 5.7189 2.51126 5.88752 2.2831 6.20408C1.99996 6.59692 1.99997 7.11873 2 8.16234Z"/><path fill-rule="evenodd" d="M16.3771 2.34674C15.2531 2.15709 13.7837 2 12.0002 2C10.2166 2 8.74724 2.15709 7.62318 2.34674C6.48445 2.53887 5.91508 2.63494 5.43937 3.22083C4.96365 3.80673 4.98879 4.43998 5.03907 5.70647C5.21169 10.0544 6.14996 15.4851 11.25 15.9657V19.5H9.8198C9.34312 19.5 8.93271 19.8365 8.83922 20.3039L8.65 21.25H6C5.58579 21.25 5.25 21.5858 5.25 22C5.25 22.4142 5.58579 22.75 6 22.75H18C18.4142 22.75 18.75 22.4142 18.75 22C18.75 21.5858 18.4142 21.25 18 21.25H15.35L15.1608 20.3039C15.0673 19.8365 14.6569 19.5 14.1802 19.5H12.75V15.9657C17.8503 15.4853 18.7886 10.0545 18.9612 5.70647C19.0115 4.43998 19.0367 3.80673 18.5609 3.22083C18.0852 2.63494 17.5159 2.53887 16.3771 2.34674Z" clip-rule="evenodd"/></g></svg> شوف النقاط</button>
+      </div>
+      <div class="spacer"></div>
+    </section>
+
+    <!-- ══ SCOREBOARD ══ -->
+    <section class="screen" id="scr-scores">
+      <div class="bar"><b dir="rtl"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M10.564 5.7832C11.4592 5.29518 12.5409 5.29509 13.436 5.7832L18.23 8.39746C19.194 8.9231 19.7944 9.93327 19.7944 11.0312V15.9688C19.7944 17.0667 19.194 18.0769 18.23 18.6025L13.436 21.2168C12.5409 21.7049 11.4592 21.7048 10.564 21.2168L5.76904 18.6025C4.80524 18.0769 4.20557 17.0666 4.20557 15.9688V11.0312C4.20557 9.93339 4.80525 8.92315 5.76904 8.39746L10.564 5.7832ZM12.0005 10.5C11.7164 10.5 11.526 10.8408 11.146 11.5225L11.0474 11.6992C10.9395 11.8927 10.8854 11.9898 10.8013 12.0537C10.7171 12.1174 10.6122 12.1411 10.4028 12.1885L10.2114 12.2314C9.47377 12.3983 9.10485 12.4824 9.01709 12.7646C8.92962 13.0468 9.1813 13.3408 9.68408 13.9287L9.81396 14.0811C9.95692 14.2482 10.0289 14.3321 10.061 14.4355C10.0931 14.5388 10.0816 14.6503 10.0601 14.873L10.0405 15.0762C9.96448 15.861 9.92697 16.2533 10.1567 16.4277C10.3865 16.6022 10.7316 16.4431 11.4224 16.125L11.6011 16.043C11.7974 15.9526 11.8964 15.9072 12.0005 15.9072C12.1044 15.9074 12.2029 15.9527 12.3989 16.043L12.5776 16.125C13.2684 16.4431 13.6135 16.6022 13.8433 16.4277C14.073 16.2533 14.0355 15.861 13.9595 15.0762L13.9399 14.873C13.9184 14.6504 13.9069 14.5388 13.939 14.4355C13.9711 14.3321 14.0431 14.2482 14.186 14.0811L14.3159 13.9287C14.8187 13.3408 15.0704 13.0468 14.9829 12.7646C14.8951 12.4824 14.5262 12.3983 13.7886 12.2314L13.5972 12.1885C13.3878 12.1411 13.2829 12.1174 13.1987 12.0537C13.1146 11.9898 13.0605 11.8927 12.9526 11.6992L12.854 11.5225C12.4742 10.8412 12.2843 10.5004 12.0005 10.5Z" clip-rule="evenodd"/><path d="M13.0005 2C14.8858 2 15.8288 2.0002 16.4146 2.58594C17.0001 3.17174 17.0005 4.11464 17.0005 6V6.01758L14.1538 4.46582C12.811 3.73379 11.188 3.73366 9.84521 4.46582L7.00049 6.01758V6C7.00049 4.11464 6.99991 3.17174 7.58545 2.58594C8.17124 2.00015 9.11487 2 11.0005 2H13.0005Z"/></g></svg> النقاط</b><span class="pill">SCORES</span>
+        <button class="exitbtn" onclick="openModal('quit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <p class="tagline" dir="rtl">الجولة <span id="scRound">1</span> — الترتيب</p>
+      <div id="scoreList" style="margin-top:8px"></div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="nextRound()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M18.2577 3.50828C18.538 3.62437 18.7207 3.89785 18.7207 4.20119V8.44383C18.7207 8.85805 18.3849 9.19383 17.9707 9.19383H13.728C13.4247 9.19383 13.1512 9.0111 13.0351 8.73085C12.9191 8.45059 12.9832 8.128 13.1977 7.9135L14.8007 6.3105C12.1674 5.20912 9.01606 5.7309 6.87348 7.87348C4.04217 10.7048 4.04217 15.2952 6.87348 18.1265C9.70478 20.9578 14.2952 20.9578 17.1265 18.1265C18.7727 16.4803 19.4622 14.2401 19.1935 12.0937C19.142 11.6827 19.4335 11.3078 19.8445 11.2563C20.2555 11.2049 20.6304 11.4963 20.6819 11.9073C21.0057 14.4934 20.1746 17.1997 18.1872 19.1872C14.7701 22.6043 9.2299 22.6043 5.81282 19.1872C2.39573 15.7701 2.39573 10.2299 5.81282 6.81282C8.55119 4.07444 12.6515 3.5312 15.9309 5.18028L17.4404 3.67086C17.6549 3.45637 17.9774 3.3922 18.2577 3.50828Z"/></svg> جولة أخرى</button>
+      <button class="btn ghost" onclick="show('setup')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.00098 13.001C12.867 13.001 16.001 14.7918 16.001 17.001C16.001 19.2101 12.867 21.001 9.00098 21.001C5.13498 21.001 2.00098 19.2101 2.00098 17.001C2.00098 14.7918 5.13498 13.001 9.00098 13.001Z"/><path d="M16.4766 14.001C18.9615 14.0011 20.9996 15.3434 21 17C21 18.6569 18.9638 20 16.4785 20C17.2107 19.1997 17.7148 18.1955 17.7148 17.002C17.7148 15.8071 17.2099 14.8017 16.4766 14.001Z"/><path d="M9.00098 2C11.2101 2 13.001 3.79086 13.001 6C13.001 8.20914 11.2101 10 9.00098 10C6.79184 10 5.00098 8.20914 5.00098 6C5.00098 3.79086 6.79184 2 9.00098 2Z"/><path d="M15 3.00098C16.6567 3.00118 18 4.34425 18 6.00098C17.9999 7.6576 16.6566 9.00078 15 9.00098C14.6388 9.00098 14.2924 8.93633 13.9717 8.81934C14.4445 7.98748 14.7148 7.02523 14.7148 6C14.7148 4.97534 14.4449 4.0132 13.9727 3.18164C14.2931 3.06489 14.6392 3.00098 15 3.00098Z"/></g></svg> بدّل اللاعبين</button>
+      <a class="btn ghost" href="lobby-store.html"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> رجع للساحة</a>
+    </section>
+  </div>
+
+  <div class="adslot">AD · إعلان</div>
+
+  <!-- quit modal — real copy -->
+  <div class="overlay" id="modal-quit">
+    <div class="modal">
+      <h2 dir="rtl">بغيتي تخرج؟</h2>
+      <p dir="rtl">كل النقاط غادي تمشي وتعاودو من الأول. متأكد؟</p>
+      <button class="btn" onclick="closeModals()">لا، كمل</button>
+      <button class="btn ghost" onclick="closeModals();resetAll()">آه، نخرج</button>
+    </div>
+  </div>
+
+  <!-- how-to modal — real 4 phases -->
+  <div class="overlay" id="modal-howto">
+    <div class="modal">
+      <h2 dir="rtl"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M4.72718 2.71244C5.03258 2.41324 5.46135 2.21816 6.27103 2.11151C7.10452 2.00172 8.2092 2 9.7931 2H14.2069C15.7908 2 16.8955 2.00172 17.729 2.11151C18.5387 2.21816 18.9674 2.41324 19.2728 2.71244C19.5782 3.01165 19.7773 3.43172 19.8862 4.22499C19.9982 5.04159 20 6.12387 20 7.67568V15.5135L7.34563 15.5135C6.44305 15.5132 5.82716 15.513 5.29899 15.6517C4.82674 15.7756 4.38867 15.9781 4 16.2442V7.67568C4 6.12387 4.00176 5.04159 4.11382 4.225C4.22268 3.43172 4.42179 3.01165 4.72718 2.71244ZM7.58621 5.78378C7.12914 5.78378 6.75862 6.1468 6.75862 6.59459C6.75862 7.04239 7.12914 7.40541 7.58621 7.40541H16.4138C16.8709 7.40541 17.2414 7.04239 17.2414 6.59459C17.2414 6.1468 16.8709 5.78378 16.4138 5.78378H7.58621ZM6.75862 10.3784C6.75862 9.93058 7.12914 9.56757 7.58621 9.56757H13.1034C13.5605 9.56757 13.931 9.93058 13.931 10.3784C13.931 10.8262 13.5605 11.1892 13.1034 11.1892H7.58621C7.12914 11.1892 6.75862 10.8262 6.75862 10.3784Z" clip-rule="evenodd"/><path d="M7.47341 17.1351C6.39395 17.1351 6.01657 17.1421 5.72738 17.218C4.93365 17.4264 4.30088 18.0044 4.02952 18.7558C4.0463 19.1382 4.07259 19.4746 4.11382 19.775C4.22268 20.5683 4.42179 20.9884 4.72718 21.2876C5.03258 21.5868 5.46135 21.7818 6.27103 21.8885C7.10452 21.9983 8.2092 22 9.7931 22H14.2069C15.7908 22 16.8955 21.9983 17.729 21.8885C18.5387 21.7818 18.9674 21.5868 19.2728 21.2876C19.4894 21.0753 19.6526 20.8023 19.768 20.3784H7.58621C7.12914 20.3784 6.75862 20.0154 6.75862 19.5676C6.75862 19.1198 7.12914 18.7568 7.58621 18.7568H19.9704C19.9909 18.2908 19.9972 17.7564 19.9991 17.1351H7.47341Z"/></g></svg> كيفاش نلعبو</h2>
+      <div class="step"><span class="n">المرحلة 1</span><p dir="rtl">كل واحد يشوف دوره سري (محتال أو فالسالفة)</p></div>
+      <div class="step"><span class="n">المرحلة 2</span><p dir="rtl">كل لاعب يرسم الكلمة — المحتال ما يعرفهاش!</p></div>
+      <div class="step"><span class="n">المرحلة 3</span><p dir="rtl">بعد ما الكل رسم، صوتو على شكون المحتال</p></div>
+      <div class="step"><span class="n">المرحلة 4</span><p dir="rtl">المحتال يقدر يخمن الكلمة باش يربح نقطة إضافية</p></div>
+      <button class="btn" onclick="closeModals()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM16.0303 8.96967C16.3232 9.26256 16.3232 9.73744 16.0303 10.0303L11.0303 15.0303C10.7374 15.3232 10.2626 15.3232 9.96967 15.0303L7.96967 13.0303C7.67678 12.7374 7.67678 12.2626 7.96967 11.9697C8.26256 11.6768 8.73744 11.6768 9.03033 11.9697L10.5 13.4393L12.7348 11.2045L14.9697 8.96967C15.2626 8.67678 15.7374 8.67678 16.0303 8.96967Z" clip-rule="evenodd"/></svg> فهمت!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const scrollEl=$('#scroll');
+function show(id){document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id==='scr-'+id));scrollEl.scrollTop=0;}
+function openModal(n){$('#modal-'+n).classList.add('on');}
+function closeModals(){document.querySelectorAll('.overlay').forEach(e=>e.classList.remove('on'));}
+function shuffled(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+/* real data from the game: player colours + categories/words */
+const COLORS=['#C8412B','#1F7A6B','#F2B23D','#E85C2A','#3FBA9A','#8B5CF6','#F472B6','#60A5FA','#34D399','#FB923C','#A78BFA','#2DD4BF','#E879F9','#F87171','#22D3EE'];
+const CATS=[
+ {id:'random',title:'عشوائي',emoji:'🎲'},
+ {id:'animals',title:'الحيوانات',emoji:'🦁',words:['القط','الكلب','الحصان','الحمار','الدجاجة','الأرنب','السلحفاة','الثعبان']},
+ {id:'food',title:'الماكلة',emoji:'🍲',words:['الحريرة','الطاجين','الكُسْكُس','المسمن','البغرير','البريوات','الشباكية','البِصّارة']},
+ {id:'home',title:'حوايج الدار',emoji:'🏠',words:['الكرسي','الطاولة','التلفاز','الثلاجة','الفرن','المفتاح','الساعة','المظلة']},
+ {id:'places',title:'الأماكن',emoji:'🏞️',words:['الشاطئ','الجبل','الغابة','البحر','المطار','المحطة','الجامعة','المدرسة']},
+ {id:'objects',title:'حوايج خرى',emoji:'🎒',words:['الهاتف','اللابتوب','النظارة','الساعة','المظلة','الكتاب','القلم','الكرة']},
+ {id:'nature',title:'الطبيعة',emoji:'🌦️',words:['الشمس','القمر','النجم','الغيمة','المطر','الثلج','البرق','قوس قزح']},
+ {id:'school',title:'المدرسة',emoji:'📚',words:['الأستاذ','التلميذ','الامتحان','السبورة','القلم','الدفتر','المحفظة','المكتبة']},
+ {id:'sports',title:'الرياضة',emoji:'⚽',words:['كرة القدم','كرة السلة','السباحة','الجري','التنس','الملاكمة','الدراجة','التزلج']}
+];
+const MIN=3,MAX=15;
+const G={players:[],cat:'random',round:1,scores:{},imposter:0,word:'',catObj:null,guessOpts:[],
+  revealOrder:[],revealI:0,drawOrder:[],drawI:0,drawn:[],votes:{},voteI:0,caught:false,guessed:null};
+
+/* ── setup ── */
+function seedPlayers(n){G.players=[];for(let i=0;i<n;i++)G.players.push({name:'',color:COLORS[i%COLORS.length]});renderPlayers();}
+function renderPlayers(){
+  const w=$('#playerList');w.innerHTML='';
+  G.players.forEach((p,i)=>{
+    const row=document.createElement('div');row.className='prow';
+    row.innerHTML=`<span class="pdot" style="background:${p.color}26;color:${p.color};border-color:${p.color}">${(p.name||'').charAt(0)||'؟'}</span>`;
+    const inp=document.createElement('input');inp.className='nameinput';inp.maxLength=14;inp.dir='rtl';
+    inp.placeholder='لاعب '+(i+1);inp.value=p.name;
+    inp.addEventListener('input',()=>{p.name=inp.value;row.querySelector('.pdot').textContent=(p.name||'').charAt(0)||'؟';});
+    const rm=document.createElement('button');rm.className='rm';rm.textContent='×';
+    rm.onclick=()=>{G.players.splice(i,1);G.players.forEach((q,j)=>q.color=COLORS[j%COLORS.length]);renderPlayers();syncStart();};
+    row.appendChild(inp);row.appendChild(rm);w.appendChild(row);
+  });
+  $('#addBtn').style.display=G.players.length>=MAX?'none':'block';
+  syncStart();
+}
+function addPlayer(){if(G.players.length<MAX){G.players.push({name:'',color:COLORS[G.players.length%COLORS.length]});renderPlayers();}}
+function syncStart(){
+  const ok=G.players.length>=MIN;
+  $('#startBtn').disabled=!ok;
+  const warn=$('#minWarn');
+  if(!ok){warn.style.display='block';warn.textContent=`زيد على الأقل ${MIN-G.players.length} لاعبين`;}
+  else warn.style.display='none';
+}
+function renderCats(){
+  const w=$('#catGrid');w.innerHTML='';
+  CATS.forEach(c=>{
+    const b=document.createElement('button');b.className='cat'+(G.cat===c.id?' on':'');
+    b.innerHTML=`<span class="em">${c.emoji}</span><span dir="rtl">${c.title}</span>`;
+    b.onclick=()=>{G.cat=c.id;renderCats();};
+    w.appendChild(b);
+  });
+}
+const pName=(p,i)=> (p.name||'').trim()||('لاعب '+(i+1));
+
+/* ── round setup ── */
+function startGame(){
+  G.players.forEach((p,i)=>{if(!(pName(p,i) in G.scores))G.scores[pName(p,i)]=0;});
+  setupRound();show('reveal');
+}
+function setupRound(){
+  let cat=G.cat==='random'?pick(CATS.slice(1)):CATS.find(c=>c.id===G.cat);
+  G.catObj=cat;G.word=pick(cat.words);
+  G.imposter=Math.floor(Math.random()*G.players.length);
+  const others=cat.words.filter(w=>w!==G.word);
+  G.guessOpts=shuffled([G.word,...shuffled(others).slice(0,3)]);
+  G.revealOrder=shuffled(G.players.map((_,i)=>i));G.revealI=0;
+  G.drawOrder=shuffled(G.players.map((_,i)=>i));G.drawI=0;G.drawn=[];
+  G.votes={};G.voteI=0;G.caught=false;G.guessed=null;
+  renderReveal();
+}
+function curRevealIdx(){return G.revealOrder[G.revealI];}
+
+/* ── role reveal (press & hold, like the real game) ── */
+let holdTimer=null,holdStart=0,holdRAF=null,revealed=false;
+function renderReveal(){
+  const idx=curRevealIdx(),p=G.players[idx];
+  $('#revNum').textContent=G.revealI+1;$('#revTotal').textContent=G.players.length;
+  $('#revName').textContent=pName(p,idx);
+  $('#revSecret').style.display='none';$('#holdZone').style.display='block';
+  $('#holdRing').style.setProperty('--p',0);
+  $('#revNext').disabled=true;revealed=false;
+  $('#revNext').innerHTML=G.revealI===G.players.length-1?'<svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M10 6V18C10 19.4001 10 20.1002 9.72752 20.635C9.48783 21.1054 9.10538 21.4878 8.63498 21.7275C8.1002 22 7.40013 22 6 22C4.59987 22 3.8998 22 3.36502 21.7275C2.89462 21.4878 2.51217 21.1054 2.27248 20.635C2 20.1002 2 19.4001 2 18V6C2 4.59987 2 3.8998 2.27248 3.36502C2.51217 2.89462 2.89462 2.51217 3.36502 2.27248C3.8998 2 4.59987 2 6 2C7.40013 2 8.1002 2 8.63498 2.27248C9.10538 2.51217 9.48783 2.89462 9.72752 3.36502C10 3.8998 10 4.59987 10 6ZM7 19.75C7.41421 19.75 7.75 19.4142 7.75 19C7.75 18.5858 7.41421 18.25 7 18.25H5C4.58579 18.25 4.25 18.5858 4.25 19C4.25 19.4142 4.58579 19.75 5 19.75H7Z" clip-rule="evenodd"/><path d="M19.0599 10.6144L13.2219 16.704C12.492 17.4653 12.1271 17.8459 11.8135 17.7199C11.5 17.5939 11.5 17.0666 11.5 16.0119L11.5 7.7738C11.5012 7.11381 11.7633 6.48107 12.2291 6.01357L13.2839 4.95882L13.7141 4.62987C14.7183 3.86212 15.2204 3.47825 15.7673 3.3603C16.2175 3.26322 16.6857 3.29236 17.1204 3.4445C17.6484 3.62934 18.099 4.0725 19.0003 4.95883C19.9999 5.95839 20.4997 6.45818 20.685 7.03056C20.843 7.51871 20.847 8.04366 20.6964 8.53417C20.5199 9.10931 20.0332 9.61101 19.0599 10.6144Z"/><path d="M12.7897 22H17.8994C19.2995 22 19.9996 22 20.5344 21.7275C21.0048 21.4878 21.3872 21.1054 21.6269 20.635C21.8994 20.1002 21.8994 19.4001 21.8994 18C21.8994 16.5999 21.8994 15.8998 21.6269 15.365C21.3872 14.8946 21.0048 14.5122 20.5344 14.2725C19.9996 14 19.2995 14 17.8994 14H17.6797L11.878 19.798C11.636 20.0399 11.5 20.3391 11.5 20.6813C11.5 21.3936 12.0774 22 12.7897 22Z"/></g></svg> يلا نرسمو!':'<svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM16.0303 8.96967C16.3232 9.26256 16.3232 9.73744 16.0303 10.0303L11.0303 15.0303C10.7374 15.3232 10.2626 15.3232 9.96967 15.0303L7.96967 13.0303C7.67678 12.7374 7.67678 12.2626 7.96967 11.9697C8.26256 11.6768 8.73744 11.6768 9.03033 11.9697L10.5 13.4393L12.7348 11.2045L14.9697 8.96967C15.2626 8.67678 15.7374 8.67678 16.0303 8.96967Z" clip-rule="evenodd"/></svg> التالي';
+}
+function doReveal(){
+  if(revealed)return;revealed=true;
+  const idx=curRevealIdx(),p=G.players[idx],isImp=idx===G.imposter;
+  const card=$('#revSecret');
+  card.innerHTML=isImp
+    ?`<span class="rolebadge spy">🕵️ المحتال</span><div class="wordbig" dir="rtl">أنت المحتال!</div>
+      <p class="lead" dir="rtl" style="margin-top:8px">مثل أنك تعرف الكلمة!</p>`
+    :`<span class="rolebadge safe">${G.catObj.emoji} ${G.catObj.title}</span><div class="wordbig" dir="rtl">${G.word}</div>
+      <p class="lead" dir="rtl" style="margin-top:8px">هادي هي الكلمة — رسمها بلا ما تبين راسك!</p>`;
+  $('#holdZone').style.display='none';card.style.display='block';
+  $('#revNext').disabled=false;
+}
+function holdBegin(e){
+  if(revealed)return;e.preventDefault();holdStart=performance.now();
+  const step=t=>{const p=Math.min(1,(t-holdStart)/650);$('#holdRing').style.setProperty('--p',p);
+    if(p>=1){doReveal();return;} holdRAF=requestAnimationFrame(step);};
+  holdRAF=requestAnimationFrame(step);
+}
+function holdEnd(){if(holdRAF)cancelAnimationFrame(holdRAF);if(!revealed)$('#holdRing').style.setProperty('--p',0);}
+const hz=$('#holdZone');
+hz.addEventListener('pointerdown',holdBegin);
+hz.addEventListener('pointerup',holdEnd);hz.addEventListener('pointerleave',holdEnd);hz.addEventListener('pointercancel',holdEnd);
+function nextReveal(){
+  if(G.revealI<G.players.length-1){G.revealI++;renderReveal();scrollEl.scrollTop=0;}
+  else{renderDraw();show('draw');}
+}
+
+/* ── drawing ── */
+const cv=$('#cv'),ctx=cv.getContext('2d');
+let brushColor=COLORS[0],brushSize=6,drawing=false,lastPt=null;
+const BRUSHES=[{n:'رفيع',s:3},{n:'عادي',s:6},{n:'سميك',s:11},{n:'عريض',s:18}];
+function renderPalette(){
+  const w=$('#palette');w.innerHTML='';
+  [...COLORS.slice(0,10),'#1A1A28','#FFFFFF'].forEach(c=>{
+    const b=document.createElement('button');b.className='swatch'+(brushColor===c?' on':'');
+    b.style.background=c;b.setAttribute('aria-label','colour '+c);
+    b.onclick=()=>{brushColor=c;renderPalette();};w.appendChild(b);
+  });
+  const bw=$('#brushes');bw.innerHTML='';
+  BRUSHES.forEach(br=>{
+    const b=document.createElement('button');b.className='brush'+(brushSize===br.s?' on':'');b.textContent=br.n;b.dir='rtl';
+    b.onclick=()=>{brushSize=br.s;renderPalette();};bw.appendChild(b);
+  });
+}
+function renderDraw(){
+  const idx=G.drawOrder[G.drawI],p=G.players[idx];
+  $('#drawName').textContent=pName(p,idx);
+  $('#drawInfo').textContent = idx===G.imposter
+    ?'أنت المحتال — رسم بلا ما تبين راسك! 🕵️'
+    :`الكلمة: ${G.word} · ${G.catObj.emoji} ${G.catObj.title}`;
+  const allDone=G.drawn.length>=G.players.length;
+  $('#drawDone').style.display=allDone?'block':'none';
+  $('#toVote').style.display=allDone?'block':'none';
+  $('#drawNext').style.display=allDone?'none':'block';
+  renderPalette();
+}
+function nextDrawer(){
+  const idx=G.drawOrder[G.drawI];
+  if(!G.drawn.includes(idx))G.drawn.push(idx);
+  if(G.drawn.length>=G.players.length){renderDraw();scrollEl.scrollTop=0;return;}
+  do{G.drawI=(G.drawI+1)%G.drawOrder.length;}while(G.drawn.includes(G.drawOrder[G.drawI]));
+  renderDraw();scrollEl.scrollTop=0;
+}
+function cvPos(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*cv.width/r.width,y:(e.clientY-r.top)*cv.height/r.height};}
+cv.addEventListener('pointerdown',e=>{drawing=true;lastPt=cvPos(e);cv.setPointerCapture(e.pointerId);
+  ctx.fillStyle=brushColor;ctx.beginPath();ctx.arc(lastPt.x,lastPt.y,brushSize/2,0,7);ctx.fill();});
+cv.addEventListener('pointermove',e=>{if(!drawing)return;const pt=cvPos(e);
+  ctx.strokeStyle=brushColor;ctx.lineWidth=brushSize;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(lastPt.x,lastPt.y);ctx.lineTo(pt.x,pt.y);ctx.stroke();lastPt=pt;});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>cv.addEventListener(ev,()=>{drawing=false;}));
+
+/* ── voting ── */
+function startVoting(){G.voteI=0;G.votes={};renderGate();show('votegate');}
+function curVoter(){return G.drawOrder[G.voteI];}
+function renderGate(){
+  const idx=G.drawOrder[G.voteI],p=G.players[idx];
+  $('#vgRound').textContent=G.round;
+  $('#vgName').textContent=pName(p,idx);
+  $('#vgBtn').innerHTML='<svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M21.4086 9.35258C23.5305 10.5065 23.5305 13.4935 21.4086 14.6474L8.59662 21.6145C6.53435 22.736 4 21.2763 4 18.9671L4 5.0329C4 2.72368 6.53435 1.26402 8.59661 2.38548L21.4086 9.35258Z"/></svg> التالي — '+pName(p,idx);
+}
+function openBallot(){
+  const voter=curVoter();
+  $('#vtName').textContent=pName(G.players[voter],voter);
+  const w=$('#candList');w.innerHTML='';
+  G.players.forEach((p,i)=>{
+    const b=document.createElement('button');b.className='cand';b.disabled=i===voter;
+    b.innerHTML=`<span class="pdot" style="background:${p.color}26;color:${p.color};border-color:${p.color}">${(pName(p,i)||'').charAt(0)}</span><b dir="rtl">${pName(p,i)}</b>${i===voter?'<span class="self" dir="rtl">أنت — ما تقدرش تصوت على روحك</span>':''}`;
+    b.onclick=()=>{G.votes[voter]=i;advanceVote();};
+    w.appendChild(b);
+  });
+  show('vote');
+}
+function advanceVote(){
+  if(G.voteI<G.players.length-1){G.voteI++;renderGate();show('votegate');}
+  else show('votedone');
+}
+
+/* ── resolution (real scoring) ── */
+function resolveRound(){
+  const tally={};Object.values(G.votes).forEach(t=>tally[t]=(tally[t]||0)+1);
+  const impVotes=tally[G.imposter]||0,max=Math.max(0,...Object.values(tally));
+  G.caught=impVotes===max&&impVotes>0;
+  if(G.caught)Object.entries(G.votes).forEach(([v,t])=>{if(+t===G.imposter){const nm=pName(G.players[+v],+v);G.scores[nm]=(G.scores[nm]||0)+1;}});
+  $('#resBody').style.display='none';$('#resReveal').style.display='block';
+  show('resolution');
+}
+function revealImposter(){
+  $('#resReveal').style.display='none';$('#resBody').style.display='block';
+  const imp=G.players[G.imposter];
+  const banner=$('#resBanner');
+  banner.className='banner '+(G.caught?'caught':'escaped');
+  $('#resTitle').textContent=G.caught?'تم كشف المحتال! 🎊':'المحتال هرب! 😈';
+  $('#resImpName').textContent=pName(imp,G.imposter);
+  $('#guessName').textContent=pName(imp,G.imposter);
+  $('#guessCard').style.display='block';$('#guessResult').style.display='none';
+  const w=$('#guessList');w.innerHTML='';
+  G.guessOpts.forEach(word=>{
+    const b=document.createElement('button');b.className='guess';b.dir='rtl';b.textContent=word;
+    b.onclick=()=>guessWord(word,b);w.appendChild(b);
+  });
+  scrollEl.scrollTop=0;
+}
+function guessWord(word,btn){
+  const imp=G.players[G.imposter],nm=pName(imp,G.imposter);
+  const right=word===G.word;G.guessed=right;
+  if(right)G.scores[nm]=(G.scores[nm]||0)+1;
+  document.querySelectorAll('#guessList .guess').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===G.word)b.classList.add('right');else if(b===btn)b.classList.add('wrong');
+  });
+  $('#guessResultTxt').textContent=right
+    ?`${nm} خمّن صح! الكلمة هي "${G.word}" 🎉`
+    :`غلط — الكلمة كانت "${G.word}"`;
+  $('#guessResult').style.display='block';
+}
+function showScores(){
+  const rows=G.players.map((p,i)=>({name:pName(p,i),color:p.color,pts:G.scores[pName(p,i)]||0}))
+    .sort((a,b)=>b.pts-a.pts);
+  $('#scRound').textContent=G.round;
+  $('#scoreList').innerHTML=rows.map((r,i)=>`
+    <div class="scorerow"><span class="rk">${['🥇','🥈','🥉'][i]||(i+1)}</span>
+    <span class="pdot" style="background:${r.color}26;color:${r.color};border-color:${r.color}">${r.name.charAt(0)}</span>
+    <b dir="rtl">${r.name}</b><span class="pts">${r.pts} ⭐</span></div>`).join('');
+  show('scores');
+}
+function nextRound(){G.round++;setupRound();show('reveal');}
+function resetAll(){G.scores={};G.round=1;ctx.clearRect(0,0,cv.width,cv.height);show('home');}
+
+/* deep-link demo states: #setup #reveal #reveal-spy #draw #vote #resolution #scores */
+(function(){
+  const h=location.hash.replace('#','');
+  seedPlayers(4);renderCats();
+  if(!h||h==='home')return;
+  const prepRound=()=>{G.catObj=CATS[1];G.word='القط';G.imposter=2;
+    G.guessOpts=['القط','الكلب','الأرنب','الحصان'];
+    G.revealOrder=[0,1,2,3];G.revealI=0;G.drawOrder=[0,1,2,3];G.drawI=0;G.drawn=[];G.votes={};G.voteI=0;};
+  if(h==='setup')show('setup');
+  else if(h==='reveal'){prepRound();renderReveal();show('reveal');}
+  else if(h==='reveal-spy'){prepRound();G.revealI=2;renderReveal();doReveal();show('reveal');}
+  else if(h==='reveal-word'){prepRound();G.revealI=1;renderReveal();doReveal();show('reveal');}
+  else if(h==='draw'){prepRound();renderDraw();show('draw');}
+  else if(h==='vote'){prepRound();renderGate();openBallot();}
+  else if(h==='resolution'){prepRound();G.votes={0:2,1:2,2:0,3:2};resolveRound();revealImposter();}
+  else if(h==='scores'){prepRound();G.scores={'لاعب 1':3,'لاعب 2':1,'لاعب 3':2,'لاعب 4':0};showScores();}
+})();
+</script>
+</body>
+</html>

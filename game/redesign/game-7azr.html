@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — 7azr Fazr · Store Posters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Inside-game screens for 7AZR FAZR in the Store Posters system (tokens from
+     profile-store.html / lobby-store.html). Flow + copy mirror the REAL game
+     (audited in FUNCTIONS.md §18, read from game-files/7azr-fazr):
+     home → setup → reveal (REVEAL NIGHT) → pass (tap-to-reveal secret action)
+     → pre-inter → inter (timer, صح/غلط, 3 strikes) → final → again. */
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--sab:env(safe-area-inset-bottom,0px);--sat:env(safe-area-inset-top,0px);
+    --bg:#07070D;--panel:#12121C;--panel2:#171726;--line:#FFFFFF17;--txt:#FFFFFF;--dim:#9C9CAE;
+    --lime:#C6F542;--gold:#FFD97A;--red:#FF6B57;--teal:#3FBA9A}
+  html,body{height:100%}
+  body{font-family:"Nunito",system-ui,sans-serif;color:var(--txt);background:#000;display:flex;justify-content:center}
+  .phone{position:relative;width:100%;max-width:430px;height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:
+    radial-gradient(120% 46% at 85% -6%,#0F766E40 0%,transparent 55%),
+    radial-gradient(90% 40% at -10% 30%,#DC262622 0%,transparent 55%),var(--bg)}
+  .topbar{display:flex;align-items:center;gap:12px;padding:calc(13px + var(--sat)) 18px 6px;position:relative;z-index:3}
+  .backbtn{width:40px;height:40px;border-radius:50%;background:var(--panel);border:1px solid var(--line);
+    display:grid;place-items:center;color:#fff;text-decoration:none;font-size:19px;font-weight:900;flex:0 0 40px}
+  .topbar h1{font-size:19px;font-weight:900;letter-spacing:.3px}
+  .topbar h1 small{display:block;font-size:11px;color:var(--dim);letter-spacing:1.4px;font-weight:800}
+  .topbar .logo{margin-left:auto;font-weight:900;font-size:15px;letter-spacing:1.2px;color:var(--dim)}
+  .topbar .logo i{font-style:normal;color:var(--lime)}
+  .scroll{flex:1;overflow-y:auto;padding:8px 18px calc(58px + var(--sab));scrollbar-width:none;position:relative;z-index:2}
+  .scroll::-webkit-scrollbar{display:none}
+  .screen{display:none;flex-direction:column;min-height:100%}
+  .screen.on{display:flex}
+  /* in-game bar */
+  .bar{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+  .bar b{font-size:16.5px;font-weight:900}
+  .pill{font-size:10px;font-weight:900;letter-spacing:1.2px;color:var(--gold);border:1px solid #FFD97A55;
+    padding:4px 9px;border-radius:999px;background:#FFD97A14}
+  .exitbtn{margin-inline-start:auto;background:var(--panel);border:1px solid var(--line);color:#fff;
+    border-radius:999px;padding:8px 13px;font-family:inherit;font-size:12.5px;font-weight:900;cursor:pointer}
+  /* ticker */
+  .ticker{overflow:hidden;border:1px solid var(--line);background:#FFFFFF0A;border-radius:999px;padding:8px 0;margin-bottom:16px;direction:ltr}
+  .ticker .track{display:inline-flex;gap:0;white-space:nowrap;animation:tick 22s linear infinite}
+  .ticker span{font-weight:900;font-size:13px;color:var(--dim);padding:0 6px}
+  .ticker span i{font-style:normal;color:var(--lime);padding:0 6px}
+  @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  /* hero */
+  .poster{width:100%;height:172px;object-fit:cover;object-position:top;border-radius:20px;border:1px solid var(--line);display:block}
+  .badge{display:inline-block;margin:14px auto 0;background:#C6F5421A;border:1px solid #C6F54244;color:var(--lime);
+    font-weight:900;font-size:12.5px;padding:6px 14px;border-radius:999px}
+  .gtitle{font-size:40px;font-weight:900;text-align:center;margin-top:10px;line-height:1.15}
+  .gtitle small{display:block;font-size:13px;letter-spacing:3px;color:var(--gold);font-weight:900;margin-top:4px}
+  .tagline{text-align:center;color:var(--dim);font-weight:700;font-size:15px;line-height:1.9;margin-top:10px}
+  .feats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:18px}
+  .feat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px 6px;text-align:center}
+  .feat .ic{font-size:22px;display:block}
+  .feat .lb{font-size:12.5px;font-weight:900;line-height:1.5;display:block;margin-top:4px}
+  .spacer{flex:1;min-height:16px}
+  /* buttons */
+  .btn{display:block;width:100%;border:none;cursor:pointer;font-family:inherit;text-align:center;text-decoration:none;
+    background:linear-gradient(180deg,#D9FF6A,var(--lime));color:#131803;font-size:18px;font-weight:900;
+    padding:17px;border-radius:16px;box-shadow:0 10px 24px -10px #C6F54266;margin-top:12px}
+  .btn:disabled{opacity:.35;box-shadow:none}
+  .btn.ghost{background:var(--panel);color:#fff;border:1px solid var(--line);box-shadow:none;font-size:15.5px;padding:14px}
+  .btn.red{background:linear-gradient(180deg,#FF8570,var(--red));color:#2A0A06;box-shadow:0 10px 24px -10px #FF6B5766}
+  .btn.teal{background:linear-gradient(180deg,#5EDDBE,var(--teal));color:#06231B;box-shadow:0 10px 24px -10px #3FBA9A66}
+  .row2{display:flex;gap:11px}.row2 .btn{flex:1}
+  /* cards */
+  .card{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:14px;overflow:hidden}
+  .card.cut::before{content:"";position:absolute;top:0;right:0;width:36px;height:36px;background:var(--bg);
+    clip-path:polygon(0 0,100% 0,100% 100%);z-index:2}
+  .card p.lead{font-size:15.5px;font-weight:700;line-height:1.95;color:#EDEDF4}
+  .card p.sm{font-size:13px;font-weight:700;color:var(--dim);margin-top:8px}
+  h2.sec{font-size:19px;font-weight:900;margin:20px 2px 10px}
+  h2.sec:first-child{margin-top:4px}
+  .hintline{font-size:13px;font-weight:700;color:var(--dim);margin-top:8px}
+  /* setup controls */
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{background:var(--panel);border:1.5px solid var(--line);color:#fff;font-family:inherit;font-weight:900;
+    font-size:15.5px;border-radius:13px;padding:11px 0;flex:1 1 52px;cursor:pointer;text-align:center}
+  .chip.on{background:var(--lime);color:#131803;border-color:var(--lime)}
+  .chip.more{flex:1 1 100%}
+  .nameinput{width:100%;background:var(--panel2);border:1.5px solid var(--line);border-radius:13px;color:#fff;
+    font-family:inherit;font-weight:800;font-size:15px;padding:12px 14px;margin-bottom:9px;text-align:right}
+  .nameinput:focus{outline:none;border-color:var(--lime)}
+  .pick{display:flex;align-items:center;gap:10px;width:100%;background:var(--panel);border:1.5px solid var(--line);
+    border-radius:16px;padding:15px 16px;color:#fff;font-family:inherit;cursor:pointer;text-align:right}
+  .pick b{font-size:17px;font-weight:900}
+  .pick .sub{margin-inline-start:auto;font-size:12px;font-weight:800;color:var(--dim)}
+  .pick.on{border-color:var(--red);background:#FF6B5714}
+  .stepper{display:flex;align-items:center;gap:12px;justify-content:center;margin-top:12px}
+  .stepper button{width:52px;height:52px;border-radius:15px;background:var(--panel);border:1.5px solid var(--line);
+    color:#fff;font-size:23px;font-weight:900;cursor:pointer;font-family:inherit}
+  .stepper .val{font-size:21px;font-weight:900;min-width:86px;text-align:center}
+  .stepper input.val{background:var(--panel2);border:1.5px solid var(--line);border-radius:13px;color:#fff;
+    font-family:inherit;padding:10px 4px;font-size:19px}
+  /* reveal / pass */
+  .center{text-align:center}
+  .big-emoji{font-size:56px;line-height:1.1}
+  .nameplaque{font-size:31px;font-weight:900;margin-top:6px;text-shadow:2px 2px 0 #FFD97A55}
+  .spycard{border-color:#FF6B5755;background:#FF6B570F;text-align:center}
+  .rolebadge{display:inline-block;font-size:12.5px;font-weight:900;padding:6px 13px;border-radius:999px;border:1px solid}
+  .rolebadge.spy{color:#FF9580;border-color:#FF6B5777;background:#FF6B5722}
+  .rolebadge.safe{color:#7FE7C8;border-color:#3FBA9A77;background:#3FBA9A1F}
+  .wordreveal{font-size:22.5px;font-weight:900;line-height:1.8;margin-top:12px;color:#fff;
+    background:linear-gradient(180deg,#FFD97A26,#FFD97A0A);border-radius:14px;padding:14px 12px}
+  .holdcard{margin-top:16px;background:var(--panel);border:1.5px dashed #FFFFFF2E;border-radius:20px;
+    padding:30px 18px;text-align:center;cursor:pointer;user-select:none}
+  .holdcard .ring{width:92px;height:92px;border-radius:50%;border:2.5px solid #FFFFFF30;margin:0 auto;
+    display:grid;place-items:center}
+  .holdcard .ringin{width:70px;height:70px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-size:32px}
+  .holdcard .hint{margin-top:13px;font-weight:900;font-size:15px;color:var(--dim)}
+  .holdcard.live{border-style:solid;border-color:var(--teal);background:#3FBA9A0D;cursor:default}
+  /* inter */
+  .clock{font-size:64px;font-weight:900;text-align:center;letter-spacing:1px;margin-top:8px;font-variant-numeric:tabular-nums}
+  .clock.low{color:var(--red)}
+  .prog{height:11px;background:#FFFFFF14;border-radius:99px;overflow:hidden;margin-top:10px}
+  .prog i{display:block;height:100%;background:linear-gradient(90deg,#8FD41F,var(--lime));border-radius:99px;transition:width .3s linear}
+  .prog i.danger{background:linear-gradient(90deg,#E5484D,var(--red))}
+  .strikes{display:flex;gap:9px;justify-content:center;margin-top:10px}
+  .strikes span{width:46px;padding:8px 0;text-align:center;border-radius:11px;background:var(--panel2);
+    border:1.5px solid var(--line);font-weight:900;font-size:15px;color:var(--dim)}
+  .strikes span.hit{background:var(--red);color:#fff;border-color:var(--red)}
+  .blur{filter:blur(9px);pointer-events:none}
+  /* modal */
+  .overlay{position:absolute;inset:0;background:rgba(0,0,0,.82);z-index:30;display:none;place-items:center;padding:22px}
+  .overlay.on{display:grid}
+  .modal{background:#0C1428;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:24px 20px;width:100%;text-align:center}
+  .modal h2{font-size:21px;font-weight:900;margin-bottom:8px}
+  .modal p{color:var(--dim);font-weight:700;font-size:14.5px;line-height:1.85}
+  .step{display:flex;gap:12px;align-items:flex-start;background:#FFFFFF08;border:1px solid var(--line);
+    border-radius:15px;padding:13px 14px;margin-top:10px;text-align:right}
+  .step .n{flex:0 0 27px;width:27px;height:27px;border-radius:50%;background:var(--gold);color:#1A1200;
+    font-weight:900;display:grid;place-items:center;font-size:14.5px}
+  .step p{font-size:14.5px;font-weight:700;line-height:1.85;color:#EDEDF4}
+  .playerpill{display:inline-block;margin:3px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel2);font-weight:900;font-size:14px}
+  .adslot{position:absolute;left:0;right:0;bottom:0;height:calc(40px + var(--sab));z-index:5;
+    display:flex;align-items:flex-start;justify-content:center;padding-top:7px;
+    background:#0A0A13;border-top:1px solid var(--line);color:#55556A;font-size:10.5px;font-weight:900;letter-spacing:2.5px}
+
+  .sic{width:1.18em;height:1.18em;vertical-align:-.22em;fill:currentColor;flex:none}
+  .btn .sic,.exitbtn .sic,.backbtn .sic{vertical-align:-.2em}
+  .feat .ic .sic{width:24px;height:24px;vertical-align:middle}
+  .holdzone .ringin .sic,.holdcard .ringin .sic{width:34px;height:34px;vertical-align:middle}
+  .bar .sic{vertical-align:-.2em}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a class="backbtn" href="lobby-store.html"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M20 11.25C20.4142 11.25 20.75 11.5858 20.75 12C20.75 12.4142 20.4142 12.75 20 12.75H10.75L10.75 18C10.75 18.3034 10.5673 18.5768 10.287 18.6929C10.0068 18.809 9.68417 18.7449 9.46967 18.5304L3.46967 12.5304C3.32902 12.3897 3.25 12.1989 3.25 12C3.25 11.8011 3.32902 11.6103 3.46967 11.4697L9.46967 5.46969C9.68417 5.25519 10.0068 5.19103 10.287 5.30711C10.5673 5.4232 10.75 5.69668 10.75 6.00002L10.75 11.25H20Z"/></svg></a>
+    <h1>7AZR FAZR<small>INSIDE THE GAME</small></h1>
+    <span class="logo">PLAY<i>M3ANA</i></span>
+  </div>
+
+  <div class="scroll" id="scroll">
+
+    <!-- ══ HOME ══ -->
+    <section class="screen on" id="scr-home">
+      <div class="ticker" dir="ltr"><div class="track" id="tickerTrack"></div></div>
+      <img class="poster" src="data:image/webp;base64,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" alt="7azr Fazr poster">
+      <div style="text-align:center"><span class="badge">لعبة 100% بالدارجة 🗣️</span></div>
+      <h2 class="gtitle"><span dir="rtl">حزر فزر</span><small>7ZER FZER</small></h2>
+      <p class="tagline" dir="rtl">لعبة جماعية: واحد ولا جوج كيخبّيو شي حركة سرية، والباقي كيحاولو يخرجوها بالسوالي.</p>
+      <div class="feats">
+        <div class="feat"><span class="ic"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.00098 13.001C12.867 13.001 16.001 14.7918 16.001 17.001C16.001 19.2101 12.867 21.001 9.00098 21.001C5.13498 21.001 2.00098 19.2101 2.00098 17.001C2.00098 14.7918 5.13498 13.001 9.00098 13.001Z"/><path d="M16.4766 14.001C18.9615 14.0011 20.9996 15.3434 21 17C21 18.6569 18.9638 20 16.4785 20C17.2107 19.1997 17.7148 18.1955 17.7148 17.002C17.7148 15.8071 17.2099 14.8017 16.4766 14.001Z"/><path d="M9.00098 2C11.2101 2 13.001 3.79086 13.001 6C13.001 8.20914 11.2101 10 9.00098 10C6.79184 10 5.00098 8.20914 5.00098 6C5.00098 3.79086 6.79184 2 9.00098 2Z"/><path d="M15 3.00098C16.6567 3.00118 18 4.34425 18 6.00098C17.9999 7.6576 16.6566 9.00078 15 9.00098C14.6388 9.00098 14.2924 8.93633 13.9717 8.81934C14.4445 7.98748 14.7148 7.02523 14.7148 6C14.7148 4.97534 14.4449 4.0132 13.9727 3.18164C14.2931 3.06489 14.6392 3.00098 15 3.00098Z"/></g></svg></span><span class="lb" dir="rtl">3 حتى 15 لاعب</span></div>
+        <div class="feat"><span class="ic"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M4.6138 8.54479L4.1875 10.25H2C1.58579 10.25 1.25 10.5858 1.25 11C1.25 11.4142 1.58579 11.75 2 11.75H22C22.4142 11.75 22.75 11.4142 22.75 11C22.75 10.5858 22.4142 10.25 22 10.25H19.8125L19.3862 8.54479C18.8405 6.36211 18.5677 5.27077 17.7539 4.63538C16.9401 4 15.8152 4 13.5653 4H10.4347C8.1848 4 7.05988 4 6.24609 4.63538C5.43231 5.27077 5.15947 6.36211 4.6138 8.54479ZM6.5 21C8.12316 21 9.48826 19.8951 9.88417 18.3963L10.9938 17.8415C11.6272 17.5248 12.3728 17.5248 13.0062 17.8415L14.1158 18.3963C14.5117 19.8951 15.8768 21 17.5 21C19.433 21 21 19.433 21 17.5C21 15.567 19.433 14 17.5 14C15.8399 14 14.4498 15.1558 14.0903 16.7065L13.6771 16.4999C12.6213 15.972 11.3787 15.972 10.3229 16.4999L9.90967 16.7065C9.55023 15.1558 8.16009 14 6.5 14C4.567 14 3 15.567 3 17.5C3 19.433 4.567 21 6.5 21Z" clip-rule="evenodd"/></svg></span><span class="lb" dir="rtl">جاسوس ولا جوج</span></div>
+        <div class="feat"><span class="ic"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM12 7.25C11.5858 7.25 11.25 7.58579 11.25 8V12C11.25 12.1989 11.3291 12.3896 11.4697 12.5303L13.9697 15.0303C14.2626 15.3232 14.7374 15.3232 15.0303 15.0303C15.3232 14.7374 15.3232 14.2626 15.0303 13.9697L12.75 11.6895V8C12.75 7.58579 12.4142 7.25 12 7.25Z" clip-rule="evenodd"/></svg></span><span class="lb" dir="rtl">مؤقت للاستجواب</span></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="goSetup()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M9.03429 5.96305L6.49114 8.49856C6.02369 8.9646 5.59488 9.3921 5.25624 9.77856C5.03877 10.0267 4.82145 10.2984 4.63737 10.5985L4.61259 10.5738C4.56555 10.5269 4.54201 10.5034 4.51839 10.4805C4.07636 10.0516 3.55641 9.71062 2.98636 9.47575C2.9559 9.4632 2.92498 9.45095 2.86314 9.42645L2.48449 9.27641C1.97153 9.07315 1.83482 8.41279 2.22514 8.02365C3.34535 6.90684 4.69032 5.56594 5.33941 5.29662C5.91185 5.05911 6.53023 4.98008 7.12664 5.06822C7.67311 5.14898 8.19006 5.42968 9.03429 5.96305Z"/><path d="M13.3767 19.3132C13.5816 19.5212 13.7177 19.6681 13.8408 19.8251C14.0031 20.0322 14.1483 20.2523 14.2748 20.4829C14.4172 20.7426 14.5278 21.02 14.749 21.5748C14.929 22.0265 15.5272 22.1459 15.8746 21.7995L15.9586 21.7157C17.0788 20.5988 18.4237 19.2579 18.6938 18.6108C18.9321 18.04 19.0113 17.4235 18.9229 16.8289C18.8419 16.2841 18.5605 15.7688 18.0256 14.9273L15.474 17.4713C14.9959 17.9479 14.5576 18.385 14.1612 18.7273C13.9236 18.9325 13.6637 19.1376 13.3767 19.3132Z"/><path fill-rule="evenodd" d="M14.4467 16.3769L20.2935 10.5476C21.1356 9.70811 21.5566 9.28836 21.7783 8.75458C22.0001 8.22081 22.0001 7.62719 22.0001 6.43996V5.87277C22.0001 4.04713 22.0001 3.13431 21.4312 2.56715C20.8624 2 19.9468 2 18.1157 2H17.5468C16.356 2 15.7606 2 15.2252 2.2211C14.6898 2.4422 14.2688 2.86195 13.4268 3.70146L7.57991 9.53078C6.59599 10.5117 5.98591 11.12 5.74966 11.7075C5.67502 11.8931 5.6377 12.0767 5.6377 12.2692C5.6377 13.0713 6.2851 13.7168 7.57991 15.0077L7.75393 15.1812L9.79245 13.1123C10.0832 12.8172 10.558 12.8137 10.8531 13.1044C11.1481 13.3951 11.1516 13.87 10.8609 14.1651L8.8162 16.2403L8.95326 16.3769C10.2481 17.6679 10.8955 18.3133 11.7 18.3133C11.8777 18.3133 12.0478 18.2818 12.2189 18.2188C12.8222 17.9966 13.438 17.3826 14.4467 16.3769ZM17.1935 9.5312C16.435 10.2874 15.2053 10.2874 14.4468 9.5312C13.6883 8.775 13.6883 7.54895 14.4468 6.79274C15.2053 6.03653 16.435 6.03653 17.1935 6.79274C17.952 7.54895 17.952 8.775 17.1935 9.5312Z" clip-rule="evenodd"/></g></svg> هيا نلعبو</button>
+      <button class="btn ghost" onclick="openModal('howto')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M4.72718 2.71244C5.03258 2.41324 5.46135 2.21816 6.27103 2.11151C7.10452 2.00172 8.2092 2 9.7931 2H14.2069C15.7908 2 16.8955 2.00172 17.729 2.11151C18.5387 2.21816 18.9674 2.41324 19.2728 2.71244C19.5782 3.01165 19.7773 3.43172 19.8862 4.22499C19.9982 5.04159 20 6.12387 20 7.67568V15.5135L7.34563 15.5135C6.44305 15.5132 5.82716 15.513 5.29899 15.6517C4.82674 15.7756 4.38867 15.9781 4 16.2442V7.67568C4 6.12387 4.00176 5.04159 4.11382 4.225C4.22268 3.43172 4.42179 3.01165 4.72718 2.71244ZM7.58621 5.78378C7.12914 5.78378 6.75862 6.1468 6.75862 6.59459C6.75862 7.04239 7.12914 7.40541 7.58621 7.40541H16.4138C16.8709 7.40541 17.2414 7.04239 17.2414 6.59459C17.2414 6.1468 16.8709 5.78378 16.4138 5.78378H7.58621ZM6.75862 10.3784C6.75862 9.93058 7.12914 9.56757 7.58621 9.56757H13.1034C13.5605 9.56757 13.931 9.93058 13.931 10.3784C13.931 10.8262 13.5605 11.1892 13.1034 11.1892H7.58621C7.12914 11.1892 6.75862 10.8262 6.75862 10.3784Z" clip-rule="evenodd"/><path d="M7.47341 17.1351C6.39395 17.1351 6.01657 17.1421 5.72738 17.218C4.93365 17.4264 4.30088 18.0044 4.02952 18.7558C4.0463 19.1382 4.07259 19.4746 4.11382 19.775C4.22268 20.5683 4.42179 20.9884 4.72718 21.2876C5.03258 21.5868 5.46135 21.7818 6.27103 21.8885C7.10452 21.9983 8.2092 22 9.7931 22H14.2069C15.7908 22 16.8955 21.9983 17.729 21.8885C18.5387 21.7818 18.9674 21.5868 19.2728 21.2876C19.4894 21.0753 19.6526 20.8023 19.768 20.3784H7.58621C7.12914 20.3784 6.75862 20.0154 6.75862 19.5676C6.75862 19.1198 7.12914 18.7568 7.58621 18.7568H19.9704C19.9909 18.2908 19.9972 17.7564 19.9991 17.1351H7.47341Z"/></g></svg> كيفاش كتلعب؟</button>
+    </section>
+
+    <!-- ══ SETUP ══ -->
+    <section class="screen" id="scr-setup">
+      <div class="bar"><b dir="rtl">إعداد الحفلة</b><span class="pill">SET UP</span>
+        <button class="exitbtn" onclick="openModal('exit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> خروج للبيت</button></div>
+      <h2 class="sec" dir="rtl">شحال من لاعب؟</h2>
+      <div class="chips" id="countChips"></div>
+      <div id="customCount" style="display:none;margin-top:10px">
+        <input class="nameinput" id="customCountInput" type="number" min="3" max="15" value="8" dir="rtl">
+        <p class="hintline" dir="rtl">كتب العدد هنا حتى 15 لاعب</p>
+      </div>
+      <h2 class="sec" dir="rtl">الأسماء</h2>
+      <div id="nameList"></div>
+      <p class="hintline" dir="rtl">خلي الاسم فاضي باش يبقى «اللاعب N» بصيفطتو.</p>
+      <h2 class="sec" dir="rtl">شحال من جاسوس؟ 🕵️</h2>
+      <button class="pick" id="spyPick" onclick="toggleSpyEdit()">
+        <span>🕵️ <b id="spyCountLbl">1</b> <b id="spyWord">جاسوس</b></span>
+        <span class="sub" id="spyPickSub">ضغط باش تبدل (+ / −)</span>
+      </button>
+      <div class="stepper" id="spyStepper" style="display:none">
+        <button onclick="stepSpy(-1)">−</button>
+        <span class="val"><span id="spyVal">1</span> 🕵️</span>
+        <button onclick="stepSpy(1)">+</button>
+      </div>
+      <p class="hintline" dir="rtl">👈 حتى <b id="spyMax">2</b> جواسيس مع <b id="spyPlayers">5</b> لاعبين</p>
+      <h2 class="sec" dir="rtl">مدة الاستجواب <svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM12 7.25C11.5858 7.25 11.25 7.58579 11.25 8V12C11.25 12.1989 11.3291 12.3896 11.4697 12.5303L13.9697 15.0303C14.2626 15.3232 14.7374 15.3232 15.0303 15.0303C15.3232 14.7374 15.3232 14.2626 15.0303 13.9697L12.75 11.6895V8C12.75 7.58579 12.4142 7.25 12 7.25Z" clip-rule="evenodd"/></svg></h2>
+      <div class="stepper">
+        <button onclick="stepTimer(-10)">−</button>
+        <input class="val" id="timerInput" type="number" value="120" min="30" max="600">
+        <button onclick="stepTimer(10)">+</button>
+        <span style="font-weight:900" dir="rtl">ثانية</span>
+      </div>
+      <div class="chips" id="timerChips" style="margin-top:11px"></div>
+      <p class="hintline" dir="rtl">👈 120 ثانية هي المدة المثالية</p>
+      <div class="spacer"></div>
+      <button class="btn" id="startBtn" onclick="startGame()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M21.4086 9.35258C23.5305 10.5065 23.5305 13.4935 21.4086 14.6474L8.59662 21.6145C6.53435 22.736 4 21.2763 4 18.9671L4 5.0329C4 2.72368 6.53435 1.26402 8.59661 2.38548L21.4086 9.35258Z"/></svg> ابداو اللعبة</button>
+      <button class="btn ghost" onclick="show('home')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> رجع للبيت</button>
+    </section>
+
+    <!-- ══ REVEAL NIGHT ══ -->
+    <section class="screen" id="scr-reveal">
+      <div class="bar"><b dir="rtl">منظرة الكل 👀</b><span class="pill">REVEAL NIGHT</span>
+        <button class="exitbtn" onclick="openModal('exit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center">
+        <h2 style="font-size:24px;font-weight:900" dir="rtl">أقربو للشاشة كاملين!</h2>
+        <p class="tagline" dir="rtl">النهار والا الليل — عرفو على الجاسوس و سكيتو!</p>
+      </div>
+      <div id="spyCards"></div>
+      <div class="card">
+        <p class="lead" dir="rtl" id="revealNote"></p>
+        <p class="sm" dir="rtl">عدد اللاعبين: <b id="revealCount"></b></p>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="beginPass()">😅 فهمت، دوزو لتاب</button>
+    </section>
+
+    <!-- ══ PASS ══ -->
+    <section class="screen" id="scr-pass">
+      <div class="bar"><b dir="rtl">اللاعب <span id="passNum">1</span> / <span id="passTotal">4</span></b><span class="pill">دوزو التاب</span>
+        <button class="exitbtn" onclick="openModal('exit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center">
+        <p style="font-size:19px;font-weight:900" dir="rtl">دوز التاب لـ</p>
+        <div class="nameplaque" id="passName">اللاعب 1</div>
+        <p class="tagline" dir="rtl">ماعندكش توصّل ليدك حتى يكون التاب راح ليك!</p>
+      </div>
+      <div class="holdcard" id="passVeil" onclick="revealAction()">
+        <div class="ring"><div class="ringin">🃏</div></div>
+        <p class="hint" dir="rtl">ضغط باش تكشف السر</p>
+      </div>
+      <div class="card cut" id="passSecret" style="display:none;text-align:center">
+        <span class="rolebadge safe">🤫 الحركة السرية</span>
+        <div class="wordreveal" dir="rtl" id="passAction"></div>
+        <p class="lead" dir="rtl" style="margin-top:12px">أدّي هاد الحركة و أنت كتجاوب على أسئلة الجاسوس — بلا ما تضيف على بالو.</p>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="passNext" onclick="nextPass()">🤐 خبّاها و دوز التاب للي بعدي</button>
+    </section>
+
+    <!-- ══ PRE-INTER ══ -->
+    <section class="screen" id="scr-preinter">
+      <div class="bar"><b dir="rtl">الاستجواب</b><span class="pill">PRE-INTER</span>
+        <button class="exitbtn" onclick="openModal('exit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center" style="margin-top:26px">
+        <div class="big-emoji">🎯</div>
+        <h2 style="font-size:26px;font-weight:900;margin-top:10px" dir="rtl">استجواب <span id="preSpy">اللاعب 3</span></h2>
+        <p class="tagline" dir="rtl">الوقت: <b id="preMins">2</b> د ~ اللي كيستجوب هو <b id="preSpy2">اللاعب 3</b>.</p>
+        <p class="hintline" dir="rtl">الجاسوس كيجاوب خوه بصوت عالي — هادشي اللي خاصو يصمعو للجواب.</p>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="startInter()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM12 7.25C11.5858 7.25 11.25 7.58579 11.25 8V12C11.25 12.1989 11.3291 12.3896 11.4697 12.5303L13.9697 15.0303C14.2626 15.3232 14.7374 15.3232 15.0303 15.0303C15.3232 14.7374 15.3232 14.2626 15.0303 13.9697L12.75 11.6895V8C12.75 7.58579 12.4142 7.25 12 7.25Z" clip-rule="evenodd"/></svg> خليني نبدا الوقت</button>
+    </section>
+
+    <!-- ══ INTER ══ -->
+    <section class="screen" id="scr-inter">
+      <div class="bar"><b dir="rtl"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path d="M12 2C8.82436 2 6.25 4.57436 6.25 7.75V10.75C6.25 13.9256 8.82436 16.5 12 16.5C14.9214 16.5 17.334 14.3213 17.7015 11.5L13 11.5C12.5858 11.5 12.25 11.1642 12.25 10.75C12.25 10.3358 12.5858 10 13 10L17.75 10V8.5H13C12.5858 8.5 12.25 8.16421 12.25 7.75C12.25 7.33579 12.5858 7 13 7H17.7015C17.334 4.17873 14.9214 2 12 2Z"/><path fill-rule="evenodd" d="M4 9C4.41421 9 4.75 9.33579 4.75 9.75V10.75C4.75 14.7541 7.99594 18 12 18C16.0041 18 19.25 14.7541 19.25 10.75V9.75C19.25 9.33579 19.5858 9 20 9C20.4142 9 20.75 9.33579 20.75 9.75V10.75C20.75 15.3298 17.2314 19.0879 12.75 19.4683V21.75C12.75 22.1642 12.4142 22.5 12 22.5C11.5858 22.5 11.25 22.1642 11.25 21.75V19.4683C6.7686 19.0879 3.25 15.3298 3.25 10.75V9.75C3.25 9.33579 3.58579 9 4 9Z" clip-rule="evenodd"/></g></svg> استجواب: <span id="interSpy">اللاعب 3</span></b><span class="pill">INT</span>
+        <button class="exitbtn" onclick="openModal('exit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center">
+        <h2 style="font-size:23px;font-weight:900" dir="rtl">سلّم على الجاسوس</h2>
+        <p class="tagline" dir="rtl">الجاسوس كيقول ظنو بصوت عالي — والفريق كيحكم: صح ولا غلط؟</p>
+      </div>
+      <div class="clock" id="clock">2:00</div>
+      <div class="prog"><i id="progFill" style="width:100%"></i></div>
+      <div class="card" style="text-align:center">
+        <span class="rolebadge spy">🕵️ <span id="interSpy2">اللاعب 3</span> — الجاسوس</span>
+        <p class="sm" dir="rtl">عندك <span id="strikeNum">0</span>/3 ظنو غالط· الشينو راك تصي بيهم.</p>
+        <div class="strikes" id="strikeChips"><span>•</span><span>•</span><span>•</span></div>
+      </div>
+      <div class="spacer"></div>
+      <p class="center hintline" dir="rtl">الجاسوس كيقول ظنو بصوت عالي — ثم كتحكمو انت 🗣️</p>
+      <div class="row2">
+        <button class="btn red" onclick="judge(false)"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> غلط</button>
+        <button class="btn teal" onclick="judge(true)"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM16.0303 8.96967C16.3232 9.26256 16.3232 9.73744 16.0303 10.0303L11.0303 15.0303C10.7374 15.3232 10.2626 15.3232 9.96967 15.0303L7.96967 13.0303C7.67678 12.7374 7.67678 12.2626 7.96967 11.9697C8.26256 11.6768 8.73744 11.6768 9.03033 11.9697L10.5 13.4393L12.7348 11.2045L14.9697 8.96967C15.2626 8.67678 15.7374 8.67678 16.0303 8.96967Z" clip-rule="evenodd"/></svg> صح</button>
+      </div>
+      <p class="center hintline" dir="rtl">3 ظنون غالطين = الجاسوس خسر 🏆</p>
+    </section>
+
+    <!-- ══ FINAL ══ -->
+    <section class="screen" id="scr-final">
+      <div class="bar"><b></b><span class="pill">FINAL</span>
+        <button class="exitbtn" onclick="openModal('exit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center">
+        <div class="big-emoji" id="finalEmoji">🎉</div>
+        <h2 style="font-size:27px;font-weight:900;margin-top:8px" id="finalTitle" dir="rtl">الجاسوس ربح!</h2>
+        <p class="tagline" id="finalLead" dir="rtl"></p>
+      </div>
+      <div class="card cut" style="text-align:center" id="finalCard">
+        <span class="rolebadge safe">🤫 الحركة السرية كانت</span>
+        <div class="wordreveal blur" id="finalAction" dir="rtl"></div>
+        <div id="finalHidden">
+          <p class="hintline" dir="rtl">مبخوتة... اضغط باش تبينها 👇</p>
+          <button class="btn" onclick="revealFinal()">🥁 بينها</button>
+        </div>
+        <div id="finalShown" style="display:none">
+          <p class="lead" dir="rtl" style="margin-top:12px">ولا لا، صح عند الجاسوس؟ 😏</p>
+          <button class="btn" onclick="show('again')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M10.6669 6.13443L10.165 5.77922C9.44862 5.27225 8.59264 5 7.71504 5H7.10257C6.69838 5 6.29009 5.02549 5.90915 5.16059C3.52645 6.00566 1.88749 9.09504 2.00604 16.1026C2.02992 17.5145 2.3603 19.075 3.63423 19.6842C4.03121 19.8741 4.49667 20 5.02671 20C5.66273 20 6.1678 19.8187 6.55763 19.5632C6.96641 19.2953 7.32633 18.9471 7.68612 18.599C8.13071 18.1688 8.57511 17.7389 9.11125 17.4609C9.69519 17.1581 10.3434 17 11.0011 17H12.9989C13.6566 17 14.3048 17.1581 14.8888 17.4609C15.4249 17.7389 15.8693 18.1688 16.3139 18.599C16.6737 18.9471 17.0336 19.2953 17.4424 19.5632C17.8322 19.8187 18.3373 20 18.9733 20C19.5033 20 19.9688 19.8741 20.3658 19.6842C21.6397 19.075 21.9701 17.5145 21.994 16.1026C22.1125 9.09503 20.4735 6.00566 18.0908 5.16059C17.7099 5.02549 17.3016 5 16.8974 5H16.2849C15.4074 5 14.5514 5.27225 13.8351 5.77922L13.3332 6.13441C12.9434 6.41029 12.4776 6.55844 12 6.55844C11.5225 6.55844 11.0567 6.41029 10.6669 6.13443ZM16.75 9C17.1642 9 17.5 9.33579 17.5 9.75C17.5 10.1642 17.1642 10.5 16.75 10.5C16.3358 10.5 16 10.1642 16 9.75C16 9.33579 16.3358 9 16.75 9ZM7.5 9.25C7.91421 9.25 8.25 9.58579 8.25 10V10.75H9C9.41421 10.75 9.75 11.0858 9.75 11.5C9.75 11.9142 9.41421 12.25 9 12.25H8.25V13C8.25 13.4142 7.91421 13.75 7.5 13.75C7.08579 13.75 6.75 13.4142 6.75 13V12.25H6C5.58579 12.25 5.25 11.9142 5.25 11.5C5.25 11.0858 5.58579 10.75 6 10.75H6.75V10C6.75 9.58579 7.08579 9.25 7.5 9.25ZM19 11.25C19 11.6642 18.6642 12 18.25 12C17.8358 12 17.5 11.6642 17.5 11.25C17.5 10.8358 17.8358 10.5 18.25 10.5C18.6642 10.5 19 10.8358 19 11.25ZM15.25 12C15.6642 12 16 11.6642 16 11.25C16 10.8358 15.6642 10.5 15.25 10.5C14.8358 10.5 14.5 10.8358 14.5 11.25C14.5 11.6642 14.8358 12 15.25 12ZM17.5 12.75C17.5 12.3358 17.1642 12 16.75 12C16.3358 12 16 12.3358 16 12.75C16 13.1642 16.3358 13.5 16.75 13.5C17.1642 13.5 17.5 13.1642 17.5 12.75Z" clip-rule="evenodd"/></svg> لعبة أخرى</button>
+        </div>
+      </div>
+      <div class="spacer"></div>
+    </section>
+
+    <!-- ══ AGAIN ══ -->
+    <section class="screen" id="scr-again">
+      <div class="bar"><b dir="rtl">نهاية الجولة</b><span class="pill">AGAIN?</span>
+        <button class="exitbtn" onclick="openModal('exit')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> خروج</button></div>
+      <div class="center" style="margin-top:20px">
+        <div class="big-emoji">🎭</div>
+        <h2 style="font-size:26px;font-weight:900;margin-top:10px" dir="rtl">جولة أخرى؟</h2>
+        <p class="tagline" dir="rtl" id="againSummary"></p>
+      </div>
+      <div class="card">
+        <p class="sm" dir="rtl" style="margin-top:0">اللاعبين:</p>
+        <div id="againPlayers" style="margin-top:8px"></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" onclick="startGame()"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" d="M18.2577 3.50828C18.538 3.62437 18.7207 3.89785 18.7207 4.20119V8.44383C18.7207 8.85805 18.3849 9.19383 17.9707 9.19383H13.728C13.4247 9.19383 13.1512 9.0111 13.0351 8.73085C12.9191 8.45059 12.9832 8.128 13.1977 7.9135L14.8007 6.3105C12.1674 5.20912 9.01606 5.7309 6.87348 7.87348C4.04217 10.7048 4.04217 15.2952 6.87348 18.1265C9.70478 20.9578 14.2952 20.9578 17.1265 18.1265C18.7727 16.4803 19.4622 14.2401 19.1935 12.0937C19.142 11.6827 19.4335 11.3078 19.8445 11.2563C20.2555 11.2049 20.6304 11.4963 20.6819 11.9073C21.0057 14.4934 20.1746 17.1997 18.1872 19.1872C14.7701 22.6043 9.2299 22.6043 5.81282 19.1872C2.39573 15.7701 2.39573 10.2299 5.81282 6.81282C8.55119 4.07444 12.6515 3.5312 15.9309 5.18028L17.4404 3.67086C17.6549 3.45637 17.9774 3.3922 18.2577 3.50828Z"/></svg> نفس اللاعبين، جولة جديدة</button>
+      <button class="btn ghost" onclick="show('setup')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M14.2788 2.15224C13.9085 2 13.439 2 12.5 2C11.561 2 11.0915 2 10.7212 2.15224C10.2274 2.35523 9.83509 2.74458 9.63056 3.23463C9.53719 3.45834 9.50065 3.7185 9.48635 4.09799C9.46534 4.65568 9.17716 5.17189 8.69017 5.45093C8.20318 5.72996 7.60864 5.71954 7.11149 5.45876C6.77318 5.2813 6.52789 5.18262 6.28599 5.15102C5.75609 5.08178 5.22018 5.22429 4.79616 5.5472C4.47814 5.78938 4.24339 6.1929 3.7739 6.99993C3.30441 7.80697 3.06967 8.21048 3.01735 8.60491C2.94758 9.1308 3.09118 9.66266 3.41655 10.0835C3.56506 10.2756 3.77377 10.437 4.0977 10.639C4.57391 10.936 4.88032 11.4419 4.88029 12C4.88026 12.5581 4.57386 13.0639 4.0977 13.3608C3.77372 13.5629 3.56497 13.7244 3.41645 13.9165C3.09108 14.3373 2.94749 14.8691 3.01725 15.395C3.06957 15.7894 3.30432 16.193 3.7738 17C4.24329 17.807 4.47804 18.2106 4.79606 18.4527C5.22008 18.7756 5.75599 18.9181 6.28589 18.8489C6.52778 18.8173 6.77305 18.7186 7.11133 18.5412C7.60852 18.2804 8.2031 18.27 8.69012 18.549C9.17714 18.8281 9.46533 19.3443 9.48635 19.9021C9.50065 20.2815 9.53719 20.5417 9.63056 20.7654C9.83509 21.2554 10.2274 21.6448 10.7212 21.8478C11.0915 22 11.561 22 12.5 22C13.439 22 13.9085 22 14.2788 21.8478C14.7726 21.6448 15.1649 21.2554 15.3694 20.7654C15.4628 20.5417 15.4994 20.2815 15.5137 19.902C15.5347 19.3443 15.8228 18.8281 16.3098 18.549C16.7968 18.2699 17.3914 18.2804 17.8886 18.5412C18.2269 18.7186 18.4721 18.8172 18.714 18.8488C19.2439 18.9181 19.7798 18.7756 20.2038 18.4527C20.5219 18.2105 20.7566 17.807 21.2261 16.9999C21.6956 16.1929 21.9303 15.7894 21.9827 15.395C22.0524 14.8691 21.9088 14.3372 21.5835 13.9164C21.4349 13.7243 21.2262 13.5628 20.9022 13.3608C20.4261 13.0639 20.1197 12.558 20.1197 11.9999C20.1197 11.4418 20.4261 10.9361 20.9022 10.6392C21.2263 10.4371 21.435 10.2757 21.5836 10.0835C21.9089 9.66273 22.0525 9.13087 21.9828 8.60497C21.9304 8.21055 21.6957 7.80703 21.2262 7C20.7567 6.19297 20.522 5.78945 20.2039 5.54727C19.7799 5.22436 19.244 5.08185 18.7141 5.15109C18.4722 5.18269 18.2269 5.28136 17.8887 5.4588C17.3915 5.71959 16.7969 5.73002 16.3099 5.45096C15.8229 5.17191 15.5347 4.65566 15.5136 4.09794C15.4993 3.71848 15.4628 3.45833 15.3694 3.23463C15.1649 2.74458 14.7726 2.35523 14.2788 2.15224ZM12.5 15C14.1695 15 15.5228 13.6569 15.5228 12C15.5228 10.3431 14.1695 9 12.5 9C10.8305 9 9.47716 10.3431 9.47716 12C9.47716 13.6569 10.8305 15 12.5 15Z" clip-rule="evenodd"/></svg> بدّل الإعدادات</button>
+    </section>
+  </div>
+
+  <div class="adslot">AD · إعلان</div>
+
+  <!-- exit modal -->
+  <div class="overlay" id="modal-exit">
+    <div class="modal">
+      <h2 dir="rtl">تنتي متأكد؟</h2>
+      <p dir="rtl">اللعبة الحالية غادي تضيع؟ كول تعود تبدأ من الأول.</p>
+      <button class="btn" onclick="closeModals()">😅 بقيت هنا</button>
+      <button class="btn ghost" onclick="closeModals();stopClock();show('home')"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.5192 7.82274C2 8.77128 2 9.91549 2 12.2039V13.725C2 17.6258 2 19.5763 3.17157 20.7881C4.34315 22 6.22876 22 10 22H14C17.7712 22 19.6569 22 20.8284 20.7881C22 19.5763 22 17.6258 22 13.725V12.2039C22 9.91549 22 8.77128 21.4808 7.82274C20.9616 6.87421 20.0131 6.28551 18.116 5.10812L16.116 3.86687C14.1106 2.62229 13.1079 2 12 2C10.8921 2 9.88939 2.62229 7.88403 3.86687L5.88403 5.10813C3.98695 6.28551 3.0384 6.87421 2.5192 7.82274ZM9 17.25C8.58579 17.25 8.25 17.5858 8.25 18C8.25 18.4142 8.58579 18.75 9 18.75H15C15.4142 18.75 15.75 18.4142 15.75 18C15.75 17.5858 15.4142 17.25 15 17.25H9Z" clip-rule="evenodd"/></svg> أيوه، رجعني</button>
+    </div>
+  </div>
+
+  <!-- how-to modal -->
+  <div class="overlay" id="modal-howto">
+    <div class="modal">
+      <h2 dir="rtl"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><g fill="currentColor"><path fill-rule="evenodd" d="M4.72718 2.71244C5.03258 2.41324 5.46135 2.21816 6.27103 2.11151C7.10452 2.00172 8.2092 2 9.7931 2H14.2069C15.7908 2 16.8955 2.00172 17.729 2.11151C18.5387 2.21816 18.9674 2.41324 19.2728 2.71244C19.5782 3.01165 19.7773 3.43172 19.8862 4.22499C19.9982 5.04159 20 6.12387 20 7.67568V15.5135L7.34563 15.5135C6.44305 15.5132 5.82716 15.513 5.29899 15.6517C4.82674 15.7756 4.38867 15.9781 4 16.2442V7.67568C4 6.12387 4.00176 5.04159 4.11382 4.225C4.22268 3.43172 4.42179 3.01165 4.72718 2.71244ZM7.58621 5.78378C7.12914 5.78378 6.75862 6.1468 6.75862 6.59459C6.75862 7.04239 7.12914 7.40541 7.58621 7.40541H16.4138C16.8709 7.40541 17.2414 7.04239 17.2414 6.59459C17.2414 6.1468 16.8709 5.78378 16.4138 5.78378H7.58621ZM6.75862 10.3784C6.75862 9.93058 7.12914 9.56757 7.58621 9.56757H13.1034C13.5605 9.56757 13.931 9.93058 13.931 10.3784C13.931 10.8262 13.5605 11.1892 13.1034 11.1892H7.58621C7.12914 11.1892 6.75862 10.8262 6.75862 10.3784Z" clip-rule="evenodd"/><path d="M7.47341 17.1351C6.39395 17.1351 6.01657 17.1421 5.72738 17.218C4.93365 17.4264 4.30088 18.0044 4.02952 18.7558C4.0463 19.1382 4.07259 19.4746 4.11382 19.775C4.22268 20.5683 4.42179 20.9884 4.72718 21.2876C5.03258 21.5868 5.46135 21.7818 6.27103 21.8885C7.10452 21.9983 8.2092 22 9.7931 22H14.2069C15.7908 22 16.8955 21.9983 17.729 21.8885C18.5387 21.7818 18.9674 21.5868 19.2728 21.2876C19.4894 21.0753 19.6526 20.8023 19.768 20.3784H7.58621C7.12914 20.3784 6.75862 20.0154 6.75862 19.5676C6.75862 19.1198 7.12914 18.7568 7.58621 18.7568H19.9704C19.9909 18.2908 19.9972 17.7564 19.9991 17.1351H7.47341Z"/></g></svg> كيفاش كتلعب؟</h2>
+      <div class="step"><span class="n">1</span><p dir="rtl">كل واحد فيكوم كيحصل على حركة سرية — إلا الجاسوس.</p></div>
+      <div class="step"><span class="n">2</span><p dir="rtl">الجاسوس ما عندوش حركة، خاصو يقلب بالأسئلة شكون كيديرها.</p></div>
+      <div class="step"><span class="n">3</span><p dir="rtl">إلا عرف الجاسوس الحركة قبل ما يكمل الوقت: ربح. إلا لا: ربح الفريق.</p></div>
+      <div class="step"><span class="n">4</span><p dir="rtl">دوزو التاب من لاعب للاعب — السر يبقى بيناتكم!</p></div>
+      <button class="btn" onclick="closeModals()">فهمت، نشدو اللعب 😄</button>
+    </div>
+  </div>
+
+  <!-- time-up modal -->
+  <div class="overlay" id="modal-timeup">
+    <div class="modal">
+      <div class="big-emoji">🚨</div>
+      <h2 dir="rtl">خلص الوقت!</h2>
+      <p dir="rtl">الجاسوس، هاد آخر ظن. والفريق: كان صح ولا غلط؟</p>
+      <div class="row2">
+        <button class="btn red" onclick="closeModals();judge(false)"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z" clip-rule="evenodd"/></svg> غلط</button>
+        <button class="btn teal" onclick="closeModals();judge(true)"><svg class="sic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM16.0303 8.96967C16.3232 9.26256 16.3232 9.73744 16.0303 10.0303L11.0303 15.0303C10.7374 15.3232 10.2626 15.3232 9.96967 15.0303L7.96967 13.0303C7.67678 12.7374 7.67678 12.2626 7.96967 11.9697C8.26256 11.6768 8.73744 11.6768 9.03033 11.9697L10.5 13.4393L12.7348 11.2045L14.9697 8.96967C15.2626 8.67678 15.7374 8.67678 16.0303 8.96967Z" clip-rule="evenodd"/></svg> صح</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const scrollEl=$('#scroll');
+function show(id){document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id==='scr-'+id));scrollEl.scrollTop=0;}
+function openModal(n){$('#modal-'+n).classList.add('on');}
+function closeModals(){document.querySelectorAll('.overlay').forEach(e=>e.classList.remove('on'));}
+
+/* ticker — the real game's rotating items */
+const TICKER=['🔍 حزر فزر','7ZER FZER','🕵️ جاسوس ولا جاسوسين','دوزو التاب برك','🤫 حركة سرية','👂 استجواب بالدارجة','⏱️ الوقت يدور'];
+$('#tickerTrack').innerHTML=(TICKER.concat(TICKER)).map(t=>`<span>${t}<i>•</i></span>`).join('');
+
+/* secret actions — real list from the game */
+const ACTIONS=['لمس الأنف مرة وحدة.','هز الرأس مرة وحدة بحال إلا كتقول نعم.','ابتسامة صغيرة مرة وحدة.','غمز بالعين اليمنى مرة وحدة.','رفع الكتفين بجوج شوية.','وضع اليد على الصدر لمدة ثانية.','تنفس بعمق مرة وحدة.','تحريك الكأس شوية ثم إرجاعو لبلاصتو.','قول "ياك؟" فوسط الجواب ديالك.','حك نيفك كل مرة تبغي تهضر.'];
+
+const G={count:5,custom:false,spies:1,timer:120,spyIdx:[],action:'',passList:[],passI:0,strikes:0,result:null,clockInt:null,left:0};
+const maxSpies=c=>Math.max(1,Math.floor((c-1)/2));
+const names=()=>{const out=[];document.querySelectorAll('#nameList input').forEach((inp,i)=>out.push(inp.value.trim()||('اللاعب '+(i+1))));return out;};
+
+/* ── setup ── */
+function renderCountChips(){
+  const w=$('#countChips');w.innerHTML='';
+  [3,4,5,6,7].forEach(n=>{const b=document.createElement('button');b.className='chip'+(!G.custom&&G.count===n?' on':'');b.textContent=n;b.onclick=()=>{G.custom=false;G.count=n;$('#customCount').style.display='none';syncSetup();};w.appendChild(b);});
+  const m=document.createElement('button');m.className='chip more'+(G.custom?' on':'');m.textContent='عدد آخر';m.onclick=()=>{G.custom=true;$('#customCount').style.display='block';G.count=+$('#customCountInput').value||8;syncSetup();};w.appendChild(m);
+}
+$('#customCountInput').addEventListener('input',e=>{let v=+e.target.value||3;v=Math.min(15,Math.max(3,v));G.count=v;syncSetup();});
+function renderNames(){
+  const w=$('#nameList');w.innerHTML='';
+  for(let i=0;i<G.count;i++){const inp=document.createElement('input');inp.className='nameinput';inp.maxLength=20;inp.placeholder='اللاعب '+(i+1);inp.dir='rtl';w.appendChild(inp);}
+}
+function syncSetup(){
+  renderCountChips();renderNames();
+  if(G.spies>maxSpies(G.count))G.spies=maxSpies(G.count);
+  $('#spyCountLbl').textContent=G.spies;$('#spyVal').textContent=G.spies;
+  $('#spyWord').textContent=G.spies>1?'جواسيس':'جاسوس';
+  $('#spyMax').textContent=maxSpies(G.count);$('#spyPlayers').textContent=G.count;
+  renderTimerChips();
+}
+function renderTimerChips(){
+  const w=$('#timerChips');w.innerHTML='';
+  [60,120,180,300].forEach(n=>{const b=document.createElement('button');b.className='chip'+(G.timer===n?' on':'');b.textContent=n;b.onclick=()=>{G.timer=n;$('#timerInput').value=n;renderTimerChips();};w.appendChild(b);});
+}
+$('#timerInput').addEventListener('input',e=>{let v=+e.target.value||120;G.timer=Math.min(600,Math.max(30,v));renderTimerChips();});
+function stepTimer(d){G.timer=Math.min(600,Math.max(30,G.timer+d));$('#timerInput').value=G.timer;renderTimerChips();}
+function toggleSpyEdit(){const s=$('#spyStepper');const on=s.style.display!=='none';s.style.display=on?'none':'flex';$('#spyPick').classList.toggle('on',!on);$('#spyPickSub').textContent=on?'ضغط باش تبدل (+ / −)':'ضغط باش تقفل';}
+function stepSpy(d){G.spies=Math.min(maxSpies(G.count),Math.max(1,G.spies+d));syncSetup();}
+function goSetup(){syncSetup();show('setup');}
+
+/* ── game flow ── */
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function shuffled(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function startGame(){
+  const ns=names();
+  G.spyIdx=shuffled(ns.map((_,i)=>i)).slice(0,G.spies);
+  G.action=pick(ACTIONS);G.strikes=0;G.result=null;
+  const spyNames=G.spyIdx.map(i=>ns[i]);
+  $('#spyCards').innerHTML=spyNames.map((n,i)=>`
+    <div class="card cut spycard">
+      <span class="pill">جاسوس ${spyNames.length>1?(i+1):''}</span> <span style="font-size:19px">🕵️</span>
+      <div class="nameplaque" dir="rtl">${n}</div>
+      <p class="lead" dir="rtl">ها الجاسوس — ما تورّيش عليه! 👇</p>
+    </div>`).join('');
+  $('#revealNote').textContent=spyNames.length>1
+    ?`الجواسيس (${spyNames.length}) كيشغلو فيها بحمة وحدة: كلهم كيخبّيو نفس «الحركة» و كيحاولو يخربقو على الباقي.`
+    :'الجاسوس هو اللاعب الوحيد اللي ما عندوش لا حركة لا علاقة بيهم.';
+  $('#revealCount').textContent=ns.length;
+  show('reveal');
+}
+function beginPass(){
+  const ns=names();
+  G.passList=ns.filter((_,i)=>!G.spyIdx.includes(i));G.passI=0;
+  renderPass();show('pass');
+}
+function renderPass(){
+  $('#passNum').textContent=G.passI+1;$('#passTotal').textContent=G.passList.length;
+  $('#passName').textContent=G.passList[G.passI];
+  $('#passVeil').style.display='block';$('#passVeil').classList.remove('live');
+  $('#passSecret').style.display='none';
+  $('#passNext').textContent=G.passI===G.passList.length-1?'🤫 شدّو سركم — نشدو الاستجواب':'🤐 خبّاها و دوز التاب للي بعدي';
+}
+function revealAction(){
+  $('#passAction').textContent=G.action;
+  $('#passVeil').style.display='none';$('#passSecret').style.display='block';
+}
+function nextPass(){
+  if(G.passI<G.passList.length-1){G.passI++;renderPass();scrollEl.scrollTop=0;}
+  else{
+    const ns=names();const spy=ns[G.spyIdx[0]];
+    $('#preSpy').textContent=spy;$('#preSpy2').textContent=spy;
+    $('#preMins').textContent=Math.round(G.timer/60);
+    show('preinter');
+  }
+}
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function startInter(){
+  const ns=names();const spy=ns[G.spyIdx[0]];
+  $('#interSpy').textContent=spy;$('#interSpy2').textContent=spy;
+  G.left=G.timer;G.strikes=0;renderStrikes();
+  show('inter');paintClock();
+  stopClock();
+  G.clockInt=setInterval(()=>{G.left--;paintClock();if(G.left<=0){stopClock();openModal('timeup');}},1000);
+}
+function paintClock(){
+  $('#clock').textContent=fmt(Math.max(0,G.left));
+  $('#clock').classList.toggle('low',G.left<=30);
+  const f=$('#progFill');f.style.width=(G.timer?Math.max(0,G.left/G.timer*100):0)+'%';f.classList.toggle('danger',G.left<=30);
+}
+function stopClock(){if(G.clockInt){clearInterval(G.clockInt);G.clockInt=null;}}
+function renderStrikes(){
+  $('#strikeNum').textContent=G.strikes;
+  $('#strikeChips').innerHTML=[0,1,2].map(i=>`<span class="${i<G.strikes?'hit':''}">${i<G.strikes?'✗':'•'}</span>`).join('');
+}
+function judge(right){
+  stopClock();
+  if(right){G.result='win';}
+  else{G.strikes++;renderStrikes();if(G.strikes<3){ /* keep interrogating */ G.clockInt=setInterval(()=>{G.left--;paintClock();if(G.left<=0){stopClock();openModal('timeup');}},1000); return;} G.result='lose';}
+  renderFinal();show('final');
+}
+function renderFinal(){
+  const win=G.result==='win';
+  $('#finalEmoji').textContent=win?'🎉':'😵';
+  $('#finalTitle').textContent=win?'الجاسوس ربح!':'الفريق ربح!';
+  $('#finalLead').textContent=win?'ظنو غاص فالصحيحة — تحية للنفار! 🕵️':'3 ظنون غالطين — الشينة تاعهم بانت واضحة! 🏆';
+  $('#finalAction').textContent=G.action;
+  $('#finalAction').classList.add('blur');
+  $('#finalHidden').style.display='block';$('#finalShown').style.display='none';
+}
+function revealFinal(){$('#finalAction').classList.remove('blur');$('#finalHidden').style.display='none';$('#finalShown').style.display='block';}
+/* the "again" screen summarises the round that just ended; fill it when shown */
+const _show=show;
+show=function(id){if(id==='again'){const ns=names();$('#againSummary').innerHTML=`الفريق ديال <b>${ns.length}</b> لاعبين، جاسوس <b>${G.spies}</b> ، و مؤقت <b>${G.timer}</b> ثانية.`;$('#againPlayers').innerHTML=ns.map(n=>`<span class="playerpill" dir="rtl">${n}</span>`).join('');}_show(id);};
+function againRound(){startGame();}
+
+/* deep-link demo states for previews: #setup #reveal #pass #preinter #inter #final-win #final-lose */
+(function(){
+  const h=location.hash.replace('#','');if(!h||h==='home')return;
+  syncSetup();
+  const ns=names();
+  const prep=()=>{G.spyIdx=[2];G.action=ACTIONS[0];};
+  if(h==='setup')show('setup');
+  else if(h==='reveal'){prep();startGame();}
+  else if(h==='pass'){prep();G.passList=ns.filter((_,i)=>i!==2);G.passI=0;renderPass();$('#passAction').textContent=G.action;show('pass');}
+  else if(h==='preinter'){prep();$('#preSpy').textContent=ns[2];$('#preSpy2').textContent=ns[2];$('#preMins').textContent=Math.round(G.timer/60);show('preinter');}
+  else if(h==='inter'){prep();G.left=G.timer;$('#interSpy').textContent=ns[2];$('#interSpy2').textContent=ns[2];renderStrikes();show('inter');paintClock();}
+  else if(h==='final-win'||h==='final-lose'){prep();G.result=h==='final-win'?'win':'lose';renderFinal();show('final');}
+  else if(h==='again'){prep();show('again');}
+})();
+syncSetup();
+</script>
+</body>
+</html>
