@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PLAYM3ANA — Signing you in…</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* "Store Posters" auth callback — mirrors the real /auth/callback:
+     spinner while the session resolves, then redirect (lobby / game return / admin). */
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{--sab:env(safe-area-inset-bottom,0px);--sat:env(safe-area-inset-top,0px);
+    --bg:#07070D;--panel:#101019;--line:#23232f;--lime:#C6F542;--gold:#FFC93C;--dim:#9C9CAE;--red:#E5484D}
+  html,body{height:100%}
+  body{font-family:"Nunito",system-ui,sans-serif;color:#fff;background:#000;display:flex;justify-content:center}
+  .phone{position:relative;width:100%;max-width:430px;height:100dvh;overflow:hidden;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:calc(20px + var(--sat)) 30px calc(26px + var(--sab));background:
+    radial-gradient(120% 46% at 85% -6%,#7C3AED33 0%,transparent 55%),
+    radial-gradient(90% 40% at -10% 30%,#DC262622 0%,transparent 55%),var(--bg)}
+  .back{position:absolute;top:calc(14px + var(--sat));left:16px;width:40px;height:40px;border-radius:13px;
+    background:#15151F;border:1px solid var(--line);display:grid;place-items:center;color:#fff;
+    text-decoration:none;font-size:19px;font-weight:900}
+  .logo{font-weight:900;font-size:27px;letter-spacing:2px}
+  .logo i{font-style:normal;color:var(--lime)}
+  .spin{width:52px;height:52px;margin-top:38px;border-radius:50%;
+    border:3.5px solid #C6F5422E;border-top-color:var(--lime);animation:sp 0.85s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .statetxt{margin-top:22px;font-size:16px;font-weight:900;text-align:center}
+  .subtxt{margin-top:7px;font-size:13px;font-weight:700;color:var(--dim);text-align:center;line-height:1.55;max-width:290px}
+  .ring{width:64px;height:64px;margin-top:34px;border-radius:50%;display:grid;place-items:center;
+    font-size:29px;font-weight:900}
+  .ring.ok{border:2.5px solid var(--lime);color:var(--lime)}
+  .ring.err{border:2.5px solid var(--red);color:var(--red)}
+  .btns{margin-top:20px;display:flex;flex-direction:column;gap:9px;width:100%;max-width:280px}
+  .btns a{display:block;text-align:center;border-radius:12px;padding:12px;font-size:14px;font-weight:900;text-decoration:none}
+  .btns .primary{background:var(--lime);color:#131803}
+  .btns .ghost{background:#15151F;border:1px solid var(--line);color:#fff}
+  .demo{position:absolute;bottom:calc(18px + var(--sab));left:0;right:0;text-align:center;
+    font-size:11px;font-weight:800;color:#55556a;letter-spacing:.3px}
+  .demo a{color:#8a8aa0;text-decoration:none;margin:0 5px}
+  .demo a:hover{color:var(--lime)}
+</style>
+</head>
+<body>
+  <div class="phone">
+    <a class="back" href="login-store.html">←</a>
+    <div class="logo">PLAY<i>M3ANA</i></div>
+
+    <!-- state: resolving -->
+    <div id="st-loading">
+      <div class="spin" role="status" aria-label="Loading"></div>
+      <div class="statetxt">Signing you in…</div>
+      <div class="subtxt">Checking your session — just a second.</div>
+    </div>
+
+    <!-- state: success -->
+    <div id="st-ok" style="display:none">
+      <div class="ring ok">✓</div>
+      <div class="statetxt" id="okTitle">Welcome back!</div>
+      <div class="subtxt" id="okSub">Taking you to the lobby…</div>
+    </div>
+
+    <!-- state: error -->
+    <div id="st-err" style="display:none">
+      <div class="ring err">!</div>
+      <div class="statetxt">Sign-in didn't finish</div>
+      <div class="subtxt" id="errSub">Something went wrong while signing you in. Please try again.</div>
+      <div class="btns">
+        <a class="primary" href="login-store.html">Try again</a>
+        <a class="ghost" href="register-store.html">Create account</a>
+      </div>
+    </div>
+
+    <!-- state: admin (real game redirects ADMIN accounts to /admin — outside this preview) -->
+    <div id="st-admin" style="display:none">
+      <div class="ring ok">✓</div>
+      <div class="statetxt">Admin account</div>
+      <div class="subtxt">In the real game you land on the admin panel now. The panel is not part of this redesign preview.</div>
+      <div class="btns">
+        <a class="primary" href="lobby-store.html">Continue to the lobby (demo)</a>
+      </div>
+    </div>
+
+    <div class="demo">demo ·
+      <a href="auth-callback-store.html">normal</a>·
+      <a href="auth-callback-store.html?play=mafia&amp;method=coins">game return</a>·
+      <a href="auth-callback-store.html?admin=1">admin</a>·
+      <a href="auth-callback-store.html?error=OAuthAccountNotLinked">error</a>
+    </div>
+  </div>
+<script>
+  // Mirrors the real /auth/callback: resolve the session, then redirect —
+  // ?play=&method= back to the lobby (which resumes the unlock), ADMIN -> /admin, else lobby.
+  (function(){
+    var qs = new URLSearchParams(location.search);
+    function show(id){
+      ['st-loading','st-ok','st-err','st-admin'].forEach(function(s){
+        document.getElementById(s).style.display = (s === id) ? '' : 'none';
+      });
+    }
+    var err = qs.get('error');
+    if (err) {
+      setTimeout(function(){
+        if (err === 'OAuthAccountNotLinked') {
+          document.getElementById('errSub').textContent =
+            'This Gmail is linked to a different sign-in method. Log in the way you first created the account.';
+        }
+        show('st-err');
+      }, 900);
+      return;
+    }
+    setTimeout(function(){
+      if (qs.get('admin') === '1') { show('st-admin'); return; }
+      var play = qs.get('play');
+      if (play) {
+        document.getElementById('okTitle').textContent = 'You are in!';
+        document.getElementById('okSub').textContent = 'Back to your game — the lobby is resuming your table…';
+      }
+      show('st-ok');
+      setTimeout(function(){
+        location.replace('lobby-store.html' + (play
+          ? '?play=' + encodeURIComponent(play) + '&method=' + (qs.get('method') === 'ad' ? 'ad' : 'coins')
+          : ''));
+      }, 1100);
+    }, 1200);
+  })();
+</script>
+</body>
+</html>

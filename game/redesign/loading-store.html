@@ -32,6 +32,15 @@
   .loadtxt{margin-top:14px;font-size:13.5px;font-weight:800;color:#E7E7F0}
   .foot{position:absolute;bottom:calc(20px + var(--sab));left:0;right:0;text-align:center;
     font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.6px}
+  .errbox{margin-top:34px;text-align:center;max-width:280px}
+  .errring{width:64px;height:64px;margin:0 auto 14px;border-radius:50%;border:2.5px solid #E5484D;
+    color:#E5484D;display:grid;place-items:center;font-size:30px;font-weight:900}
+  .errbox h2{font-size:19px;font-weight:900}
+  .errbox p{margin-top:7px;font-size:13px;font-weight:700;color:var(--dim);line-height:1.55}
+  .errbox button{margin-top:16px;background:var(--lime);color:#131803;border:none;border-radius:12px;
+    padding:11px 22px;font-family:inherit;font-size:14px;font-weight:900;cursor:pointer}
+  .demotoggle{position:absolute;right:14px;bottom:calc(16px + var(--sab));font-size:10.5px;font-weight:800;
+    color:#55556a;text-decoration:none;letter-spacing:.3px}
 </style>
 </head>
 <body>
@@ -41,11 +50,28 @@
     <div class="tag">بلاصة اللعب</div>
     <div class="track"><div class="fill"></div></div>
     <div class="loadtxt">Loading your games…</div>
+    <div class="errbox" id="errbox" style="display:none">
+      <div class="errring">!</div>
+      <h2>The lobby couldn't load</h2>
+      <p>Something went wrong while starting the game. Check your connection and try again.</p>
+      <button id="reloadBtn" type="button">Reload</button>
+    </div>
     <div class="foot">PLAYM3ANA · STORE POSTERS</div>
+    <a class="demotoggle" href="loading-store.html?error=1">demo · init error</a>
   </div>
 <script>
   // Splash → lobby after the bar fills (~2.4s), replacing history so Back doesn't return here
-  setTimeout(function(){ location.replace('lobby-store.html'); }, 2400);
+  var goLobby = setTimeout(function(){ location.replace('lobby-store.html'); }, 2400);
+  // Init-error state (real game: shown when the lobby fails to initialise) — demo via ?error=1
+  if (new URLSearchParams(location.search).get('error') === '1') {
+    clearTimeout(goLobby);
+    document.querySelector('.track').style.display = 'none';
+    document.querySelector('.loadtxt').style.display = 'none';
+    document.getElementById('errbox').style.display = 'block';
+  }
+  document.getElementById('reloadBtn').addEventListener('click', function(){
+    location.replace('loading-store.html');
+  });
 </script>
 </body>
 </html>
