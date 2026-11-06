@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VirtualFit: Spatial Try-On</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="room"></div>
+
+<div class="ghost" aria-hidden="true"><span>F</span><span>I</span><span>T</span></div>
+
+<nav class="tabs glass" id="tabs">
+  <div class="pill" id="tabPill"></div>
+  <button class="tab active" type="button">Tops</button>
+  <button class="tab" type="button">Bottoms</button>
+  <button class="tab" type="button">Outerwear</button>
+  <button class="tab" type="button">Shoes</button>
+  <button class="tab" type="button">Accessories</button>
+</nav>
+
+<aside class="rail glass">
+  <button class="rbtn act" type="button" aria-label="Tops">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 5.1 16.6 2.7a.6.6 0 0 0-.8.3c-.6 1.2-2.1 2-3.8 2s-3.2-.8-3.8-2a.6.6 0 0 0-.8-.3L2.1 5.1a.6.6 0 0 0-.3.8l1.7 3.9a.6.6 0 0 0 .8.3L7 9.4v10.4c0 .3.3.6.6.6h8.8c.3 0 .6-.3.6-.6V9.4l2.7.7c.3.1.7 0 .8-.3l1.7-3.9a.6.6 0 0 0-.3-.8Z"/></svg>
+  </button>
+  <button class="rbtn" type="button" aria-label="Cart">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h2l2.5 12a1 1 0 0 0 1 .8h9.9a1 1 0 0 0 1-.8L20.5 7H6"/><circle cx="10" cy="20.4" r="1.3" fill="currentColor" stroke="none"/><circle cx="17.5" cy="20.4" r="1.3" fill="currentColor" stroke="none"/></svg>
+  </button>
+  <button class="rbtn" type="button" aria-label="Calendar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 2.8V6M16 2.8V6"/></svg>
+  </button>
+  <button class="rbtn" type="button" aria-label="Profile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c1.4-3.8 4.4-5.5 7.5-5.5s6.1 1.7 7.5 5.5"/></svg>
+  </button>
+</aside>
+
+<main class="stage" id="stage">
+  <div class="arc" id="arc"></div>
+</main>
+
+<div class="model" aria-hidden="true">
+  <div class="fig" id="mCur"></div>
+  <div class="fig" id="mNext"></div>
+  <div class="grid"></div>
+  <div class="scan"></div>
+</div>
+
+<button class="arrow glass" id="prevBtn" type="button" aria-label="Previous">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 5 7.5 12 14.5 19"/></svg>
+</button>
+<button class="arrow glass" id="nextBtn" type="button" aria-label="Next">
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9.5 5 16.5 12 9.5 19"/></svg>
+</button>
+
+<section class="buy glass">
+  <div class="thumb" id="thumb"><div class="thumbG" id="thumbG"></div></div>
+  <div class="info">
+    <div class="ln name" id="nameLn"><div class="stack"><span>Basic T-shirt</span></div></div>
+    <div class="ln price" id="priceLn"><div class="stack"><span>$45</span></div></div>
+  </div>
+  <div class="grp">
+    <div class="lbl">Size</div>
+    <div class="chips">
+      <button class="chip" type="button">S</button>
+      <button class="chip act" type="button">M</button>
+      <button class="chip" type="button">L</button>
+      <button class="chip" type="button">XL</button>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="ln colorL" id="colorLn"><div class="stack"><span>Color · White</span></div></div>
+    <div class="dots" id="dots"></div>
+  </div>
+</section>
+
+<div class="cur" id="cur" aria-hidden="true">
+  <div class="ring"></div>
+  <div class="cdot"></div>
+  <div class="clab try">TRY ON</div>
+  <div class="clab drag">DRAG</div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
