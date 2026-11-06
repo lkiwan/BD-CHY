@@ -202,18 +202,24 @@ button{font:inherit;color:inherit;background:none;border:none}
 .zbtn:active{transform:scale(.92)}
 .zbtn.off{opacity:.4}
 
-/* ---------- buy card ---------- */
+/* ---------- buy card ----------
+   Collapsible: it starts as a slim bar (thumbnail + name +
+   price + chevron) so the model's outfit stays fully visible,
+   and expands to the full card (Size + Colour) on tap/drag.
+   The collapsed values below are the resting defaults;
+   js/app.js drives the geometry inline while animating. */
 .buy{
   position:fixed;left:50%;transform:translateX(-50%);bottom:4.6vh;z-index:60;
   width:min(640px, calc(100vw - 32px));
-  display:flex;align-items:center;gap:22px;
-  padding:12px 22px 12px 12px;
-  border-radius:24px;
+  display:flex;align-items:center;gap:14px;
+  padding:10px 12px;
+  border-radius:22px;
   color:#fff;
   text-shadow:0 1px 6px rgba(0,0,0,.18);
+  touch-action:none;
 }
 .buy .thumb{
-  width:64px;height:64px;flex:none;position:relative;overflow:hidden;
+  width:56px;height:56px;flex:none;position:relative;overflow:hidden;
   border-radius:14px;background:rgba(255,255,255,.3);
 }
 .buy .thumbG{
@@ -229,7 +235,15 @@ button{font:inherit;color:inherit;background:none;border:none}
 .ln.name{font-weight:600;font-size:16px}
 .ln.price{font-weight:500;font-size:14px;opacity:.9}
 .ln.colorL{font-weight:500;font-size:12px;opacity:.85}
-.buy .grp{display:flex;flex-direction:column;gap:6px}
+.buy .grp{display:flex;flex-direction:column;gap:6px;overflow:hidden;max-width:0;opacity:0;visibility:hidden}
+.buyChev{
+  margin-left:auto;flex:none;
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 4px 14px -6px rgba(0,0,0,.3);
+  display:flex;align-items:center;justify-content:center;
+  will-change:transform;
+}
 .buy .lbl{font-weight:500;font-size:12px;opacity:.85}
 .chips{display:flex;gap:6px}
 .chip{

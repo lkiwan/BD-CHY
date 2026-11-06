@@ -35,6 +35,7 @@
   var pill = $("#tabPill");
   var nameLn = $("#nameLn"), priceLn = $("#priceLn"), colorLn = $("#colorLn");
   var thumb = $("#thumb"), thumbG = $("#thumbG"), dotsEl = $("#dots");
+  var buyEl = $("#buy"), chevEl = $("#buyChev");
   var zoomInBtn = $("#zoomIn"), zoomOutBtn = $("#zoomOut");
 
   /* ---------------- state ---------------- */
@@ -185,7 +186,128 @@
       );
     }
     buildDots(item);
+    measureBar();
+    if (!barAnim) renderBar(barP);
   }
+
+  /* ---------------- collapsible buy bar ----------------
+     The buy card starts collapsed to a slim bar (thumbnail +
+     name + price + chevron) so the model's outfit is fully
+     visible. Tapping the slim bar or the chevron, or dragging
+     the bar up, expands it to the full card (Size + Colour);
+     tapping the chevron again, or dragging down, collapses
+     it. barP is the 0..1 progress and renderBar() paints
+     every in-between state, so drags follow the finger and
+     releases snap with the project ease (~450ms). */
+  var buyGrps = Array.prototype.slice.call(buyEl.querySelectorAll(".grp"));
+  var barP = 0, barTarget = 0, barW = [0, 0], dragOff = 0, barAnim = null;
+
+  function cubicEase(x1, y1, x2, y2) {
+    function sx(t) { return 3 * (1 - t) * (1 - t) * t * x1 + 3 * (1 - t) * t * t * x2 + t * t * t; }
+    function sy(t) { return 3 * (1 - t) * (1 - t) * t * y1 + 3 * (1 - t) * t * t * y2 + t * t * t; }
+    function dx(t) { return 3 * (1 - t) * (1 - t) * x1 + 6 * (1 - t) * t * (x2 - x1) + 3 * t * t * (1 - x2); }
+    return function (x) {
+      var t = x, i, err, d;
+      for (i = 0; i < 5; i++) {
+        err = sx(t) - x;
+        if (Math.abs(err) < 1e-4) return sy(t);
+        d = dx(t);
+        if (Math.abs(d) < 1e-4) break;
+        t -= err / d;
+      }
+      var lo = 0, hi = 1;
+      t = x;
+      while (hi - lo > 1e-4) {
+        if (sx(t) < x) lo = t; else hi = t;
+        t = (lo + hi) / 2;
+      }
+      return sy(t);
+    };
+  }
+  var easeFn = cubicEase(0.2, 0.8, 0.2, 1);
+
+  function measureBar() {
+    buyGrps.forEach(function (g, i) {
+      var prev = g.style.maxWidth;
+      g.style.maxWidth = "none";
+      barW[i] = g.scrollWidth;
+      g.style.maxWidth = prev;
+    });
+  }
+  function renderBar(p) {
+    barP = p;
+    buyEl.style.padding = (10 + 2 * p) + "px " + (12 + 10 * p) + "px " + (10 + 2 * p) + "px 12px";
+    buyEl.style.gap = (14 + 8 * p) + "px";
+    buyEl.style.borderRadius = (22 + 2 * p) + "px";
+    var ts = (56 + 8 * p) + "px";
+    thumb.style.width = ts;
+    thumb.style.height = ts;
+    buyGrps.forEach(function (g, i) {
+      g.style.maxWidth = (barW[i] * p) + "px";
+      g.style.opacity = String(p);
+      g.style.visibility = p <= 0.001 ? "hidden" : "visible";
+    });
+    chevEl.style.transform = "rotate(" + (180 * p) + "deg)";
+    buyEl.style.transform = "translateX(-50%) translateY(" + dragOff + "px)";
+    chevEl.setAttribute("aria-expanded", p > 0.5 ? "true" : "false");
+    chevEl.setAttribute("aria-label", p > 0.5 ? "Collapse" : "Expand");
+  }
+  function animateBar(to) {
+    barTarget = to;
+    if (barAnim) { cancelAnimationFrame(barAnim); barAnim = null; }
+    if (reduced) { dragOff = 0; renderBar(to); return; }
+    var from = barP, fromOff = dragOff, t0 = performance.now(), dur = 450;
+    if (from === to && fromOff === 0) { renderBar(to); return; }
+    function step(now) {
+      var k = Math.min(1, (now - t0) / dur), e = easeFn(k);
+      dragOff = fromOff * (1 - e);
+      renderBar(from + (to - from) * e);
+      if (k < 1) barAnim = requestAnimationFrame(step);
+      else { barAnim = null; dragOff = 0; renderBar(to); }
+    }
+    barAnim = requestAnimationFrame(step);
+  }
+
+  /* Tap + vertical drag on the bar itself. Drags that start
+     on the Size/Colour controls or the chevron are left to
+     those controls; the bar never reaches the stage drag. */
+  var barDrag = null, barSuppressClick = false;
+  buyEl.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    if (e.target.closest(".grp") || e.target.closest(".buyChev")) return;
+    if (barAnim) { cancelAnimationFrame(barAnim); barAnim = null; }
+    barDrag = { id: e.pointerId, y0: e.clientY, p0: barP, t0: barTarget, max: 0 };
+    try { buyEl.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  buyEl.addEventListener("pointermove", function (e) {
+    if (!barDrag || e.pointerId !== barDrag.id) return;
+    var dy = barDrag.y0 - e.clientY; // up = positive = expand
+    barDrag.max = Math.max(barDrag.max, Math.abs(dy));
+    dragOff = Math.max(-16, Math.min(16, -dy * 0.35));
+    renderBar(Math.min(1, Math.max(0, barDrag.p0 + dy / 120)));
+  });
+  function barDragEnd(e) {
+    if (!barDrag || e.pointerId !== barDrag.id) return;
+    var dy = barDrag.y0 - e.clientY, startTarget = barDrag.t0;
+    var wasTap = barDrag.max < 6;
+    barDrag = null;
+    if (wasTap) { animateBar(startTarget); return; }
+    barSuppressClick = true;
+    if (dy > 30) animateBar(1);
+    else if (dy < -30) animateBar(0);
+    else animateBar(startTarget);
+  }
+  buyEl.addEventListener("pointerup", barDragEnd);
+  buyEl.addEventListener("pointercancel", barDragEnd);
+  buyEl.addEventListener("click", function (e) {
+    if (barSuppressClick) { barSuppressClick = false; return; }
+    if (e.target.closest(".grp") || e.target.closest(".buyChev")) return;
+    if (barTarget < 0.5) animateBar(1);
+  });
+  chevEl.addEventListener("click", function () {
+    if (barSuppressClick) { barSuppressClick = false; return; }
+    animateBar(barTarget > 0.5 ? 0 : 1);
+  });
 
   /* ---------------- try-on scan ---------------- */
   var scanAnims = [];
@@ -361,7 +483,7 @@
     if (!dragging) {
       var t = e.target;
       if (t.closest && t.closest(".card")) setCurState("try");
-      else if (t.closest && t.closest("button")) setCurState("btn");
+      else if (t.closest && (t.closest("button") || t.closest(".buy"))) setCurState("btn");
       else if (t.closest && t.closest(".stage")) setCurState("drag");
       else setCurState("");
     }
@@ -452,7 +574,7 @@
   var pinchPtrs = new Map();
   var pinch = null;
   document.addEventListener("pointerdown", function (e) {
-    if (e.target.closest && e.target.closest("button")) return;
+    if (e.target.closest && (e.target.closest("button") || e.target.closest(".buy"))) return;
     pinchPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY, onModel: inModel(e.clientX, e.clientY) });
     if (pinchPtrs.size === 2 && !pinch) {
       var pts = Array.from(pinchPtrs.values());
@@ -521,6 +643,8 @@
     XSpx = f.map(function (v) { return v * W; });
     applyModelStyle();
     movePill(activeTab);
+    measureBar();
+    if (!barAnim) renderBar(barP);
   }
   window.addEventListener("resize", layout);
 
@@ -598,7 +722,11 @@
   layout();
   applyZoom(false);
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(function () { movePill(activeTab); });
+    document.fonts.ready.then(function () {
+      movePill(activeTab);
+      measureBar();
+      if (!barAnim) renderBar(barP);
+    });
   }
   requestAnimationFrame(frame);
 })();
