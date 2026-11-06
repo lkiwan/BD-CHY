@@ -148,7 +148,10 @@ button{font:inherit;color:inherit;background:none;border:none}
   aspect-ratio:524/1360;
   z-index:50;
   pointer-events:none;
+  transform-origin:50% 100%; /* zoom scales around the bottom-centre */
+  transition:transform .5s var(--ease);
 }
+.model.noanim{transition:none}
 .model .fig{
   position:absolute;inset:0;
   background-image:var(--model);
@@ -184,6 +187,20 @@ button{font:inherit;color:inherit;background:none;border:none}
 }
 #prevBtn{left:calc(max(18px,1.8vw) + 76px)}
 #nextBtn{right:max(18px,1.8vw)}
+
+/* ---------- model zoom buttons ---------- */
+.zooms{
+  position:fixed;right:max(18px,1.8vw);bottom:calc(4.6vh + 108px);z-index:65;
+  display:flex;flex-direction:column;gap:10px;
+}
+.zbtn{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:600;font-size:22px;line-height:1;color:#222;
+  transition:opacity .3s var(--ease), transform .15s var(--ease);
+}
+.zbtn:active{transform:scale(.92)}
+.zbtn.off{opacity:.4}
 
 /* ---------- buy card ---------- */
 .buy{
@@ -275,5 +292,7 @@ button{font:inherit;color:inherit;background:none;border:none}
   .rail .rbtn{width:34px;height:34px}
   .rail .rbtn svg{width:17px;height:17px}
   .arrow{display:none}
+  .zooms{right:10px;bottom:calc(4.6vh + 208px)}
+  .zbtn{width:38px;height:38px;font-size:19px}
   .buy{flex-wrap:wrap}
 }

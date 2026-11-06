@@ -1,16 +1,20 @@
 /* ============================================================
    VirtualFit: Spatial Try-On — all logic (vanilla JS)
-   Data comes from js/data.js (window.ITEMS).
-   The arc is driven by ITEMS: two copies of every item are
-   built as cards, so with the spec's 5 items there are the
-   spec's 10 cards and every formula below is the spec's.
+   Data comes from js/data.js (window.CATEGORIES). Each
+   category has its own model sheet, garment sheet and items;
+   the tab bar switches category and the arc is rebuilt from
+   the active category's items (two copies of every item, so
+   the arc loops seamlessly). Tops is the default category
+   and behaves exactly as the original single-category build.
+   The model can be zoomed (buttons / double-click / pinch)
+   to inspect the fit; see the zoom section below.
    ============================================================ */
 (function () {
   "use strict";
 
-  var ITEMS = window.ITEMS || [];
-  var N = ITEMS.length;      // garments (spec: 5)
-  var CARDS = N * 2;         // arc cards (spec: 10)
+  var CATS = window.CATEGORIES || [];
+  var cat = null;              // active category object
+  var ITEMS = [], N = 0, CARDS = 0;
   var EASE = "cubic-bezier(.2,.8,.2,1)";
   var SCAN_EASE = "cubic-bezier(.65,0,.35,1)";
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -23,6 +27,7 @@
   var letters = Array.prototype.slice.call(ghost.querySelectorAll("span"));
   var stage = $("#stage");
   var arc = $("#arc");
+  var modelEl = $(".model");
   var mCur = $("#mCur"), mNext = $("#mNext");
   var grid = $(".grid"), scan = $(".scan");
   var cur = $("#cur"), ring = cur.querySelector(".ring");
@@ -30,6 +35,7 @@
   var pill = $("#tabPill");
   var nameLn = $("#nameLn"), priceLn = $("#priceLn"), colorLn = $("#colorLn");
   var thumb = $("#thumb"), thumbG = $("#thumbG"), dotsEl = $("#dots");
+  var zoomInBtn = $("#zoomIn"), zoomOutBtn = $("#zoomOut");
 
   /* ---------------- state ---------------- */
   var W = window.innerWidth, H = window.innerHeight;
@@ -41,19 +47,20 @@
   var dragging = false;
   var shown = -1;                             // item index currently on the model
   var activeTab = tabs[0];
+  var cards = [];
 
   function isPhone() { return W <= 767; }
 
   /* ---------------- garment / figure painting ---------------- */
   function setGarmentBg(el, item) {
     if (item.img) {
-      el.style.backgroundImage = "url(\"" + item.img + "\")";
+      el.style.setProperty("background-image", "url(\"" + item.img + "\")");
       el.style.backgroundSize = "contain";
       el.style.backgroundPosition = "center";
       el.style.backgroundRepeat = "no-repeat";
     } else {
-      el.style.backgroundImage = "var(--garm)";
-      el.style.backgroundSize = "320% 212.5%";
+      el.style.setProperty("background-image", cat.garment.img);
+      el.style.backgroundSize = cat.garment.size;
       el.style.backgroundPosition = item.g[0] + "% " + item.g[1] + "%";
       el.style.backgroundRepeat = "no-repeat";
     }
@@ -62,39 +69,57 @@
     el.style.backgroundPosition = (item.m != null ? item.m : 0) + "% 100%";
   }
 
+  /* ---------------- model geometry (per category) ---------------- */
+  function applyModelStyle() {
+    if (!cat) return;
+    var m = cat.model, ph = isPhone();
+    modelEl.style.aspectRatio = m.aspect;
+    var h = ph && m.heightPhone ? m.heightPhone : m.height;
+    modelEl.style.height = h || "";
+    var lift = ph && m.liftPhone != null ? m.liftPhone : m.lift;
+    modelEl.style.bottom = lift || "";
+    [mCur, mNext].forEach(function (el) {
+      el.style.setProperty("background-image", m.img);
+      el.style.backgroundSize = m.size;
+    });
+  }
+
   /* ---------------- cards ---------------- */
-  var cards = [];
-  for (var k = 0; k < CARDS; k++) {
-    (function (k) {
-      var item = ITEMS[k % N];
-      var card = document.createElement("div");
-      card.className = "card glass";
-      card.dataset.idx = k;
-      var g = document.createElement("div");
-      g.className = "g";
-      setGarmentBg(g, item);
-      var nm = document.createElement("div");
-      nm.className = "cname";
-      nm.textContent = item.n;
-      var pr = document.createElement("div");
-      pr.className = "cprice";
-      pr.textContent = "$" + item.p;
-      var sh = document.createElement("div");
-      sh.className = "sheen";
-      card.appendChild(g);
-      card.appendChild(nm);
-      card.appendChild(pr);
-      card.appendChild(sh);
-      card.addEventListener("mouseenter", function () {
-        if (reduced) return;
-        sh.animate(
-          [{ transform: "translateX(-130%)" }, { transform: "translateX(130%)" }],
-          { duration: 1000, easing: EASE }
-        );
-      });
-      arc.appendChild(card);
-      cards.push(card);
-    })(k);
+  function buildCards() {
+    arc.innerHTML = "";
+    cards = [];
+    for (var k = 0; k < CARDS; k++) {
+      (function (k) {
+        var item = ITEMS[k % N];
+        var card = document.createElement("div");
+        card.className = "card glass";
+        card.dataset.idx = k;
+        var g = document.createElement("div");
+        g.className = "g";
+        setGarmentBg(g, item);
+        var nm = document.createElement("div");
+        nm.className = "cname";
+        nm.textContent = item.n;
+        var pr = document.createElement("div");
+        pr.className = "cprice";
+        pr.textContent = "$" + item.p;
+        var sh = document.createElement("div");
+        sh.className = "sheen";
+        card.appendChild(g);
+        card.appendChild(nm);
+        card.appendChild(pr);
+        card.appendChild(sh);
+        card.addEventListener("mouseenter", function () {
+          if (reduced) return;
+          sh.animate(
+            [{ transform: "translateX(-130%)" }, { transform: "translateX(130%)" }],
+            { duration: 1000, easing: EASE }
+          );
+        });
+        arc.appendChild(card);
+        cards.push(card);
+      })(k);
+    }
   }
 
   /* ---------------- buy card ---------------- */
@@ -167,6 +192,7 @@
   function tryOn(idx) {
     shown = idx;
     var item = ITEMS[idx];
+    resetZoom();
     updateBuy(item);
     scanAnims.forEach(function (a) { a.cancel(); });
     scanAnims = [];
@@ -210,6 +236,35 @@
     };
   }
 
+  /* ---------------- categories ---------------- */
+  function catByLabel(label) {
+    for (var i = 0; i < CATS.length; i++) {
+      if (CATS[i].label === label) return CATS[i];
+    }
+    return null;
+  }
+  function setCategory(c) {
+    cat = c;
+    ITEMS = c.items;
+    N = ITEMS.length;
+    CARDS = N * 2;
+    scanAnims.forEach(function (a) { a.cancel(); });
+    scanAnims = [];
+    mCur.style.opacity = "0";
+    shown = -1;
+    pos = 0;
+    target = 0;
+    resetZoom();
+    applyModelStyle();
+    buildCards();
+    buildDots(ITEMS[0]);
+    setGarmentBg(thumbG, ITEMS[0]);
+  }
+  function switchCategory(c) {
+    if (c === cat) return;
+    setCategory(c);
+  }
+
   /* ---------------- tabs / arrows / chips ---------------- */
   function movePill(btn) {
     if (!btn) return;
@@ -223,7 +278,9 @@
       btn.classList.add("active");
       activeTab = btn;
       movePill(btn);
-      target += N; // full lap — lands back on the same garment
+      var c = catByLabel(btn.textContent.trim());
+      if (c && c !== cat) switchCategory(c);
+      else target += N; // no category behind this tab yet (or same tab): full lap, lands back on the same garment
     });
   });
   $("#prevBtn").addEventListener("click", function () { target -= 1; });
@@ -235,6 +292,48 @@
       });
       chip.classList.add("act");
     });
+  });
+
+  /* ---------------- model zoom ----------------
+     Zoom 1x–2.5x on the model, around its bottom-centre.
+     Buttons step x/÷ 1.25 (animated); double-click / double-
+     tap on the model toggles 1x <-> 2x; pinch zooms freely;
+     while zoomed, a drag that starts on the model pans it.
+     Zoom resets whenever the outfit or category changes. */
+  var zoom = 1, panX = 0, panY = 0;
+  function clampPan() {
+    var mw = modelEl.offsetWidth || 1, mh = modelEl.offsetHeight || 1;
+    var maxX = (zoom - 1) * mw * 0.55;
+    var maxUp = (zoom - 1) * mh * 0.55;
+    var maxDown = (zoom - 1) * mh * 0.2 + 10;
+    panX = Math.min(maxX, Math.max(-maxX, panX));
+    panY = Math.min(maxDown, Math.max(-maxUp, panY));
+  }
+  function applyZoom(anim) {
+    modelEl.classList.toggle("noanim", !anim);
+    modelEl.style.transform =
+      "translateX(-50%) translate(" + panX + "px, " + panY + "px) scale(" + zoom + ")";
+    zoomInBtn.classList.toggle("off", zoom >= 2.5 - 1e-6);
+    zoomOutBtn.classList.toggle("off", zoom <= 1 + 1e-6);
+  }
+  function setZoom(z, anim) {
+    zoom = Math.min(2.5, Math.max(1, z));
+    if (zoom === 1) { panX = 0; panY = 0; }
+    clampPan();
+    applyZoom(anim !== false);
+  }
+  function resetZoom() {
+    if (zoom !== 1 || panX !== 0 || panY !== 0) setZoom(1, true);
+  }
+  function inModel(x, y) {
+    var r = modelEl.getBoundingClientRect();
+    return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+  }
+  function toggleZoom() { setZoom(zoom > 1 ? 1 : 2, true); }
+  zoomInBtn.addEventListener("click", function () { setZoom(zoom * 1.25, true); });
+  zoomOutBtn.addEventListener("click", function () { setZoom(zoom / 1.25, true); });
+  stage.addEventListener("dblclick", function (e) {
+    if (inModel(e.clientX, e.clientY)) toggleZoom();
   });
 
   /* ---------------- cursor ---------------- */
@@ -270,10 +369,22 @@
   document.addEventListener("pointerdown", function () { pressed = true; ringScale(); });
   document.addEventListener("pointerup", function () { pressed = false; ringScale(); });
 
-  /* ---------------- drag / click ---------------- */
+  /* ---------------- drag / click / model pan ---------------- */
   var dragId = null, startX = 0, p0 = 0, lastX = 0, lastT = 0, vel = 0, moved = 0, downCard = null;
+  var panning = false, panId = null, panStartX = 0, panStartY = 0, panBaseX = 0, panBaseY = 0;
+  var lastTapT = 0, lastTapX = -999, lastTapY = -999;
   stage.addEventListener("pointerdown", function (e) {
     if (e.button !== 0 && e.pointerType === "mouse") return;
+    // Pan the zoomed model: only when the pointer starts on it.
+    if (zoom > 1 && inModel(e.clientX, e.clientY)) {
+      panning = true;
+      panId = e.pointerId;
+      panStartX = e.clientX; panStartY = e.clientY;
+      panBaseX = panX; panBaseY = panY;
+      try { stage.setPointerCapture(panId); } catch (err) {}
+      setCurState("drag");
+      return;
+    }
     dragId = e.pointerId;
     try { stage.setPointerCapture(dragId); } catch (err) {}
     dragging = true;
@@ -286,6 +397,13 @@
     setCurState("drag");
   });
   stage.addEventListener("pointermove", function (e) {
+    if (panning && e.pointerId === panId) {
+      panX = panBaseX + (e.clientX - panStartX);
+      panY = panBaseY + (e.clientY - panStartY);
+      clampPan();
+      applyZoom(false);
+      return;
+    }
     if (dragId !== e.pointerId) return;
     var now = performance.now();
     var dx = e.clientX - startX;
@@ -297,10 +415,27 @@
     pos = p0 - dx / XSpx[1];
   });
   function endDrag(e) {
+    if (panning && e.pointerId === panId) {
+      panning = false;
+      panId = null;
+      return;
+    }
     if (dragId !== e.pointerId) return;
     dragId = null;
     dragging = false;
     if (moved < 6) {
+      // Double-tap on the model toggles zoom (touch only — the
+      // mouse equivalent is the stage dblclick handler above).
+      var nowT = performance.now();
+      if (e.pointerType !== "mouse" && inModel(e.clientX, e.clientY) &&
+          nowT - lastTapT < 350 &&
+          Math.abs(e.clientX - lastTapX) < 40 && Math.abs(e.clientY - lastTapY) < 40) {
+        lastTapT = 0;
+        toggleZoom();
+        downCard = null;
+        return;
+      }
+      lastTapT = nowT; lastTapX = e.clientX; lastTapY = e.clientY;
       if (downCard) {
         var i = parseInt(downCard.dataset.idx, 10);
         target += mod(i - target + N, CARDS) - N;
@@ -312,6 +447,52 @@
   }
   stage.addEventListener("pointerup", endDrag);
   stage.addEventListener("pointercancel", endDrag);
+
+  /* ---------------- pinch zoom (two fingers on the model) ---------------- */
+  var pinchPtrs = new Map();
+  var pinch = null;
+  document.addEventListener("pointerdown", function (e) {
+    if (e.target.closest && e.target.closest("button")) return;
+    pinchPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY, onModel: inModel(e.clientX, e.clientY) });
+    if (pinchPtrs.size === 2 && !pinch) {
+      var pts = Array.from(pinchPtrs.values());
+      if (pts[0].onModel && pts[1].onModel) {
+        pinch = {
+          d0: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1,
+          z0: zoom,
+          mx: (pts[0].x + pts[1].x) / 2, my: (pts[0].y + pts[1].y) / 2,
+          bx: panX, by: panY
+        };
+        if (dragging) { // hand the gesture over from the arc drag
+          dragging = false;
+          dragId = null;
+          target = Math.round(pos);
+        }
+        panning = false;
+      }
+    }
+  });
+  document.addEventListener("pointermove", function (e) {
+    if (!pinchPtrs.has(e.pointerId)) return;
+    pinchPtrs.set(e.pointerId, { x: e.clientX, y: e.clientY, onModel: pinchPtrs.get(e.pointerId).onModel });
+    if (!pinch || pinchPtrs.size !== 2) return;
+    var pts = Array.from(pinchPtrs.values());
+    var d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+    zoom = Math.min(2.5, Math.max(1, pinch.z0 * d / pinch.d0));
+    if (zoom === 1) { panX = 0; panY = 0; }
+    else {
+      panX = pinch.bx + ((pts[0].x + pts[1].x) / 2 - pinch.mx);
+      panY = pinch.by + ((pts[0].y + pts[1].y) / 2 - pinch.my);
+    }
+    clampPan();
+    applyZoom(false);
+  });
+  function pinchEnd(e) {
+    pinchPtrs.delete(e.pointerId);
+    if (pinchPtrs.size < 2) pinch = null;
+  }
+  document.addEventListener("pointerup", pinchEnd);
+  document.addEventListener("pointercancel", pinchEnd);
 
   /* ---------------- wheel / keys ---------------- */
   var wAcc = 0, wLast = 0;
@@ -338,6 +519,7 @@
     document.documentElement.style.setProperty("--CW", CW + "px");
     var f = isPhone() ? [0, 0.36, 0.5, 0.56, 0.6, 0.62] : [0, 0.215, 0.345, 0.432, 0.49, 0.52];
     XSpx = f.map(function (v) { return v * W; });
+    applyModelStyle();
     movePill(activeTab);
   }
   window.addEventListener("resize", layout);
@@ -412,9 +594,9 @@
   }
 
   /* ---------------- init ---------------- */
-  buildDots(ITEMS[0]);
-  setGarmentBg(thumbG, ITEMS[0]);
+  setCategory(CATS[0]);
   layout();
+  applyZoom(false);
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(function () { movePill(activeTab); });
   }
