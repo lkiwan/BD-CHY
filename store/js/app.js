@@ -236,6 +236,11 @@
   }
   function renderBar(p) {
     barP = p;
+    /* Calque (ordre d'Omar, 2026-11-07) : barre repliée DERRIÈRE le
+       personnage (z 45 < .model 50, comme l'en-tête) ; dès qu'elle
+       s'ouvre (clic ^), elle passe DEVANT (z 60). Le personnage est
+       en pointer-events:none, donc les clics traversent vers la barre. */
+    buyEl.style.zIndex = p <= 0.001 ? "45" : "60";
     buyEl.style.padding = (10 + 2 * p) + "px " + (12 + 10 * p) + "px " + (10 + 2 * p) + "px 12px";
     buyEl.style.gap = (14 + 8 * p) + "px";
     buyEl.style.borderRadius = (22 + 2 * p) + "px";
