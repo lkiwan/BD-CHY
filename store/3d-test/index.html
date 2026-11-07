@@ -136,8 +136,10 @@ scene.add(ground);
    ================================================================ */
 const M = new THREE.Group();
 
-const skin = new THREE.MeshStandardMaterial({ color:0xddd5c5, roughness:0.5, metalness:0.04 });
-const jointMat = new THREE.MeshStandardMaterial({ color:0xcfc6b2, roughness:0.45, metalness:0.06 });
+const skin = new THREE.MeshStandardMaterial({ color:0xd8b28a, roughness:0.62, metalness:0.02 });
+const jointMat = new THREE.MeshStandardMaterial({ color:0xcba67e, roughness:0.58, metalness:0.03 });
+const hairMat = new THREE.MeshStandardMaterial({ color:0x35241a, roughness:0.85, metalness:0.0 });
+const beardMat = new THREE.MeshStandardMaterial({ color:0x3d2b1e, roughness:0.95, metalness:0.0 });
 const bronze = new THREE.MeshStandardMaterial({ color:0xa87f4e, roughness:0.45, metalness:0.55 });
 
 function part(geo, mat, x, y, z) {
@@ -165,6 +167,22 @@ torso.scale.set(1, 1, 0.74);
 part(new THREE.CylinderGeometry(0.062, 0.066, 0.12, 24), skin, 0, 1.585, 0);
 const head = part(new THREE.SphereGeometry(0.0965, 32, 24), skin, 0, 1.685, 0);
 head.scale.set(1, 1.24, 1.04);
+
+/* --- his signs (stylised): dark wavy hair, short beard, brows ---
+   From the canonical photo of the default man: hair with volume
+   on top swept back, short boxed beard + moustache, strong brows. */
+/* Hair and beard are full shells hugging the head, cut by a
+   slanted plane: the plane IS the hairline / the cheek line —
+   higher at the front, lower at the back and sides. */
+renderer.localClippingEnabled = true;
+const hairMatC = hairMat.clone();
+hairMatC.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 0.894, -0.447), -1.520)];
+const hair = part(new THREE.SphereGeometry(0.0965, 40, 28), hairMatC, 0, 1.690, -0.002);
+hair.scale.set(1.05, 1.29, 1.09);
+const beardMatC = beardMat.clone();
+beardMatC.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, -0.970, 0.243), 1.5880)];
+const beard = part(new THREE.SphereGeometry(0.0965, 40, 28), beardMatC, 0, 1.683, 0.002);
+beard.scale.set(1.02, 1.26, 1.045);
 
 /* --- arms: shoulder at (±0.175, 1.465), slight outward tilt --- */
 function arm(side) {
