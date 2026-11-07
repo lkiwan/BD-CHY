@@ -321,11 +321,6 @@
     var item = ITEMS[idx];
     resetZoom();
     updateBuy(item);
-    /* Tenues libres : la sélection est écrite ici (app.js démarre
-       avant outfits.js, le tout premier tryOn ne doit pas se perdre). */
-    window.SURMOI_SEL = window.SURMOI_SEL || { tops: null, bottoms: null, shoes: null };
-    if (cat && Object.prototype.hasOwnProperty.call(window.SURMOI_SEL, cat.id)) window.SURMOI_SEL[cat.id] = idx;
-    if (window.SURMOI_OUTFIT_REFRESH) window.SURMOI_OUTFIT_REFRESH();
     scanAnims.forEach(function (a) { a.cancel(); });
     scanAnims = [];
     setFigure(mNext, item);
@@ -391,7 +386,6 @@
     buildCards();
     buildDots(ITEMS[0]);
     setGarmentBg(thumbG, ITEMS[0]);
-    if (window.SURMOI_OUTFIT_REFRESH) window.SURMOI_OUTFIT_REFRESH();
   }
   function switchCategory(c) {
     if (c === cat) return;
