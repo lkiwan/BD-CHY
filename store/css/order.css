@@ -1,0 +1,94 @@
+/* ============================================================
+   SURMOI — Commander : bouton dans la carte d'achat + panneau
+   de commande (WhatsApp, paiement à la livraison).
+   ============================================================ */
+.orderBtn {
+  height: 46px;
+  padding: 0 22px;
+  border: 0; border-radius: 14px;
+  background: linear-gradient(135deg, #C9A24B, #A97F3F 55%, #8C6D2F);
+  color: #FFF9EC;
+  font-family: inherit;
+  font-size: 15.5px; font-weight: 700;
+  box-shadow: 0 8px 18px rgba(140,109,47,.35);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.commande {
+  position: fixed;
+  inset: 0;
+  z-index: 420;
+  overflow-y: auto;
+  background: url('../assets/fond-magasin.jpg') center / cover no-repeat #e9e2d6;
+  font-family: var(--sans, 'Inter', Arial, sans-serif);
+  color: #1C1A17;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .35s ease, visibility .35s ease;
+}
+.commande.o-open { opacity: 1; visibility: visible; }
+.o-veil {
+  position: fixed; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(250,244,230,.50), rgba(250,244,230,.30) 45%, rgba(250,244,230,.50));
+}
+.o-inner { position: relative; max-width: 430px; margin: 0 auto; padding: 16px 22px 30px; }
+.o-top { display: flex; align-items: center; justify-content: space-between; }
+.o-label { font-size: 12.5px; font-weight: 800; letter-spacing: 2.5px; color: #8C6D2F; }
+.o-nav {
+  width: 34px; height: 34px;
+  border: 0; border-radius: 50%;
+  background: rgba(255,252,246,.65);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: #1C1A17; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.o-h { font-size: 27px; font-weight: 800; margin-top: 14px; letter-spacing: -.01em; }
+.o-card {
+  margin-top: 16px;
+  background: rgba(255,252,246,.55);
+  backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  border: 1px solid rgba(255,255,255,.65);
+  border-radius: 22px;
+  padding: 18px 16px;
+  box-shadow: 0 14px 34px rgba(60,45,15,.13);
+}
+.o-line {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 7px 0;
+  font-size: 14.5px;
+}
+.o-line span { color: #5A5348; }
+.o-line b { font-weight: 700; text-align: right; }
+.o-total { border-top: 1px solid rgba(140,109,47,.35); margin-top: 6px; padding-top: 12px; font-size: 16.5px; }
+.o-qty { display: inline-flex; align-items: center; gap: 14px; }
+.o-qty button {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1.5px solid rgba(140,109,47,.6); background: rgba(255,255,255,.7);
+  font-size: 17px; font-weight: 700; color: #8C6D2F; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.o-qty b { min-width: 16px; text-align: center; }
+.o-note { font-size: 12.5px; color: #7A7263; margin-top: 8px; }
+.o-field { display: block; margin-top: 12px; }
+.o-field:first-child { margin-top: 0; }
+.o-field span { display: block; font-size: 13px; font-weight: 700; color: #5A5348; margin-bottom: 6px; }
+.o-field input {
+  width: 100%; height: 50px;
+  border: 1.5px solid rgba(140,109,47,.35); border-radius: 14px;
+  background: rgba(255,255,255,.75);
+  padding: 0 14px;
+  font-family: inherit; font-size: 16px; color: #1C1A17;
+  outline: none; box-sizing: border-box;
+}
+.o-field input:focus { border-color: #A97F3F; }
+.o-err { margin-top: 10px; font-size: 13.5px; font-weight: 600; color: #B03A2E; min-height: 0; }
+.o-send {
+  margin-top: 14px;
+  width: 100%; height: 52px;
+  border: 0; border-radius: 14px;
+  background: #25D366;
+  color: #fff; font-family: inherit;
+  font-size: 16px; font-weight: 700;
+  box-shadow: 0 10px 22px rgba(37,211,102,.35);
+  cursor: pointer;
+}

@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="css/accueil.css">
 <link rel="stylesheet" href="css/questions.css">
 <link rel="stylesheet" href="css/visage.css">
+<link rel="stylesheet" href="css/order.css">
 </head>
 <body>
 
@@ -133,6 +134,35 @@
   </div>
 </section>
 
+<!-- ============ SURMOI — Commander (WhatsApp + paiement à la livraison) ============ -->
+<section class="commande" id="commande" aria-label="Commander">
+  <div class="o-veil"></div>
+  <div class="o-inner">
+    <div class="o-top">
+      <span class="o-label">COMMANDER</span>
+      <button class="o-nav" id="oClose" type="button" aria-label="Fermer">&#10005;</button>
+    </div>
+    <h2 class="o-h">Ta commande</h2>
+    <div class="o-card">
+      <div class="o-line"><span>Produit</span><b id="oProduit">—</b></div>
+      <div class="o-line"><span>Taille · Couleur</span><b id="oVariante">—</b></div>
+      <div class="o-line"><span>Quantité</span>
+        <span class="o-qty"><button type="button" id="oMinus" aria-label="Moins">&minus;</button><b id="oQty">1</b><button type="button" id="oPlus" aria-label="Plus">+</button></span>
+      </div>
+      <div class="o-line o-total"><span>Total</span><b id="oTotal">—</b></div>
+      <p class="o-note">Paiement à la livraison.</p>
+    </div>
+    <div class="o-card">
+      <label class="o-field"><span>Ton nom</span><input id="oNom" type="text" autocomplete="name" placeholder="Ex. Yasmine Alaoui"></label>
+      <label class="o-field"><span>Ton téléphone</span><input id="oTel" type="tel" autocomplete="tel" placeholder="Ex. 06 12 34 56 78"></label>
+      <label class="o-field"><span>Ta ville</span><input id="oVille" type="text" autocomplete="address-level2" placeholder="Ex. Fès"></label>
+      <p class="o-err" id="oErr"></p>
+      <button class="o-send" id="oSend" type="button">Envoyer la commande sur WhatsApp</button>
+      <p class="o-note">Le magasin te répondra sur WhatsApp pour confirmer avant l'envoi.</p>
+    </div>
+  </div>
+</section>
+
 <div class="room"></div>
 
 <div class="ghost" aria-hidden="true"><span>F</span><span>I</span><span>T</span></div>
@@ -203,6 +233,9 @@
     <div class="ln colorL" id="colorLn"><div class="stack"><span>Color · White</span></div></div>
     <div class="dots" id="dots"></div>
   </div>
+  <div class="grp">
+    <button class="orderBtn" id="orderBtn" type="button">Commander</button>
+  </div>
   <button class="buyChev" id="buyChev" type="button" aria-label="Expand" aria-expanded="false">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="5 15.5 12 8.5 19 15.5"/></svg>
   </button>
@@ -219,6 +252,7 @@
 <script src="js/app.js"></script>
 <script src="js/questions.js"></script>
 <script src="js/visage.js"></script>
+<script src="js/order.js"></script>
 <script src="js/accueil.js"></script>
 </body>
 </html>
