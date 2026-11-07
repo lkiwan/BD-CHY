@@ -7,16 +7,31 @@
    règle 1 : « à générer »). Clé : 't<haut>-b<bas>' (index dans
    data.js). Les chaussures rejoindront la clé plus tard.
    ============================================================ */
-/* Photos de looks : générées en groupes de 4 (un haut fixe, 4 bas),
+/* Photos de looks : générées en groupes de 4 (un élément fixe, 4 variantes),
    même personnage que les planches, découpées en singles ensuite.
-   Faites : t0 (Basic T-shirt) × b0..b3. Restent : t0-b4 (shorts),
-   puis t1..t4 (sweater, chemise, hoodie, ringer) × b0..b4. */
+   Faites : 20/25 — t0..t3 × b0..b4. Reste : t4 (Ringer Tee) × b0..b4. */
 window.OUTFITS = {
   /* rempli au fur et à mesure que les photos de looks sont créées */
   't0-b0': 'assets/outfits/t0-b0.webp',  /* Basic T-shirt + Charcoal Trousers */
   't0-b1': 'assets/outfits/t0-b1.webp',  /* Basic T-shirt + Blue Jeans */
   't0-b2': 'assets/outfits/t0-b2.webp',  /* Basic T-shirt + Beige Chinos */
-  't0-b3': 'assets/outfits/t0-b3.webp'   /* Basic T-shirt + Black Joggers */
+  't0-b3': 'assets/outfits/t0-b3.webp',  /* Basic T-shirt + Black Joggers */
+  't0-b4': 'assets/outfits/t0-b4.webp',  /* Basic T-shirt + Navy Shorts */
+  't1-b0': 'assets/outfits/t1-b0.webp',  /* Basic Sweater + Charcoal Trousers */
+  't1-b1': 'assets/outfits/t1-b1.webp',  /* Basic Sweater + Blue Jeans */
+  't1-b2': 'assets/outfits/t1-b2.webp',  /* Basic Sweater + Beige Chinos */
+  't1-b3': 'assets/outfits/t1-b3.webp',  /* Basic Sweater + Black Joggers */
+  't1-b4': 'assets/outfits/t1-b4.webp',  /* Basic Sweater + Navy Shorts */
+  't2-b0': 'assets/outfits/t2-b0.webp',  /* Linen Shirt + Charcoal Trousers */
+  't2-b1': 'assets/outfits/t2-b1.webp',  /* Linen Shirt + Blue Jeans */
+  't2-b2': 'assets/outfits/t2-b2.webp',  /* Linen Shirt + Beige Chinos */
+  't2-b3': 'assets/outfits/t2-b3.webp',  /* Linen Shirt + Black Joggers */
+  't2-b4': 'assets/outfits/t2-b4.webp',  /* Linen Shirt + Navy Shorts */
+  't3-b0': 'assets/outfits/t3-b0.webp',  /* Grey Hoodie + Charcoal Trousers */
+  't3-b1': 'assets/outfits/t3-b1.webp',  /* Grey Hoodie + Blue Jeans */
+  't3-b2': 'assets/outfits/t3-b2.webp',  /* Grey Hoodie + Beige Chinos */
+  't3-b3': 'assets/outfits/t3-b3.webp',  /* Grey Hoodie + Black Joggers */
+  't3-b4': 'assets/outfits/t3-b4.webp'   /* Grey Hoodie + Navy Shorts */
 };
 
 (function () {
