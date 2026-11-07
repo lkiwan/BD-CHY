@@ -1,0 +1,13 @@
+/* SURMOI — photo du look complet (top + bottom choisis librement) */
+#outfitImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  opacity: 0;
+  transition: opacity .3s ease;
+  pointer-events: none;
+}
+#outfitImg.on { opacity: 1; }
