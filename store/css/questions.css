@@ -1,0 +1,138 @@
+/* ============================================================
+   SURMOI — Les 6 questions (création de l'avatar)
+   Structure = écrans validés par Omar (screens.html) :
+   "QUESTION N SUR 6" + barre + question + on touche un personnage.
+   Style = langage SURMOI de la première page (pièce, verre, bronze).
+   Aucun scroll : chaque question tient dans l'écran, la zone des
+   cartes est la partie flexible.
+   ============================================================ */
+
+.questions {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  overflow: hidden;
+  background: url('../assets/fond-magasin.jpg') center / cover no-repeat #e9e2d6;
+  font-family: var(--sans, 'Inter', Arial, sans-serif);
+  color: #1C1A17;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .35s ease, visibility .35s ease;
+}
+.questions.q-open { opacity: 1; visibility: visible; }
+.q-veil {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(250,244,230,.42), rgba(250,244,230,.18) 45%, rgba(250,244,230,.40));
+}
+.q-inner {
+  position: relative;
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  padding: 14px 24px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Haut : retour + compteur + fermer --- */
+.q-top { display: flex; align-items: center; justify-content: space-between; min-height: 34px; }
+.q-nav {
+  width: 34px; height: 34px;
+  border: 0; border-radius: 50%;
+  background: rgba(255,252,246,.65);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: #1C1A17; font-size: 17px; font-weight: 700;
+  cursor: pointer; visibility: hidden;
+}
+.q-nav.q-show { visibility: visible; }
+.q-label { font-size: 12.5px; font-weight: 800; letter-spacing: 2.5px; color: #8C6D2F; }
+.q-bar { width: 110px; height: 5px; background: rgba(28,26,23,.14); border-radius: 99px; margin: 10px auto 0; }
+.q-bar > div { height: 5px; background: linear-gradient(90deg, #C9A24B, #8C6D2F); border-radius: 99px; transition: width .3s ease; }
+.q-h { text-align: center; font-size: 30px; font-weight: 800; margin-top: 16px; letter-spacing: -.01em; }
+.q-sub { text-align: center; font-size: 14.5px; color: #5A5348; margin-top: 7px; }
+.q-foot { text-align: center; font-size: 12.5px; color: #7A7263; padding-top: 12px; }
+
+/* --- Zone flexible : cartes ou lignes --- */
+.q-zone { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; margin-top: 22px; }
+
+/* Cartes personnages */
+.q-cards2 { flex: 1 1 auto; min-height: 0; display: flex; gap: 12px; }
+.q-cards3 { flex: 1 1 auto; min-height: 0; display: flex; gap: 10px; }
+.q-grid { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 12px; }
+.q-grid .q-card { flex: none; }
+.q-grid.q-tight { gap: 10px; }
+.q-grid .q-card.q-last { grid-column: 1 / -1; justify-self: center; width: calc(50% - 5px); }
+.q-card {
+  flex: 1;
+  position: relative;
+  border: 0; padding: 0;
+  border-radius: 26px;
+  overflow: hidden;
+  background: rgba(255,252,246,.55);
+  box-shadow: 0 12px 30px rgba(60,45,15,.16);
+  cursor: pointer;
+  font-family: inherit;
+}
+.q-card img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top center;
+  display: block;
+}
+.q-card img.q-zoom { transform: scale(1.6); transform-origin: top center; }
+.q-card:active { transform: scale(.985); }
+.q-pill {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(28,26,23,.88); color: #FBF6EA;
+  font-size: 14.5px; font-weight: 700;
+  padding: 8px 20px; border-radius: 999px; white-space: nowrap;
+}
+.q-cards3 .q-pill { font-size: 12px; padding: 7px 12px; bottom: 10px; }
+.q-grid .q-pill { font-size: 13px; padding: 7px 15px; bottom: 10px; }
+
+/* Lignes de nombres (âge, taille, poids) */
+.q-rows { display: flex; flex-direction: column; gap: 13px; margin-top: 8px; }
+.q-row {
+  border: 0; cursor: pointer; font-family: inherit;
+  background: rgba(255,252,246,.72);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 20px 22px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 8px 22px rgba(60,45,15,.10);
+  color: #1C1A17; text-align: left;
+}
+.q-row b { font-size: 18.5px; font-weight: 700; }
+.q-row span { font-size: 13.5px; font-weight: 600; color: #A08C5F; }
+.q-row.q-pick, .q-card.q-pick { outline: 3px solid #C9A24B; outline-offset: -3px; }
+
+/* --- Écran résultat : voici ton avatar --- */
+.q-result-img {
+  flex: 1 1 auto; min-height: 0;
+  border-radius: 26px; overflow: hidden;
+  box-shadow: 0 14px 34px rgba(60,45,15,.20);
+  background: rgba(255,252,246,.55);
+}
+.q-result-img img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.q-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin-top: 14px; }
+.q-chip {
+  background: rgba(28,26,23,.85); color: #F3E9D2;
+  font-size: 12px; font-weight: 600;
+  padding: 6px 12px; border-radius: 999px;
+}
+.q-enter {
+  margin-top: 14px;
+  width: 100%; height: 52px;
+  border: 0; border-radius: 15px;
+  background: linear-gradient(135deg, #C9A24B, #A97F3F 55%, #8C6D2F);
+  color: #FFF9EC; font-family: inherit;
+  font-size: 16.5px; font-weight: 700;
+  box-shadow: 0 12px 26px rgba(140,109,47,.40);
+  cursor: pointer;
+}
+.q-restart {
+  margin: 10px auto 0;
+  background: none; border: 0; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 600; color: #8C6D2F;
+  text-decoration: underline; display: block;
+}

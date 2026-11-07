@@ -18,6 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/accueil.css">
+<link rel="stylesheet" href="css/questions.css">
 </head>
 <body>
 
@@ -54,6 +55,23 @@
       </div>
       <p class="acc-foot">Aucun compte, aucune création — tu entres directement dans le magasin.</p>
     </div>
+  </div>
+</section>
+
+<!-- ============ SURMOI — Les 6 questions (création de l'avatar) ============ -->
+<section class="questions" id="questions" aria-label="Créer mon avatar">
+  <div class="q-veil"></div>
+  <div class="q-inner">
+    <div class="q-top">
+      <button class="q-nav" id="qBack" type="button" aria-label="Retour">&#8592;</button>
+      <div class="q-label" id="qLabel">QUESTION 1 SUR 6</div>
+      <button class="q-nav q-show" id="qClose" type="button" aria-label="Fermer">&#10005;</button>
+    </div>
+    <div class="q-bar"><div id="qBarFill"></div></div>
+    <h2 class="q-h" id="qTitle"></h2>
+    <p class="q-sub" id="qSub"></p>
+    <div class="q-zone" id="qZone"></div>
+    <p class="q-foot" id="qFoot"></p>
   </div>
 </section>
 
@@ -141,6 +159,7 @@
 
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
+<script src="js/questions.js"></script>
 <script src="js/accueil.js"></script>
 </body>
 </html>
