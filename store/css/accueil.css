@@ -65,22 +65,6 @@
   object-fit: cover;
   display: block;
 }
-.acc-badge {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: rgba(28,26,23,.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 16px rgba(20,15,5,.35);
-}
-.acc-badge img { width: 36px; display: block; }
 .acc-scan {
   height: 3px;
   border-radius: 2px;
