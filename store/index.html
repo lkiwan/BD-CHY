@@ -3,13 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VirtualFit: Spatial Try-On</title>
+<title>SURMOI — Essayage Virtuel</title>
+<link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#242424">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SURMOI">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/accueil.css">
 </head>
 <body>
+
+<!-- ============ SURMOI — Page d'accueil (première page) ============ -->
+<section class="accueil" id="accueil" aria-label="Accueil SURMOI">
+  <div class="acc-veil"></div>
+  <div class="acc-inner">
+    <div class="acc-brand">
+      <img class="acc-logo" src="assets/brand/transparent/surmoi-logo-nobg-800.png" alt="SURMOI — Essayage Virtuel">
+    </div>
+
+    <div class="acc-glass acc-hero">
+      <div class="acc-ph">
+        <img src="assets/accueil-hero.jpg" alt="Campagne SURMOI">
+        <div class="acc-badge"><img src="assets/brand/transparent/surmoi-icon-dark-nobg-512.png" alt=""></div>
+      </div>
+      <div class="acc-scan"></div>
+    </div>
+
+    <div class="acc-glass acc-panel">
+      <h1>Essaie les vêtements sur TON avatar</h1>
+      <p class="acc-sub">Crée ton avatar une fois. Après, chaque costume s'affiche sur toi.</p>
+      <button class="acc-btn acc-bronze" type="button" data-enter="creer">Créer mon avatar</button>
+      <button class="acc-btn acc-white" type="button" data-enter="connecter">Se connecter</button>
+      <div class="acc-divider"><span class="acc-line"></span><span>ENTRÉE DIRECTE</span><span class="acc-line"></span></div>
+      <div class="acc-doors">
+        <button class="acc-door" type="button" data-enter="homme">
+          <img src="assets/door-homme.png" alt="">
+          <span><span class="acc-door-t">Homme</span><span class="acc-door-s">avatar par défaut</span></span>
+        </button>
+        <button class="acc-door" type="button" data-enter="femme">
+          <img src="assets/door-femme.png" alt="">
+          <span><span class="acc-door-t">Femme</span><span class="acc-door-s">avatar par défaut</span></span>
+        </button>
+      </div>
+      <p class="acc-foot">Aucun compte, aucune création — tu entres directement dans le magasin.</p>
+    </div>
+  </div>
+</section>
 
 <div class="room"></div>
 
@@ -95,5 +142,6 @@
 
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
+<script src="js/accueil.js"></script>
 </body>
 </html>

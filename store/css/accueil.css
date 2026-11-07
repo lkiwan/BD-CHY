@@ -1,0 +1,202 @@
+/* ============================================================
+   SURMOI — Page d'accueil (première page)
+   Fidèle à la maquette validée : logo transparent grand format,
+   carte héros verre + badge icône, panneau verre, boutons bronze.
+   Responsive : colonne centrée sur mobile ET sur écran d'ordinateur.
+   ============================================================ */
+
+.accueil {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  overflow-y: auto;
+  background: url('../assets/fond-magasin.jpg') center / cover no-repeat #e9e2d6;
+  font-family: var(--sans, 'Inter', Arial, sans-serif);
+  color: #1C1A17;
+  transition: opacity .45s ease, visibility .45s ease;
+}
+.accueil.acc-hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.acc-veil {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,250,240,.30) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0) 62%, rgba(30,25,18,.18) 100%);
+}
+
+.acc-inner {
+  position: relative;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 12px 26px 30px;
+}
+
+/* --- Marque : le grand logo transparent --- */
+.acc-brand { text-align: center; }
+.acc-logo {
+  width: 196px;
+  max-width: 62vw;
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(0 6px 18px rgba(255,250,238,.55));
+}
+
+/* --- Verre (même langage que le magasin) --- */
+.acc-glass {
+  background: rgba(255,252,246,.55);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  border: 1px solid rgba(255,255,255,.75);
+  border-radius: 32px;
+  box-shadow: 0 24px 50px rgba(45,35,18,.22);
+}
+
+/* --- Héros : la photo + le petit badge --- */
+.acc-hero { margin-top: 10px; padding: 10px; }
+.acc-ph {
+  position: relative;
+  aspect-ratio: 318 / 188;
+  border-radius: 24px;
+  overflow: hidden;
+}
+.acc-ph > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.acc-badge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(28,26,23,.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(20,15,5,.35);
+}
+.acc-badge img { width: 36px; display: block; }
+.acc-scan {
+  height: 3px;
+  border-radius: 2px;
+  margin: 10px 6px 2px;
+  background: linear-gradient(90deg, rgba(169,127,63,0), #C9A24B 30%, #E9CD8A 50%, #C9A24B 70%, rgba(169,127,63,0));
+}
+
+/* --- Panneau d'actions --- */
+.acc-panel { margin-top: 12px; padding: 17px 18px 15px; }
+.acc-panel h1 {
+  text-align: center;
+  font-size: 22.5px;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0;
+}
+.acc-sub {
+  text-align: center;
+  font-size: 13.5px;
+  color: #5A5348;
+  line-height: 1.45;
+  margin: 7px 0 0;
+  padding: 0 8px;
+}
+.acc-btn {
+  width: 100%;
+  margin-top: 10px;
+  height: 50px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.acc-bronze {
+  background: linear-gradient(135deg, #C9A24B 0%, #A97F3F 55%, #8C6D2F 100%);
+  color: #FFF8EA;
+  border: none;
+  margin-top: 14px;
+  box-shadow: 0 10px 22px rgba(120,90,35,.38);
+}
+.acc-white {
+  background: rgba(255,255,255,.85);
+  color: #1C1A17;
+  border: 1.5px solid rgba(28,26,23,.14);
+}
+.acc-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 13px;
+}
+.acc-divider .acc-line { flex: 1; height: 1px; background: rgba(28,26,23,.14); }
+.acc-divider span { font-size: 12px; color: #7A7264; letter-spacing: .04em; }
+
+/* --- Portes Homme / Femme --- */
+.acc-doors { display: flex; gap: 10px; margin-top: 11px; }
+.acc-door {
+  flex: 1;
+  background: rgba(255,255,255,.78);
+  border: 1.5px solid rgba(140,109,47,.65);
+  border-radius: 15px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  color: #1C1A17;
+}
+.acc-door img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 4px 10px rgba(45,35,18,.18);
+}
+.acc-door-t { display: block; font-size: 15.5px; font-weight: 700; line-height: 1.1; }
+.acc-door-s { display: block; font-size: 11px; color: #857C6B; margin-top: 2px; }
+
+.acc-foot {
+  text-align: center;
+  font-size: 12px;
+  color: #5F574B;
+  margin: 11px 0 0;
+}
+
+/* --- Écran d'ordinateur : deux places, une de chaque côté du milieu ---
+   À GAUCHE : la photo + le panneau. À DROITE : le logo, centré dans sa place.
+   (Disposition validée par Omar le 2026-11-07 : logo à droite.) */
+@media (min-width: 1024px) {
+  .acc-inner {
+    max-width: 1120px;
+    min-height: 100dvh;
+    padding: 24px 44px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 64px;
+    align-items: center;
+    align-content: center;
+  }
+  .acc-brand { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+  .acc-logo { width: 320px; }
+  .acc-hero { grid-column: 1; grid-row: 1; margin-top: 0; }
+  .acc-panel { grid-column: 1; grid-row: 2; }
+  .acc-panel h1 { font-size: 24px; }
+}
+
+/* --- Petits téléphones --- */
+@media (max-width: 360px) {
+  .acc-inner { padding: 10px 16px 24px; }
+  .acc-logo { width: 168px; }
+  .acc-panel h1 { font-size: 20.5px; }
+}
