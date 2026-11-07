@@ -38,7 +38,7 @@
 /* --- Marque : le grand logo transparent --- */
 .acc-brand { text-align: center; }
 .acc-logo {
-  width: 196px;
+  width: 140px;
   max-width: 62vw;
   display: block;
   margin: 0 auto;
@@ -209,7 +209,7 @@
 /* --- Petits téléphones --- */
 @media (max-width: 360px) {
   .acc-inner { padding: 10px 16px 24px; }
-  .acc-logo { width: 168px; }
+  .acc-logo { width: 124px; }
   .acc-panel h1 { font-size: 20.5px; }
 }
 
@@ -220,9 +220,9 @@
 
 /* --- Écrans moins hauts : le logo réduit pour laisser la place à la photo --- */
 @media (max-height: 760px) {
-  .acc-logo { width: 150px; }
+  .acc-logo { width: 124px; }
 }
 /* --- Tout petit ET court (ex. 320x568) : encore un cran --- */
 @media (max-width: 360px) and (max-height: 700px) {
-  .acc-logo { width: 118px; }
+  .acc-logo { width: 104px; }
 }
