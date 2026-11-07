@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/accueil.css">
 <link rel="stylesheet" href="css/questions.css">
+<link rel="stylesheet" href="css/visage.css">
 </head>
 <body>
 
@@ -72,6 +73,63 @@
     <p class="q-sub" id="qSub"></p>
     <div class="q-zone" id="qZone"></div>
     <p class="q-foot" id="qFoot"></p>
+  </div>
+</section>
+
+<!-- ============ SURMOI — Avatar personnel : mettre son propre visage ============ -->
+<section class="visage" id="visage" aria-label="Mon avatar personnel">
+  <div class="v-veil"></div>
+  <div class="v-inner">
+    <div class="v-top">
+      <span class="v-label">MON AVATAR PERSONNEL</span>
+      <button class="v-nav" id="vClose" type="button" aria-label="Fermer">&#10005;</button>
+    </div>
+    <h2 class="v-h">Mets ton propre visage</h2>
+    <p class="v-sub">Ton corps est choisi. Maintenant mets TON visage dessus — 2 minutes, dans ton ChatGPT ou Gemini.</p>
+
+    <div class="v-step">
+      <div class="v-num">1</div>
+      <div class="v-body">
+        <p>Enregistre ces 2 images :</p>
+        <div class="v-imgs">
+          <figure>
+            <img id="vBodyImg" alt="Ton corps">
+            <a class="v-dl" id="vBodyDl" href="#" download>&#11015; Ton corps</a>
+          </figure>
+          <figure>
+            <img src="assets/fond-magasin.jpg" alt="La pièce du magasin">
+            <a class="v-dl" href="assets/fond-magasin.jpg" download>&#11015; La pièce</a>
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <div class="v-step">
+      <div class="v-num">2</div>
+      <div class="v-body">
+        <p>Copie le prompt, colle-le dans ChatGPT ou Gemini, et joins les 3 images : <b>ta photo</b> + ton corps + la pièce. Envoie — il crée UNE image : ton corps à gauche, ton visage à droite sur fond vert.</p>
+        <button class="v-copy" id="vCopy" type="button">Copier le prompt</button>
+        <span class="v-copied" id="vCopied" hidden>Copié &#10003;</span>
+      </div>
+    </div>
+
+    <div class="v-step">
+      <div class="v-num">3</div>
+      <div class="v-body">
+        <p>Reviens ici et mets l'image qu'il t'a donnée :</p>
+        <label class="v-upload" for="vFile">Choisir l'image</label>
+        <input type="file" id="vFile" accept="image/*" hidden>
+        <div class="v-result" id="vResult" hidden>
+          <div class="v-facebox"><img id="vFaceImg" alt="Ton visage découpé"></div>
+          <p class="v-msg" id="vMsg">Voici ton visage, découpé tout seul par le magasin.</p>
+          <button class="v-keep" id="vKeep" type="button">Garder cet avatar</button>
+          <button class="v-redo" id="vRedo" type="button">Recommencer</button>
+        </div>
+        <p class="v-err" id="vErr"></p>
+      </div>
+    </div>
+
+    <p class="v-foot">Tout reste dans ton téléphone — le magasin n'envoie rien sur internet.</p>
   </div>
 </section>
 
@@ -160,6 +218,7 @@
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 <script src="js/questions.js"></script>
+<script src="js/visage.js"></script>
 <script src="js/accueil.js"></script>
 </body>
 </html>

@@ -128,9 +128,14 @@
         '<span class="q-chip">' + S.poids + ' kg</span>' +
         '<span class="q-chip">Peau ' + S.peauNom.toLowerCase() + '</span></div>' +
         '<button class="q-enter" type="button" id="qEnter">Entrer dans le magasin</button>' +
+        '<button class="q-face" type="button" id="qFace">Mettre mon propre visage</button>' +
         '<button class="q-restart" type="button" id="qRestart">Recommencer</button>';
       foot.textContent = 'Ton avatar est gardé dans ton téléphone';
       document.getElementById('qEnter').addEventListener('click', finish);
+      document.getElementById('qFace').addEventListener('click', function () {
+        finishSaveOnly();
+        if (typeof window.SURMOI_OPEN_VISAGE === 'function') window.SURMOI_OPEN_VISAGE();
+      });
       document.getElementById('qRestart').addEventListener('click', function () { reset(); render(); });
     }
   }
@@ -167,18 +172,24 @@
 
   function close() { sec.classList.remove('q-open'); }
 
-  function finish() {
+  function currentData() {
     var idA = fichier(S.sexe, S.forme, S.tranche, S.peau);
-    var data = {
+    return {
       sexe: S.sexe, tranche: S.tranche, forme: S.forme, peau: S.peau,
       age: S.age, taille: S.taille, poids: S.poids,
       avatar: idA, image: img(idA), type: 'defaut'
     };
+  }
+  function finishSaveOnly() {
+    var data = currentData();
     try {
       localStorage.setItem('vf_avatar', JSON.stringify(data));
       localStorage.setItem('vf_corps', data.image);
-    } catch (e) { /* stockage indisponible : le magasin s'ouvre quand même */ }
+    } catch (e) { /* stockage indisponible */ }
     window.SURMOI_AVATAR = data;
+  }
+  function finish() {
+    finishSaveOnly();
     close();
     var acc = document.getElementById('accueil');
     if (acc) {

@@ -137,3 +137,12 @@
   font-family: inherit; font-size: 13px; font-weight: 600; color: #8C6D2F;
   text-decoration: underline; display: block;
 }
+.q-face {
+  margin-top: 10px;
+  width: 100%; height: 50px;
+  border: 1.5px solid rgba(140,109,47,.65); border-radius: 15px;
+  background: rgba(255,255,255,.82);
+  color: #1C1A17; font-family: inherit;
+  font-size: 15.5px; font-weight: 700;
+  cursor: pointer;
+}
