@@ -131,3 +131,93 @@ combination tests, mobile check, store untouched.
   (the base's compression shorts are knee-length); the remaining
   catalogue garments (4 tops, 4 bottoms, 5 shoes) if migration is
   approved; product IDs + YouCan mapping (Phase 8, not started).
+
+## Matte v2 (2026-11-08) — Omar's diagnosis: background removal
+
+Omar named the weak point himself: the background removal makes the
+elements look bad. He was right — register.py (v1) forces the matte
+binary inside the silhouette, then crushes the whole border ring to
+25% opacity: edges come out faded and eaten (thin hair, thin toes).
+
+`mix-src/register-v2.py` (same geometry/anchors): matte segmented at
+the RAW's native resolution (greenness ramp → background flood-fill
+from the borders + enclosed-green-pocket detection → soft alpha from
+the figure mask), despill on the edge band, premultiplied scaling,
+NO border crush. A/B on the sleeveless base: v2 keeps the hair and
+feet visibly fuller, edges natural on sand and dark, 0 green pixels,
+anchors unchanged (head 260, feet 1555, 179.9 cm, axis 474).
+
+**Status: v2 proven on the base only. NOT yet applied to the shop
+assets** — re-registering the base + 3 worn photos and re-extracting
+the 3 layers awaits Omar's go.
+
+## Garment cut v3 (2026-11-08) — Omar clarified: the ELEMENTS
+
+Omar clarified his complaint: the garment elements themselves (t-shirt,
+hoodie…) are not cut well — their pixels came from v1-registered worn
+photos, so every garment edge carries the old matte's dark crushed rim
+(visible as a thin dark line on the shoulder/sleeve), and the colour
+test alone decided the outline.
+
+Fix (`extract-tshirt-v3.py`): worn photo re-registered with v2, seed =
+the v1 colour cut (keeps the correct interior boundaries: collar, hem,
+sleeve hems), plus a rim snap — silhouette pixels within 3px of the
+photo's real outline and within 3px of the seed are added (+428 px on
+the tee). A "grow to the silhouette everywhere" variant (dilate 12)
+was tried first and DISCARDED: it invaded the neck opening, the
+briefs under the hem and the arms.
+
+Result on the T-shirt: the dark rim on the shoulder/sleeve is gone,
+the outline follows the photo. Awaiting Omar's verdict before applying
+the same cut to hoodie + jeans and re-uploading the set.
+
+## Shirtless base (2026-11-08) — Omar's order
+
+Omar: the default body must have NO black t-shirt, so nothing black
+shows at the sides when a stock T-shirt is worn. New base v6: the same
+man, bare chest, tight black compression shorts above the knee,
+registered with v2 (head 260, feet 1556, 180.0 cm, axis 474).
+First attempt (v5, loose board shorts) FAILED its own check: the wide
+shorts flared out at the jeans' sides — the base must be tighter than
+every garment in every zone, top AND bottom. v6 fixes both: at the
+T-shirt's sides you see only skin; the jeans fully cover the shorts.
+Verified: full composite + hips zoom + base alone. NOT yet uploaded —
+awaits Omar's verdict together with the garment cut v3.
+
+## Jeans v5 + hands layer (2026-11-08) — "not good on the character"
+
+Omar: the pant alone looked fine but NOT good on the character. Two
+faults, both from the colour-test cut: (1) small bites in the legs —
+invisible on dark, obvious white cuts on the shop's light background;
+(2) hand-shaped holes in the layer + the base's hands come from a
+different photo → dark patches of base shorts around his fingers.
+
+Fix (`jeans-layer-v5.png` + `hands-patch.png`): the jeans' region =
+the worn photo's TRUE SILHOUETTE inside the jeans zone (waistband
+y=878 → per-column hem from the old mask); skin pixels inside it
+(his hands in that photo, 2,096 px) replaced by nearest-denim bleed.
+His hands, cut from the BASE photo itself, are drawn as the LAST
+layer — hands in front of the trousers, perfectly aligned with his
+arms. Verified: legs zoom (complete denim, no bites), hips zoom
+(hands natural, patches gone), full composite. This silhouette-region
+method supersedes colour-test cuts for bottoms. Still NOT uploaded;
+the test page still runs the old set. Next step = hoodie re-cut the
+same way + publish the whole new set (base v6, tee v3, jeans v5,
+hands) to the test page, on Omar's go.
+
+## ✅ NEW SYSTEM PUBLISHED (2026-11-08, Omar's "Go")
+
+The whole test page now runs the new-removal system:
+- **Base v6** (shirtless, tight shorts, v2 matte) replaces the tank base.
+- **T-shirt v3, jeans v5, hoodie v3** — all cut on their photo's true
+  outline (silhouette-region method; colour tests only locate).
+- **Hands layer** (`assets/layers/base/hands.png`) drawn last on the
+  test page; draw order base → bottom → top → hands.
+- Hoodie note: its hood stands RAISED around the neck in its source
+  photo — the lobes beside the neck are the garment's true shape, kept
+  faithful (two trim attempts made it worse and were reverted). A
+  flat-hood look needs a new worn photo.
+- Mobile walk (390×844, local): no errors, no overflow, all combos
+  render; screenshots inspected.
+Pending: Omar's verdict on the live page; migration to the real shop
+is a separate decision.

@@ -42,6 +42,7 @@ avec l'ancien système (photos mélangées).</div>
   <img id="imgBase" src="../assets/layers/base/homme-default-base.png" alt="Avatar de base">
   <img id="imgBottom" src="../assets/layers/bottoms/blue-jeans.png" alt="Couche jean" style="display:none">
   <img id="imgTop" src="../assets/layers/tops/basic-tshirt.png" alt="Couche haut" style="display:none">
+  <img id="imgHands" src="../assets/layers/base/hands.png" alt="Couche mains">
   <img id="imgSolo" src="" alt="" style="display:none">
 </div>
 
@@ -72,15 +73,19 @@ avec l'ancien système (photos mélangées).</div>
 </div>
 
 <div class="notes">
-  <p><b>Base sans manches :</b> le défaut de la bande noire sous les manches
-  est corrigé — la nouvelle base est en débardeur noir.</p>
-  <p><b>Vérifié :</b> toutes les photos recalées au même standard (tête y≈262,
-  pieds y=1556, hauteur ≈179,7 cm, axe x≈473). Aucun pixel vert parasite sur
-  les trois couches. Ordre des couches : base → bas → haut.</p>
-  <p><b>Défaut connu (hoodie) :</b> au zoom, une fine ligne de peau peut se voir
-  entre le bras et le torse — le bras de la photo de base est décalé de
-  quelques pixels par rapport à la photo du hoodie. À taille téléphone,
-  presque invisible.</p>
+  <p><b>Base sans haut :</b> le corps de base ne porte plus aucun t-shirt —
+  torse nu, short de compression noir serré. Rien de noir ne peut dépasser
+  sur les côtés d'un vêtement.</p>
+  <p><b>Nouvelle découpe :</b> chaque pièce est découpée sur le contour réel
+  de sa photo (nouveau détourage), puis vérifiée portée sur le corps. Les
+  mains du corps sont dessinées par-dessus le pantalon, comme sur une
+  vraie photo. Ordre des couches : base → bas → haut → mains.</p>
+  <p><b>Vérifié :</b> toutes les photos recalées au même standard (tête
+  y≈260, pieds y=1556, hauteur 180,0 cm, axe x≈474). Aucun pixel vert
+  parasite.</p>
+  <p><b>Note (hoodie) :</b> la capuche est relevée autour du cou, comme sur
+  sa photo d'origine. Un modèle à capuche plate demanderait une nouvelle
+  photo.</p>
   <p><b>Honnêteté :</b> les mesures du client ne changent pas encore les
   proportions de l'avatar. Aucune promesse d'ajustement réel à ce stade.</p>
 </div>
@@ -96,6 +101,7 @@ avec l'ancien système (photos mélangées).</div>
   const imgBase = document.getElementById('imgBase');
   const imgBottom = document.getElementById('imgBottom');
   const imgTop = document.getElementById('imgTop');
+  const imgHands = document.getElementById('imgHands');
   const imgSolo = document.getElementById('imgSolo');
   let topSel = 'tee', bot = 'jeans', solo = 'comp';
 
@@ -105,6 +111,7 @@ avec l'ancien système (photos mélangées).</div>
     imgBottom.style.display = (!soloMode && bot === 'jeans') ? 'block' : 'none';
     imgTop.style.display = (!soloMode && topSel !== 'none') ? 'block' : 'none';
     if (!soloMode && topSel !== 'none') imgTop.src = P[topSel];
+    imgHands.style.display = soloMode ? 'none' : 'block';
     imgSolo.style.display = soloMode ? 'block' : 'none';
     if (soloMode) imgSolo.src = P[solo];
     stage.classList.toggle('dark', soloMode);
