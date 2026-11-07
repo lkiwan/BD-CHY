@@ -22,13 +22,13 @@
     homme: [
       { id: 'droit', nom: 'Droit' },
       { id: 'equilibre', nom: 'Équilibré' },
-      { id: 'muscle', nom: 'Musclé', zoom: true },
+      { id: 'muscle', nom: 'Musclé' },
       { id: 'rond', nom: 'Rond' }
     ],
     femme: [
       { id: 'droite', nom: 'Droite' },
       { id: 'poire', nom: 'Poire' },
-      { id: 'sablier', nom: 'Sablier', zoom: true },
+      { id: 'sablier', nom: 'Sablier' },
       { id: 'ronde', nom: 'Ronde' },
       { id: 'epaules-larges', nom: 'Épaules larges' }
     ]
@@ -81,7 +81,7 @@
       label.textContent = 'QUESTION 1 SUR 6'; barFill.style.width = '17%';
       title.textContent = 'Tu es... ?'; sub.textContent = 'Touche ton personnage';
       zone.innerHTML = '<div class="q-cards2">' +
-        card(DEFAUTS.homme, 'Homme') + card(DEFAUTS.femme, 'Femme', true) + '</div>';
+        card(DEFAUTS.homme, 'Homme') + card(DEFAUTS.femme, 'Femme') + '</div>';
       foot.textContent = 'Aucun compte nécessaire — tu pourras changer plus tard';
     } else if (step === 2) {
       label.textContent = 'QUESTION 2 SUR 6'; barFill.style.width = '33%';
@@ -110,7 +110,7 @@
       label.textContent = 'QUESTION 6 SUR 6'; barFill.style.width = '100%';
       title.textContent = 'Choisis ton avatar'; sub.textContent = "Touche ton corps — c'est ton avatar";
       zone.innerHTML = '<div class="q-cards3">' + PEAUX.map(function (p) {
-        return card(fichier(S.sexe, S.forme, S.tranche, p.id), p.nom, S.forme === 'sablier' || S.forme === 'muscle');
+        return card(fichier(S.sexe, S.forme, S.tranche, p.id), p.nom);
       }).join('') + '</div>';
       foot.textContent = 'Tu pourras mettre ton propre visage plus tard';
     } else if (step === 7) {
