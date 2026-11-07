@@ -90,3 +90,44 @@ Phases 3/6 (measurements, saved profiles) proceed on top of it.
   `assets/layers/ref/worn-tshirt.png`, page `layers-test/index.html`.
   Scripts: `layer-src/extract-tshirt.py` (layer-src lives in
   game-shots/virtualfit-screens/).
+
+## Round 2 log (2026-11-08) — more garment types
+
+Omar's validation order: sleeveless base, one trousers, one hoodie,
+combination tests, mobile check, store untouched.
+
+- **Sleeveless base (v4):** black tank + compression shorts. Registered
+  head 261, feet 1556, 179.9 cm, axis 473. **The sleeve band defect is
+  GONE** — verified on the T-shirt sleeve crop: white sleeve ends on skin.
+- **Blue jeans layer** (`assets/layers/bottoms/blue-jeans.png`): worn
+  photo regenerated with the tank TUCKED IN so the full waistband is
+  visible (v1, tank out, cut the jeans top at y=929 → a black strip
+  would have shown under tops; v2 top = y=885 ✓). Mask 117,945 px after
+  repair, bbox x 335–611, y 885–1490, fringe 0.
+- **Grey hoodie layer** (`assets/layers/outerwear/grey-hoodie.png`):
+  hood down, drawstrings, kangaroo pocket. Mask 167,123 px after
+  repair, bbox x 263–682, y 437–938, fringe 0.
+- **Repair pass (both new layers):** the colour tests cut small notches
+  into garment edges (shadow edge pixels fail the test) and base skin
+  showed through as fake "rips". Fix in `extract-fix.py`: vertical
+  closing (17×3) → fill holes → cap by the worn photo's silhouette +2px.
+  A second idea (widening the hoodie sleeve into the arm gap with bled
+  colours) was tried and DISCARDED — it printed a black rim; the layer
+  was restored to the repaired state.
+- **Combinations verified** (draw order base → bottom → top):
+  tee + jeans = clean, reads like a real outfit photo; hoodie + jeans =
+  clean hem-over-waistband; changing the top leaves base + jeans
+  pixel-identical (independent <img> layers on the test page).
+- **Known residual (hoodie):** at zoom, a thin skin line can show in the
+  gap between arm and torso — the base photo's arm sits a few px inward
+  vs the hoodie photo's arm (cross-photo pose difference). At phone
+  size it is a ~2–3 px line. A fix would need the hoodie photo
+  regenerated with arms tighter to the body.
+- **Mobile:** Playwright walk at 390×844 — stage fits (359 px), no
+  horizontal overflow, all buttons work, combos render. (First walk
+  caught a real bug: `let top` collides with `window.top` — renamed.)
+- **Still needed (assets):** shoes layer (none yet — avatar is barefoot
+  in every composite); a shorter base short if short bottoms are added
+  (the base's compression shorts are knee-length); the remaining
+  catalogue garments (4 tops, 4 bottoms, 5 shoes) if migration is
+  approved; product IDs + YouCan mapping (Phase 8, not started).
