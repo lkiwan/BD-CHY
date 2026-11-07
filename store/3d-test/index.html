@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SURMOI — Test mannequin 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; }
+  body {
+    font-family:'Inter', system-ui, sans-serif;
+    background:#ece7db;
+    color:#242424;
+  }
+  #scene { position:fixed; inset:0; touch-action:none; }
+  .hud {
+    position:fixed; left:50%; transform:translateX(-50%);
+    text-align:center; pointer-events:none; z-index:5;
+  }
+  .hud.top { top:22px; }
+  .brand { font-weight:800; letter-spacing:.35em; font-size:15px; }
+  .brand small { display:block; letter-spacing:.28em; font-size:9px; font-weight:600; color:#8c6a3f; margin-top:3px; }
+  .hud.bottom { bottom:26px; width:100%; }
+  .hint {
+    display:inline-block; background:rgba(255,255,255,.55); backdrop-filter:blur(10px);
+    border:1px solid rgba(36,36,36,.08); border-radius:999px;
+    padding:9px 18px; font-size:12.5px; font-weight:500; color:#4a463d;
+    box-shadow:0 8px 24px rgba(60,50,30,.10);
+  }
+  .hint b { color:#8c6a3f; font-weight:700; }
+  #err {
+    position:fixed; inset:auto 16px 90px 16px; z-index:9; display:none;
+    background:#fff3f0; border:1px solid #e5b4a6; color:#7a2d1c;
+    border-radius:14px; padding:12px 14px; font-size:13px; line-height:1.45;
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="scene"></div>
+<div class="hud top">
+  <div class="brand">SURMOI<small>TEST MANNEQUIN 3D</small></div>
+</div>
+<div class="hud bottom">
+  <span class="hint"><b>Glisse</b> pour tourner &nbsp;·&nbsp; <b>pince</b> pour zoomer</span>
+</div>
+<div id="err"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const box = document.getElementById('scene');
+const err = document.getElementById('err');
+window.addEventListener('error', (e) => {
+  err.style.display = 'block';
+  err.textContent = 'Petit souci de chargement 3D — vérifie ta connexion et recharge la page.';
+});
+
+/* ---------- renderer / scene / camera ---------- */
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+box.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xece7db);
+scene.fog = new THREE.Fog(0xece7db, 6.5, 12);
+
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 60);
+const qs = new URLSearchParams(location.search);
+const az = THREE.MathUtils.degToRad(parseFloat(qs.get('az') || '28'));
+const dist = 3.35, camH = 1.28;
+camera.position.set(Math.sin(az) * dist, camH, Math.cos(az) * dist);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.98, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.enablePan = false;
+controls.minDistance = 1.4;
+controls.maxDistance = 6;
+controls.maxPolarAngle = Math.PI * 0.55;
+controls.autoRotate = !qs.has('az');
+controls.autoRotateSpeed = 1.1;
+controls.addEventListener('start', () => { controls.autoRotate = false; });
+
+/* ---------- lights ---------- */
+scene.add(new THREE.HemisphereLight(0xfff6e8, 0x8f8672, 0.95));
+const key = new THREE.DirectionalLight(0xffffff, 2.1);
+key.position.set(2.4, 3.6, 2.2);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -1.4; key.shadow.camera.right = 1.4;
+key.shadow.camera.top = 2.4;  key.shadow.camera.bottom = -0.4;
+key.shadow.radius = 6;
+key.shadow.bias = -0.0004;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0xdfe8ff, 0.85);
+rim.position.set(-2.4, 2.2, -2.4);
+scene.add(rim);
+const fill = new THREE.DirectionalLight(0xffe9c9, 0.5);
+fill.position.set(-1.6, 1.2, 2.4);
+scene.add(fill);
+
+/* ---------- ground shadow catcher ---------- */
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(4.5, 48),
+  new THREE.ShadowMaterial({ opacity: 0.17 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+/* ================================================================
+   MANNEQUIN — proportions from the measured default body (180 cm):
+   head 19.3 wide · shoulders 37.2 · waist 36.4 · hips 39.4 ·
+   inseam 71.1 · heights (cm from floor): ankle 12, knee 50,
+   crotch 83, hip 97, waist 105, chest 137, shoulder 149, neck 153.
+   Units below are meters.
+   ================================================================ */
+const M = new THREE.Group();
+
+const skin = new THREE.MeshStandardMaterial({ color:0xddd5c5, roughness:0.5, metalness:0.04 });
+const jointMat = new THREE.MeshStandardMaterial({ color:0xcfc6b2, roughness:0.45, metalness:0.06 });
+const bronze = new THREE.MeshStandardMaterial({ color:0xa87f4e, roughness:0.45, metalness:0.55 });
+
+function part(geo, mat, x, y, z) {
+  const m = new THREE.Mesh(geo, mat || skin);
+  m.position.set(x || 0, y || 0, z || 0);
+  m.castShadow = true;
+  M.add(m);
+  return m;
+}
+
+/* --- base disc (bronze) --- */
+part(new THREE.CylinderGeometry(0.27, 0.29, 0.018, 48), bronze, 0, 0.009, 0);
+
+/* --- torso: lathe profile, flattened front-to-back --- */
+const prof = [
+  [0.001, 0.86], [0.120, 0.875], [0.175, 0.92], [0.197, 0.97],
+  [0.190, 1.01], [0.182, 1.05], [0.188, 1.14], [0.203, 1.26],
+  [0.205, 1.37], [0.196, 1.44], [0.186, 1.49], [0.120, 1.525],
+  [0.066, 1.545], [0.064, 1.60]
+].map(p => new THREE.Vector2(p[0], p[1]));
+const torso = part(new THREE.LatheGeometry(prof, 40), skin, 0, 0, 0);
+torso.scale.set(1, 1, 0.74);
+
+/* --- neck + head (smooth, no face: a mannequin) --- */
+part(new THREE.CylinderGeometry(0.062, 0.066, 0.12, 24), skin, 0, 1.585, 0);
+const head = part(new THREE.SphereGeometry(0.0965, 32, 24), skin, 0, 1.685, 0);
+head.scale.set(1, 1.24, 1.04);
+
+/* --- arms: shoulder at (±0.175, 1.465), slight outward tilt --- */
+function arm(side) {
+  const g = new THREE.Group();
+  g.position.set(0.21 * side, 1.465, 0.01);
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.062, 24, 18), jointMat);
+  ball.castShadow = true; g.add(ball);
+  const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.052, 0.19, 6, 18), skin);
+  upper.position.y = -0.155; upper.castShadow = true; g.add(upper);
+  const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.047, 20, 16), jointMat);
+  elbow.position.y = -0.315; elbow.castShadow = true; g.add(elbow);
+  const fore = new THREE.Mesh(new THREE.CapsuleGeometry(0.042, 0.17, 6, 18), skin);
+  fore.position.y = -0.455; fore.castShadow = true; g.add(fore);
+  const hand = new THREE.Mesh(new THREE.SphereGeometry(0.042, 20, 16), skin);
+  hand.scale.set(0.75, 1.9, 1.05);
+  hand.position.y = -0.635; hand.castShadow = true; g.add(hand);
+  g.rotation.z = side * 0.22;       /* light A-pose, like display mannequins */
+  g.rotation.x = 0.03;
+  M.add(g);
+}
+arm(1); arm(-1);
+
+/* --- legs: hip joints at (±0.098, 0.95) --- */
+function leg(side) {
+  const g = new THREE.Group();
+  g.position.set(0.098 * side, 0.95, 0);
+  const thigh = new THREE.Mesh(new THREE.CapsuleGeometry(0.082, 0.28, 6, 20), skin);
+  thigh.position.y = -0.225; thigh.castShadow = true; g.add(thigh);
+  const knee = new THREE.Mesh(new THREE.SphereGeometry(0.06, 20, 16), jointMat);
+  knee.position.y = -0.45; knee.castShadow = true; g.add(knee);
+  const calf = new THREE.Mesh(new THREE.CapsuleGeometry(0.054, 0.30, 6, 18), skin);
+  calf.position.y = -0.68; calf.castShadow = true; g.add(calf);
+  const foot = new THREE.Mesh(new THREE.SphereGeometry(0.055, 20, 16), skin);
+  foot.scale.set(0.82, 0.55, 2.05);
+  foot.position.set(0, -0.902, 0.055); foot.castShadow = true; g.add(foot);
+  M.add(g);
+}
+leg(1); leg(-1);
+
+scene.add(M);
+
+/* ---------- loop / resize ---------- */
+function tick() {
+  requestAnimationFrame(tick);
+  controls.update();
+  renderer.render(scene, camera);
+}
+tick();
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
