@@ -7,6 +7,10 @@
    règle 1 : « à générer »). Clé : 't<haut>-b<bas>' (index dans
    data.js). Les chaussures rejoindront la clé plus tard.
    ============================================================ */
+/* Photos de looks : générées en groupes de 4 (un haut fixe, 4 bas),
+   même personnage que les planches, découpées en singles ensuite.
+   Faites : t0 (Basic T-shirt) × b0..b3. Restent : t0-b4 (shorts),
+   puis t1..t4 (sweater, chemise, hoodie, ringer) × b0..b4. */
 window.OUTFITS = {
   /* rempli au fur et à mesure que les photos de looks sont créées */
   't0-b0': 'assets/outfits/t0-b0.webp',  /* Basic T-shirt + Charcoal Trousers */
