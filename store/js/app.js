@@ -70,19 +70,66 @@
     el.style.backgroundPosition = (item.m != null ? item.m : 0) + "% 100%";
   }
 
+  /* ---------------- mix photos (Omar, 2026-11-07) ----------------
+     The model always shows ONE photo of the full outfit: the mix
+     of the chosen top + bottom + shoes. Every choice stays: when
+     one category changes, the other two stay as they were, and
+     the body is always in the exact same place. */
+  var MIX_SLUG = {
+    tops: { "Basic T-shirt": "basic-tshirt", "Basic Sweater": "basic-sweater", "Linen Shirt": "linen-shirt", "Grey Hoodie": "grey-hoodie", "Ringer Tee": "ringer-tee" },
+    bottoms: { "Charcoal Trousers": "charcoal-trousers", "Blue Jeans": "blue-jeans", "Beige Chinos": "beige-chinos", "Black Joggers": "black-joggers", "Navy Shorts": "navy-shorts" },
+    shoes: { "White Sneakers": "white-sneakers", "Black Leather Shoes": "black-leather", "Brown Boots": "brown-boots", "Grey Runners": "grey-runners", "Tan Loafers": "tan-loafers" }
+  };
+  var sel = { tops: null, bottoms: null, shoes: null };   // chosen item per category
+  function itemByName(c, name) {
+    for (var i = 0; i < c.items.length; i++) if (c.items[i].n === name) return c.items[i];
+    return c.items[0];
+  }
+  sel.tops = itemByName(CATS[0], "Basic T-shirt");
+  sel.bottoms = itemByName(CATS[1], "Blue Jeans");
+  sel.shoes = itemByName(CATS[2], "Grey Runners");
+  function mixURL() {
+    return "assets/mix/default/web/" +
+      MIX_SLUG.tops[sel.tops.n] + "_" +
+      MIX_SLUG.bottoms[sel.bottoms.n] + "_" +
+      MIX_SLUG.shoes[sel.shoes.n] + ".webp";
+  }
+  function setMixFigure(el) {
+    el.style.setProperty("background-image", "url(\"" + mixURL() + "\")");
+    el.style.backgroundSize = "contain";
+    el.style.backgroundPosition = "50% 100%";
+    el.style.backgroundRepeat = "no-repeat";
+  }
+  function selIndex(c) {
+    var it = sel[c.id];
+    for (var i = 0; i < c.items.length; i++) if (c.items[i] === it) return i;
+    return 0;
+  }
+  /* Warm the cache for the 12 one-change neighbours of the
+     current outfit, so the first switches feel instant. */
+  function preloadNeighbours() {
+    CATS.forEach(function (c) {
+      var keep = sel[c.id];
+      c.items.forEach(function (it) {
+        if (it === keep) return;
+        sel[c.id] = it;
+        var im = new Image();
+        im.src = mixURL();
+      });
+      sel[c.id] = keep;
+    });
+  }
+
   /* ---------------- model geometry (per category) ---------------- */
   function applyModelStyle() {
     if (!cat) return;
-    var m = cat.model, ph = isPhone();
-    modelEl.style.aspectRatio = m.aspect;
-    var h = ph && m.heightPhone ? m.heightPhone : m.height;
-    modelEl.style.height = h || "";
-    var lift = ph && m.liftPhone != null ? m.liftPhone : m.lift;
-    modelEl.style.bottom = lift || "";
-    [mCur, mNext].forEach(function (el) {
-      el.style.setProperty("background-image", m.img);
-      el.style.backgroundSize = m.size;
-    });
+    /* Mix mode: one full-body photo (2:3) for every category —
+       same size, same place, whatever tab is open. */
+    modelEl.style.aspectRatio = "2/3";
+    modelEl.style.height = isPhone() ? "min(74vh,150vw)" : "";
+    modelEl.style.bottom = "";
+    setMixFigure(mCur);
+    setMixFigure(mNext);
   }
 
   /* ---------------- cards ---------------- */
@@ -319,13 +366,14 @@
   function tryOn(idx) {
     shown = idx;
     var item = ITEMS[idx];
+    sel[cat.id] = item;               // this choice stays (mix photos)
     resetZoom();
     updateBuy(item);
     scanAnims.forEach(function (a) { a.cancel(); });
     scanAnims = [];
-    setFigure(mNext, item);
+    setMixFigure(mNext);
     if (reduced) {
-      setFigure(mCur, item);
+      setMixFigure(mCur);
       mCur.style.opacity = "1";
       return;
     }
@@ -356,7 +404,7 @@
     );
     scanAnims = [a1, a2, a3, a4];
     a1.onfinish = function () {
-      setFigure(mCur, item);
+      setMixFigure(mCur);
       mCur.style.opacity = "1";
       scanAnims.forEach(function (a) { a.cancel(); });
       scanAnims = [];
@@ -377,15 +425,17 @@
     CARDS = N * 2;
     scanAnims.forEach(function (a) { a.cancel(); });
     scanAnims = [];
-    mCur.style.opacity = "0";
-    shown = -1;
-    pos = 0;
-    target = 0;
+    /* The arc opens on the item already chosen in this category,
+       so nothing is lost by switching tabs (mix photos). */
+    var si = selIndex(c);
+    shown = si;
+    pos = si;
+    target = si;
     resetZoom();
     applyModelStyle();
+    mCur.style.opacity = "1";
     buildCards();
-    buildDots(ITEMS[0]);
-    setGarmentBg(thumbG, ITEMS[0]);
+    updateBuy(ITEMS[si]);
   }
   function switchCategory(c) {
     if (c === cat) return;
@@ -726,6 +776,7 @@
   setCategory(CATS[0]);
   layout();
   applyZoom(false);
+  setTimeout(preloadNeighbours, 900);
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(function () {
       movePill(activeTab);
