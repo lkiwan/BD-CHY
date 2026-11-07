@@ -74,7 +74,8 @@
      The model always shows ONE photo of the full outfit: the mix
      of the chosen top + bottom + shoes. Every choice stays: when
      one category changes, the other two stay as they were, and
-     the body is always in the exact same place. */
+     the body is always in the exact same place.
+     Web copies: assets/mix/default/web/ — 125 files (720x1080 WebP). */
   var MIX_SLUG = {
     tops: { "Basic T-shirt": "basic-tshirt", "Basic Sweater": "basic-sweater", "Linen Shirt": "linen-shirt", "Grey Hoodie": "grey-hoodie", "Ringer Tee": "ringer-tee" },
     bottoms: { "Charcoal Trousers": "charcoal-trousers", "Blue Jeans": "blue-jeans", "Beige Chinos": "beige-chinos", "Black Joggers": "black-joggers", "Navy Shorts": "navy-shorts" },
