@@ -9,7 +9,8 @@
    ============================================================ */
 /* Photos de looks : générées en groupes de 4 (un élément fixe, 4 variantes),
    même personnage que les planches, découpées en singles ensuite.
-   Faites : 20/25 — t0..t3 × b0..b4. Reste : t4 (Ringer Tee) × b0..b4. */
+   Faites : 25/25 — t0..t4 × b0..b4 (groupe hoodie refait en cadrage
+   serré le 2026-11-07, remarque d'Omar : le premier était panoramique). */
 window.OUTFITS = {
   /* rempli au fur et à mesure que les photos de looks sont créées */
   't0-b0': 'assets/outfits/t0-b0.webp',  /* Basic T-shirt + Charcoal Trousers */
@@ -31,7 +32,12 @@ window.OUTFITS = {
   't3-b1': 'assets/outfits/t3-b1.webp',  /* Grey Hoodie + Blue Jeans */
   't3-b2': 'assets/outfits/t3-b2.webp',  /* Grey Hoodie + Beige Chinos */
   't3-b3': 'assets/outfits/t3-b3.webp',  /* Grey Hoodie + Black Joggers */
-  't3-b4': 'assets/outfits/t3-b4.webp'   /* Grey Hoodie + Navy Shorts */
+  't3-b4': 'assets/outfits/t3-b4.webp',  /* Grey Hoodie + Navy Shorts */
+  't4-b0': 'assets/outfits/t4-b0.webp',  /* Ringer Tee + Charcoal Trousers */
+  't4-b1': 'assets/outfits/t4-b1.webp',  /* Ringer Tee + Blue Jeans */
+  't4-b2': 'assets/outfits/t4-b2.webp',  /* Ringer Tee + Beige Chinos */
+  't4-b3': 'assets/outfits/t4-b3.webp',  /* Ringer Tee + Black Joggers */
+  't4-b4': 'assets/outfits/t4-b4.webp'   /* Ringer Tee + Navy Shorts */
 };
 
 (function () {
