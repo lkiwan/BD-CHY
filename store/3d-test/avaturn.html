@@ -98,7 +98,7 @@ scene.fog = new THREE.Fog(0xece7db, 7.5, 14);
 
 const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 60);
 const qs = new URLSearchParams(location.search);
-const az = THREE.MathUtils.degToRad(parseFloat(qs.get('az') || '24'));
+const az = THREE.MathUtils.degToRad(parseFloat(qs.get('az') || '0'));
 const dist = 3.55, camH = 1.25;
 camera.position.set(Math.sin(az) * dist, camH, Math.cos(az) * dist);
 
@@ -161,12 +161,14 @@ function applyPose(root) {
   };
   const X = new THREE.Vector3(1, 0, 0), Z = new THREE.Vector3(0, 0, 1);
   const B = (n) => root.getObjectByName(n);
-  swing(B('LeftArm'), Z, -67);     swing(B('LeftArm'), X, -5);
-  swing(B('RightArm'), Z, 71);     swing(B('RightArm'), X, -7);
-  swing(B('LeftForeArm'), X, -11);
-  swing(B('RightForeArm'), X, -9);
-  swing(B('LeftHand'), X, -6);
-  swing(B('RightHand'), X, -8);
+  /* Stance matched to Omar's shop reference: arms straight down,
+     close along the body, hands beside the thighs, front-facing. */
+  swing(B('LeftArm'), Z, -80);     swing(B('LeftArm'), X, -2);
+  swing(B('RightArm'), Z, 83);     swing(B('RightArm'), X, -3);
+  swing(B('LeftForeArm'), X, -4);
+  swing(B('RightForeArm'), X, -5);
+  swing(B('LeftHand'), X, -3);
+  swing(B('RightHand'), X, -4);
 }
 
 /* ---------- the Avaturn avatar (real GLB, rigged, T-pose) ---------- */
