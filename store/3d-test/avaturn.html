@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SURMOI — Test avatar 3D</title>
+<link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#ece7db">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; overflow:hidden; }
+  body {
+    font-family:'Inter', system-ui, sans-serif;
+    background:#ece7db;
+    color:#242424;
+  }
+  #scene { position:fixed; inset:0; touch-action:none; }
+  .hud {
+    position:fixed; left:50%; transform:translateX(-50%);
+    text-align:center; pointer-events:none; z-index:5;
+  }
+  .hud.top { top:22px; }
+  .brand { font-weight:800; letter-spacing:.35em; font-size:15px; }
+  .brand small { display:block; letter-spacing:.28em; font-size:9px; font-weight:600; color:#8c6a3f; margin-top:3px; }
+  .hud.bottom { bottom:26px; width:100%; }
+  .hint {
+    display:inline-block; background:rgba(255,255,255,.55); backdrop-filter:blur(10px);
+    border:1px solid rgba(36,36,36,.08); border-radius:999px;
+    padding:9px 18px; font-size:12.5px; font-weight:500; color:#4a463d;
+    box-shadow:0 8px 24px rgba(60,50,30,.10);
+  }
+  .hint b { color:#8c6a3f; font-weight:700; }
+  #err {
+    position:fixed; inset:auto 16px 90px 16px; z-index:9; display:none;
+    background:#fff3f0; border:1px solid #e5b4a6; color:#7a2d1c;
+    border-radius:14px; padding:12px 14px; font-size:13px; line-height:1.45;
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="scene"></div>
+<div class="hud top">
+  <div class="brand">SURMOI<small>TEST AVATAR 3D · AVATURN</small></div>
+</div>
+<div class="hud bottom">
+  <span class="hint"><b>Glisse</b> pour tourner &nbsp;·&nbsp; <b>pince</b> pour zoomer</span>
+</div>
+<div id="err"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const box = document.getElementById('scene');
+const err = document.getElementById('err');
+function showErr() {
+  err.style.display = 'block';
+  err.textContent = 'Petit souci de chargement 3D — vérifie ta connexion et recharge la page.';
+}
+window.addEventListener('error', showErr);
+
+/* ---------- renderer / scene / camera ---------- */
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+box.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xece7db);
+scene.fog = new THREE.Fog(0xece7db, 7.5, 14);
+
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 60);
+const qs = new URLSearchParams(location.search);
+const az = THREE.MathUtils.degToRad(parseFloat(qs.get('az') || '24'));
+const dist = 4.85, camH = 1.3;
+camera.position.set(Math.sin(az) * dist, camH, Math.cos(az) * dist);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.95, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.enablePan = false;
+controls.minDistance = 1.4;
+controls.maxDistance = 7;
+controls.maxPolarAngle = Math.PI * 0.55;
+controls.autoRotate = !qs.has('az');
+controls.autoRotateSpeed = 1.1;
+controls.addEventListener('start', () => { controls.autoRotate = false; });
+
+/* ---------- lights ---------- */
+scene.add(new THREE.HemisphereLight(0xfff6e8, 0x8f8672, 0.95));
+const key = new THREE.DirectionalLight(0xffffff, 2.1);
+key.position.set(2.4, 3.6, 2.2);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -1.6; key.shadow.camera.right = 1.6;
+key.shadow.camera.top = 2.6;  key.shadow.camera.bottom = -0.4;
+key.shadow.radius = 6;
+key.shadow.bias = -0.0004;
+scene.add(key);
+const rim = new THREE.DirectionalLight(0xdfe8ff, 0.85);
+rim.position.set(-2.4, 2.2, -2.4);
+scene.add(rim);
+const fill = new THREE.DirectionalLight(0xffe9c9, 0.5);
+fill.position.set(-1.6, 1.2, 2.4);
+scene.add(fill);
+
+/* ---------- ground shadow catcher ---------- */
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(4.5, 48),
+  new THREE.ShadowMaterial({ opacity: 0.17 })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+/* ---------- the Avaturn avatar (real GLB, rigged, T-pose) ---------- */
+new GLTFLoader().load('model.glb', (gltf) => {
+  const model = gltf.scene;
+  model.traverse((o) => { if (o.isMesh) { o.castShadow = true; } });
+  scene.add(model);
+}, undefined, showErr);
+
+/* ---------- loop / resize ---------- */
+function tick() {
+  requestAnimationFrame(tick);
+  controls.update();
+  renderer.render(scene, camera);
+}
+tick();
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
