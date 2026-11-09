@@ -34,6 +34,14 @@
     box-shadow:0 8px 24px rgba(60,50,30,.10);
   }
   .hint b { color:#8c6a3f; font-weight:700; }
+  .chips { pointer-events:auto; margin-bottom:10px; display:flex; gap:8px; justify-content:center; }
+  .chip {
+    font-family:inherit; font-size:12.5px; font-weight:600; color:#4a463d;
+    background:rgba(255,255,255,.55); backdrop-filter:blur(10px);
+    border:1px solid rgba(36,36,36,.10); border-radius:999px;
+    padding:8px 16px; cursor:pointer; box-shadow:0 8px 24px rgba(60,50,30,.10);
+  }
+  .chip.on { color:#8c6a3f; border-color:rgba(140,106,63,.55); background:rgba(255,255,255,.85); }
   #err {
     position:fixed; inset:auto 16px 90px 16px; z-index:9; display:none;
     background:#fff3f0; border:1px solid #e5b4a6; color:#7a2d1c;
@@ -53,6 +61,10 @@
   <div class="brand">SURMOI<small>TEST AVATAR 3D · AVATURN</small></div>
 </div>
 <div class="hud bottom">
+  <div class="chips">
+    <button class="chip on" id="chipTee" type="button">T-shirt lkiwan</button>
+    <button class="chip" id="chipNone" type="button">Sans</button>
+  </div>
   <span class="hint"><b>Glisse</b> pour tourner &nbsp;·&nbsp; <b>pince</b> pour zoomer</span>
 </div>
 <div id="err"></div>
@@ -129,18 +141,16 @@ ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-/* ---------- the Avaturn avatar (real GLB, rigged, T-pose) ---------- */
-new GLTFLoader().load('model.glb', (gltf) => {
-  const model = gltf.scene;
-  model.traverse((o) => { if (o.isMesh) { o.castShadow = true; } });
-  /* Display pose: the export is a T-pose (arms straight out, the working
-     pose for fitting clothes). Swing the arm bones in world space —
-     composing with each bone's own bind rotation instead of replacing
-     it — into a relaxed stand: arms down and a touch forward, soft
-     elbows, hands tipped forward, and a slight left/right difference
-     (a perfect mirror always reads as a mannequin). GLB not modified. */
-  scene.add(model);
-  model.updateMatrixWorld(true);
+/* ---------- display pose ----------
+   The export is a T-pose (arms straight out, the working pose for
+   fitting clothes). Swing the arm bones in world space — composing
+   with each bone's own bind rotation instead of replacing it — into
+   a relaxed stand: arms down and a touch forward, soft elbows, hands
+   tipped forward, slight left/right difference (a perfect mirror
+   always reads as a mannequin). Applied to every loaded model: the
+   t-shirt GLB carries the same skeleton, so it follows exactly. */
+function applyPose(root) {
+  root.updateMatrixWorld(true);
   const swing = (bone, axis, angleDeg) => {
     if (!bone || !bone.parent) return;
     const dq = new THREE.Quaternion().setFromAxisAngle(
@@ -150,14 +160,41 @@ new GLTFLoader().load('model.glb', (gltf) => {
     bone.quaternion.copy(qpw.invert().multiply(dq).multiply(qw));
   };
   const X = new THREE.Vector3(1, 0, 0), Z = new THREE.Vector3(0, 0, 1);
-  const B = (n) => model.getObjectByName(n);
+  const B = (n) => root.getObjectByName(n);
   swing(B('LeftArm'), Z, -67);     swing(B('LeftArm'), X, -5);
   swing(B('RightArm'), Z, 71);     swing(B('RightArm'), X, -7);
   swing(B('LeftForeArm'), X, -11);
   swing(B('RightForeArm'), X, -9);
   swing(B('LeftHand'), X, -6);
   swing(B('RightHand'), X, -8);
+}
+
+/* ---------- the Avaturn avatar (real GLB, rigged, T-pose) ---------- */
+new GLTFLoader().load('model.glb', (gltf) => {
+  const model = gltf.scene;
+  model.traverse((o) => { if (o.isMesh) { o.castShadow = true; } });
+  scene.add(model);
+  applyPose(model);
 }, undefined, showErr);
+
+/* ---------- the lkiwan t-shirt (generated from the body itself) ---------- */
+let tee = null;
+new GLTFLoader().load('tshirt.glb', (gltf) => {
+  tee = gltf.scene;
+  tee.traverse((o) => { if (o.isMesh) { o.castShadow = true; } });
+  scene.add(tee);
+  applyPose(tee);
+}, undefined, () => { /* tee is a bonus: if it fails, the avatar still shows */ });
+
+const chipTee = document.getElementById('chipTee');
+const chipNone = document.getElementById('chipNone');
+function setTee(on) {
+  if (tee) tee.visible = on;
+  chipTee.classList.toggle('on', on);
+  chipNone.classList.toggle('on', !on);
+}
+chipTee.addEventListener('click', () => setTee(true));
+chipNone.addEventListener('click', () => setTee(false));
 
 /* ---------- loop / resize ---------- */
 function tick() {
