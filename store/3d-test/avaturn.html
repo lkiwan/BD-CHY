@@ -134,21 +134,29 @@ new GLTFLoader().load('model.glb', (gltf) => {
   const model = gltf.scene;
   model.traverse((o) => { if (o.isMesh) { o.castShadow = true; } });
   /* Display pose: the export is a T-pose (arms straight out, the working
-     pose for fitting clothes). Swing the upper-arm bones down in world
-     space so he stands naturally — composing with each bone's own bind
-     rotation instead of replacing it. The GLB file is not modified. */
+     pose for fitting clothes). Swing the arm bones in world space —
+     composing with each bone's own bind rotation instead of replacing
+     it — into a relaxed stand: arms down and a touch forward, soft
+     elbows, hands tipped forward, and a slight left/right difference
+     (a perfect mirror always reads as a mannequin). GLB not modified. */
   scene.add(model);
   model.updateMatrixWorld(true);
-  const swingDown = (bone, angleDeg) => {
+  const swing = (bone, axis, angleDeg) => {
     if (!bone || !bone.parent) return;
     const dq = new THREE.Quaternion().setFromAxisAngle(
-      new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(angleDeg));
+      axis, THREE.MathUtils.degToRad(angleDeg));
     const qw = bone.getWorldQuaternion(new THREE.Quaternion());
     const qpw = bone.parent.getWorldQuaternion(new THREE.Quaternion());
     bone.quaternion.copy(qpw.invert().multiply(dq).multiply(qw));
   };
-  swingDown(model.getObjectByName('LeftArm'), -70);
-  swingDown(model.getObjectByName('RightArm'), 70);
+  const X = new THREE.Vector3(1, 0, 0), Z = new THREE.Vector3(0, 0, 1);
+  const B = (n) => model.getObjectByName(n);
+  swing(B('LeftArm'), Z, -67);     swing(B('LeftArm'), X, -5);
+  swing(B('RightArm'), Z, 71);     swing(B('RightArm'), X, -7);
+  swing(B('LeftForeArm'), X, -11);
+  swing(B('RightForeArm'), X, -9);
+  swing(B('LeftHand'), X, -6);
+  swing(B('RightHand'), X, -8);
 }, undefined, showErr);
 
 /* ---------- loop / resize ---------- */
