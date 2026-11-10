@@ -11,7 +11,7 @@
   --CW:200px; /* card width — set precisely by js/app.js on resize */
   --room:url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261104_080623_c94c85a3-23d5-4a0c-afff-41be1b5b8191.png&w=2400&q=85");
   --model:url("../assets/model-sheet-6.webp");
-  --garm:url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261104_080719_f5a4cca2-cf42-4957-ab3b-ddec34d2b71a.png&w=2048&q=85");
+  --garm:url("../assets/garment-sheet.webp");
 }
 
 *{box-sizing:border-box;margin:0;padding:0}

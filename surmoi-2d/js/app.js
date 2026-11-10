@@ -52,7 +52,7 @@
       el.style.backgroundPosition = "center";
       el.style.backgroundRepeat = "no-repeat";
     } else {
-      el.style.backgroundImage = "var(--garm)";
+      el.style.backgroundImage = "url(\"assets/garment-sheet.webp\")";
       el.style.backgroundSize = "320% 212.5%";
       el.style.backgroundPosition = item.g[0] + "% " + item.g[1] + "%";
       el.style.backgroundRepeat = "no-repeat";
