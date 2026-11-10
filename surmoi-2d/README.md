@@ -73,3 +73,5 @@ be recreated for another person: same sheet sizes, same framing, same crop
 maths — then swap `--model` (and `--garm`) in `css/style.css`.
 # SURMOI 2D
 
+
+<!-- pages retrigger: garment sheet assets -->
