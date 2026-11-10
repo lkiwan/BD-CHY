@@ -277,3 +277,7 @@ button{font:inherit;color:inherit;background:none;border:none}
   .arrow{display:none}
   .buy{flex-wrap:wrap}
 }
+
+/* Commander button - opens this hoodie product page on YouCan */
+.buyBtn{display:flex;align-items:center;justify-content:center;margin-top:12px;padding:13px 18px;border-radius:999px;background:linear-gradient(135deg,#b98d5e,#A67C52);color:#fff;font-weight:800;font-size:15px;letter-spacing:.02em;text-decoration:none;box-shadow:0 8px 20px rgba(166,124,82,.35)}
+.buyBtn:active{transform:scale(.98)}

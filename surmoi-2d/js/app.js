@@ -78,7 +78,7 @@
       nm.textContent = item.n;
       var pr = document.createElement("div");
       pr.className = "cprice";
-      pr.textContent = "$" + item.p;
+      pr.textContent = item.p + " MAD";
       var sh = document.createElement("div");
       sh.className = "sheen";
       card.appendChild(g);
@@ -148,9 +148,11 @@
     });
   }
 
+  var buyBtn = $("#buyBtn");
   function updateBuy(item) {
     rollText(nameLn, item.n);
-    rollText(priceLn, "$" + item.p);
+    if (buyBtn) { buyBtn.href = item.u; buyBtn.textContent = "Commander · " + item.p + " MAD"; }
+    rollText(priceLn, item.p + " MAD");
     rollText(colorLn, "Color · " + item.c[0][0]);
     setGarmentBg(thumbG, item);
     if (!reduced) {
@@ -224,6 +226,12 @@
       activeTab = btn;
       movePill(btn);
       target += N; // full lap — lands back on the same garment
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (ch) {
+    ch.addEventListener("click", function () {
+      Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (x) { x.classList.remove("act"); });
+      ch.classList.add("act");
     });
   });
   $("#prevBtn").addEventListener("click", function () { target -= 1; });
