@@ -692,6 +692,13 @@
     el.style.backgroundPosition = "center";
     el.style.backgroundRepeat = "no-repeat";
   }
+  function paintRailHanger(el, idx) {
+    // new hanger pictures, registered so the hook lands on the rail
+    el.style.backgroundImage = 'url("assets/cart-rail-' + (idx + 1) + '.webp")';
+    el.style.backgroundSize = "contain";
+    el.style.backgroundPosition = "center";
+    el.style.backgroundRepeat = "no-repeat";
+  }
   function paintGarment(el, item) {
     el.style.backgroundImage = 'url("assets/garment-sheet.webp")';
     el.style.backgroundSize = "320% 212.5%";
@@ -760,12 +767,9 @@
       g.className = "cg";
       var iEl = document.createElement("i");
       var gimg = document.createElement("div");
-      gimg.className = "gimg";
-      paintGarment(gimg, ITEMS[line.i]);
+      gimg.className = "gimg rail";
+      paintRailHanger(gimg, line.i);
       iEl.appendChild(gimg);
-      var hang = document.createElement("span");
-      hang.className = "cpHang";
-      iEl.appendChild(hang);
       g.appendChild(iEl);
       g.addEventListener("pointerenter", function () {
         if (cpOpen < 0 && cpHov !== k) { cpHov = k; cpLayout(); }
@@ -797,6 +801,10 @@
       var cx = W / 2 + (k - (n - 1) / 2) * slot;
       if (cpHov >= 0 && k !== cpHov) cx += Math.sign(k - cpHov) * openGap;
       g.style.left = cx + "px";
+      var phH = Math.round(cpBoxW * 1.22), phW = Math.round(phH * 2 / 3), phTop = 38 - Math.round(phH * 0.0604);
+      var gim = g.querySelector(".gimg");
+      if (gim) { gim.style.width = phW + "px"; gim.style.height = phH + "px"; gim.style.top = phTop + "px"; }
+      g.dataset.pbottom = phTop + phH;
       g.style.width = cpBoxW + "px";
       g.style.height = cpBoxW + "px";
       g.style.zIndex = k === cpHov ? 5 : k;
@@ -808,7 +816,7 @@
       cpCapName.textContent = L.items[line.i].n;
       cpCapSub.textContent = ITEMS[line.i].p + " MAD · " + L.ui.size + " " + line.size + (line.qty > 1 ? " · ×" + line.qty : "");
       cpCap.style.left = cpGarments[cpHov].style.left;
-      cpCap.style.top = (40 + cpBoxW + 22) + "px";
+      cpCap.style.top = (40 + (Number(cpGarments[cpHov].dataset.pbottom) || cpBoxW) + 16) + "px";
       cpCap.classList.add("on");
     } else cpCap.classList.remove("on");
   }
