@@ -6,7 +6,7 @@
 <title>LBS — Essayage Virtuel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href=&family=Instrument+Serif:ital@1"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap&family=Instrument+Serif:ital@1" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -27,7 +27,8 @@
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.9 5.1 16.6 2.7a.6.6 0 0 0-.8.3c-.6 1.2-2.1 2-3.8 2s-3.2-.8-3.8-2a.6.6 0 0 0-.8-.3L2.1 5.1a.6.6 0 0 0-.3.8l1.7 3.9a.6.6 0 0 0 .8.3L7 9.4v10.4c0 .3.3.6.6.6h8.8c.3 0 .6-.3.6-.6V9.4l2.7.7c.3.1.7 0 .8-.3l1.7-3.9a.6.6 0 0 0-.3-.8Z"/></svg>
     <span class="rlabel">Tops</span>
   </button>
-  <button class="rbtn" type="button" aria-label="Panier">
+  <button class="rbtn" id="cartBtn" type="button" aria-label="Panier">
+    <span class="cbadge" id="cartBadge" hidden>0</span>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 3.5h2l2.5 12a1 1 0 0 0 1 .8h9.9a1 1 0 0 0 1-.8L20.5 7H6"/><circle cx="10" cy="20.4" r="1.3" fill="currentColor" stroke="none"/><circle cx="17.5" cy="20.4" r="1.3" fill="currentColor" stroke="none"/></svg>
     <span class="rlabel">Panier</span>
   </button>
@@ -105,6 +106,61 @@
   <div class="clab drag">GLISSER</div>
 </div>
 
+
+<!-- ================= CART PAGE — the clothing rail ================= -->
+<div class="cartPage" id="cartPage" hidden>
+  <div class="cpHead">
+    <button class="cpBack" id="cpBack" type="button">&#8592; <span id="cpBackTx">Retour</span></button>
+    <div class="cpTitle" id="cpTitle">Votre panier</div>
+    <div class="cpCount" id="cpCount"></div>
+  </div>
+  <div class="cpRailView" id="cpRailView">
+    <div class="cpRailZone">
+      <div class="cpRail"></div>
+      <div class="cpRack" id="cpRack"></div>
+      <div class="cpCap" id="cpCap"><b id="cpCapName"></b><span id="cpCapSub"></span></div>
+    </div>
+    <div class="cpEmpty" id="cpEmpty" hidden>
+      <p class="cpEmptyT" id="cpEmptyT"></p>
+      <p class="cpEmptyH" id="cpEmptyH"></p>
+      <button class="cpDiscover" id="cpDiscover" type="button"></button>
+    </div>
+    <div class="cpBar" id="cpBar">
+      <div class="cpTotals"><span id="cpTotalLbl">Total</span><b id="cpTotal">0 MAD</b><small id="cpDeliv"></small></div>
+      <button class="cpCheckout" id="cpCheckout" type="button">Commander</button>
+    </div>
+    <div class="cpBand"><div class="cpBandTrack" id="cpBandTrack"></div></div>
+  </div>
+  <div class="cpDet" id="cpDet" hidden>
+    <div class="cpHit" id="cpHit"></div>
+    <div class="cpBig" id="cpBig"><span class="cpHang"></span></div>
+    <button class="cpArr" id="cpPrev" type="button" aria-label="Previous"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5 L8 12 L15 19"/></svg></button>
+    <button class="cpArr" id="cpNext" type="button" aria-label="Next"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5 L16 12 L9 19"/></svg></button>
+    <div class="cpInfo">
+      <div class="cpNum" id="cpNum"></div>
+      <div class="cpName" id="cpName"></div>
+      <div class="cpPrice" id="cpPrice"></div>
+      <div class="cpSizeLine" id="cpSizeLine"></div>
+      <div class="cpQtyRow">
+        <button class="cpQBtn" id="cpQMinus" type="button">&#8722;</button>
+        <span id="cpQVal">1</span>
+        <button class="cpQBtn" id="cpQPlus" type="button">+</button>
+        <button class="cpRemove" id="cpRemove" type="button"></button>
+      </div>
+    </div>
+    <button class="cpClose" id="cpClose" type="button"></button>
+  </div>
+  <div class="cpForm" id="cpForm" hidden>
+    <h3 id="cpFormTitle"></h3>
+    <div class="cpSummary" id="cpSummary"></div>
+    <label class="cpField"><span id="cpLblName"></span><input id="cpInName" type="text" autocomplete="name"></label>
+    <label class="cpField"><span id="cpLblPhone"></span><input id="cpInPhone" type="tel" autocomplete="tel"></label>
+    <label class="cpField"><span id="cpLblCity"></span><input id="cpInCity" type="text"></label>
+    <label class="cpField"><span id="cpLblAddr"></span><input id="cpInAddr" type="text"></label>
+    <button class="cpConfirm" id="cpConfirm" type="button"></button>
+    <button class="cpFormBack" id="cpFormBack" type="button"></button>
+  </div>
+</div>
 <script src="js/lang.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>

@@ -371,3 +371,74 @@ button{font:inherit;color:inherit;background:none;border:none}
   .infoBtn { padding: 6px 9px; font-size: 11.5px; }
   .ln.name { font-size: 14px; }
 }
+
+/* ================= CART PAGE — the clothing rail (LBS theme) ================= */
+.cartPage{position:fixed;inset:0;z-index:130;display:flex;flex-direction:column;background:linear-gradient(168deg,#f8f3e9,#eee4d0);color:#26221e;overflow:hidden}
+.cartPage[hidden],.cpRailView[hidden],.cpForm[hidden],.cpDet[hidden]{display:none!important}
+.cpHead{display:flex;align-items:center;gap:10px;padding:16px 18px 4px}
+.cpBack{background:none;border:none;cursor:pointer;font:600 13.5px Inter,sans-serif;color:#26221e;padding:6px 2px}
+.cpTitle{flex:1;text-align:center;font-weight:800;font-size:17px}
+.cpCount{min-width:26px;text-align:right;font-weight:700;font-size:13px;color:#96683a}
+.cpRailView{flex:1;display:flex;flex-direction:column;position:relative;transition:opacity .7s cubic-bezier(.2,.8,.2,1),filter .7s}
+.cpRailView.dimmed{opacity:.12;filter:blur(2px);pointer-events:none}
+.cpRailZone{position:relative;height:330px;flex:none;margin-top:3.5vh}
+.cpRail{position:absolute;left:22px;right:22px;top:64px;height:10px;border-radius:5px;background:linear-gradient(180deg,#fafafa 0%,#b9bcc1 28%,#5d6066 55%,#a9adb3 78%,#e6e7e9 100%);box-shadow:0 10px 18px rgba(38,34,30,.35)}
+.cpRail::before,.cpRail::after{content:"";position:absolute;width:14px;height:26px;border-radius:4px;top:-8px;background:linear-gradient(90deg,#8d9096,#f3f3f4 45%,#7a7d83)}
+.cpRail::before{left:-12px}
+.cpRail::after{right:-12px}
+.cpRack{position:absolute;inset:0}
+.cg{position:absolute;top:40px;transform:translateX(-50%);perspective:900px;cursor:pointer;transition:left .75s cubic-bezier(.2,.8,.2,1)}
+.cg i{position:absolute;inset:0;display:block;background-repeat:no-repeat;transform-origin:50% 10%;transform:rotateY(-74deg);filter:brightness(.85) drop-shadow(0 16px 16px rgba(38,34,30,.35));transition:transform .75s cubic-bezier(.2,.8,.2,1),filter .75s}
+.cg.face i{transform:rotateY(0deg);filter:brightness(1) drop-shadow(0 22px 26px rgba(38,34,30,.4))}
+.cpHang{position:absolute;left:50%;top:1px;width:40px;height:40px;transform:translateX(-50%);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 38 V16 a7 7 0 1 1 7 7' fill='none' stroke='%23655c50' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;pointer-events:none}
+.cpCap{position:absolute;transform:translateX(-50%);text-align:center;pointer-events:none;opacity:0;transition:left .75s cubic-bezier(.2,.8,.2,1),opacity .35s;white-space:nowrap}
+.cpCap.on{opacity:1}
+.cpCap b{display:block;font-size:14px;font-weight:700;margin-bottom:3px}
+.cpCap span{font-size:12px;color:#8a7a63;letter-spacing:.06em}
+.cpEmpty{margin:auto;text-align:center;padding:0 30px}
+.cpEmptyT{font-size:19px;font-weight:800;margin-bottom:8px}
+.cpEmptyH{font-size:13.5px;color:#8a7a63;line-height:1.55;max-width:280px;margin:0 auto 18px}
+.cpDiscover{padding:12px 26px;border:none;border-radius:999px;background:linear-gradient(135deg,#b98d5e,#A67C52);color:#fff;font:800 14px Inter,sans-serif;cursor:pointer;box-shadow:0 8px 20px rgba(166,124,82,.35)}
+.cpBar{display:flex;align-items:center;gap:14px;padding:14px 18px 16px;margin-top:auto}
+.cpTotals{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.cpTotals span{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#8a7a63}
+.cpTotals b{font-size:19px}
+.cpTotals small{font-size:11px;color:#96683a;font-weight:600}
+.cpCheckout{flex:none;padding:13px 26px;border:none;border-radius:999px;background:linear-gradient(135deg,#b98d5e,#A67C52);color:#fff;font:800 15px Inter,sans-serif;cursor:pointer;box-shadow:0 8px 20px rgba(166,124,82,.35)}
+.cpCheckout:active{transform:scale(.98)}
+.cpBand{height:40px;flex:none;background:linear-gradient(135deg,#b98d5e,#A67C52);overflow:hidden;display:flex;align-items:center}
+.cpBandTrack{display:flex;white-space:nowrap;animation:cpScroll 22s linear infinite;font-size:12px;font-weight:700;letter-spacing:.14em;color:#fff8ee}
+.cpBandTrack .cpHalf{flex:none}
+@keyframes cpScroll{to{transform:translateX(-50%)}}
+.cpDet{position:absolute;inset:0;z-index:5}
+.cpHit{position:absolute;inset:0}
+.cpBig{position:absolute;left:50%;top:11%;width:min(74vw,320px);aspect-ratio:1;margin-left:calc(min(74vw,320px) * -0.5);background-repeat:no-repeat;transform-origin:50% 10%;filter:drop-shadow(0 30px 40px rgba(38,34,30,.45));opacity:0}
+.cpArr{position:absolute;top:31%;width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(38,34,30,.45);background:rgba(255,255,255,.35);color:#26221e;display:grid;place-items:center;cursor:pointer;transition:background .2s,color .2s}
+.cpArr:hover{background:#26221e;color:#f8f3e9}
+#cpPrev{left:calc(50% - min(37vw,160px) - 58px)}
+#cpNext{left:calc(50% + min(37vw,160px) + 14px)}
+.cpInfo{position:absolute;left:50%;top:calc(11% + min(74vw,320px) + 24px);transform:translateX(-50%);text-align:center;width:92vw}
+.cpNum{font-size:11px;letter-spacing:.16em;color:#8a7a63}
+.cpName{font-family:"Instrument Serif",serif;font-style:italic;font-size:34px;line-height:1.15;margin:7px 0 5px}
+.cpPrice{font-size:13px;letter-spacing:.08em;color:#8a7a63}
+.cpSizeLine{font-size:12.5px;margin-top:3px;color:#5c5344}
+.cpQtyRow{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:14px}
+.cpQBtn{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(38,34,30,.4);background:rgba(255,255,255,.4);font-size:17px;color:#26221e;cursor:pointer;display:grid;place-items:center}
+#cpQVal{font-size:16px;font-weight:700;min-width:22px}
+.cpRemove{margin-left:12px;background:none;border:none;cursor:pointer;font:600 13px Inter,sans-serif;color:#a33b2e;text-decoration:underline}
+.cpClose{position:absolute;right:18px;top:64px;background:none;border:none;cursor:pointer;font:600 12px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#26221e}
+.cpForm{padding:6px 22px 24px;overflow-y:auto}
+.cpForm h3{font-size:18px;font-weight:800;margin:6px 0 12px}
+.cpSummary{background:rgba(255,255,255,.55);border-radius:14px;padding:12px 14px;margin-bottom:16px;font-size:13.5px}
+.cpSumLine{display:flex;justify-content:space-between;gap:12px;padding:3px 0}
+.cpSumTotal{border-top:1px solid rgba(38,34,30,.15);margin-top:6px;padding-top:8px;font-size:14.5px}
+.cpSumDeliv{font-size:11.5px;color:#96683a;font-weight:600;margin-top:4px}
+.cpField{display:block;margin-bottom:12px}
+.cpField span{display:block;font-size:12px;font-weight:600;color:#8a7a63;margin-bottom:5px}
+.cpField input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(122,90,58,.35);background:rgba(255,255,255,.85);font:400 15px Inter,sans-serif;color:#26221e}
+.cpConfirm{width:100%;padding:14px;border:none;border-radius:999px;background:linear-gradient(135deg,#b98d5e,#A67C52);color:#fff;font:800 15px Inter,sans-serif;cursor:pointer;margin-top:4px}
+.cpFormBack{width:100%;padding:10px;background:none;border:none;cursor:pointer;font:600 13px Inter,sans-serif;color:#8a7a63}
+.rail .rbtn{position:relative}
+.cbadge{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#26221e;color:#fff;font:700 10.5px Inter,sans-serif;display:grid;place-items:center;z-index:2}
+.cbadge.pulse{animation:cpPulse .45s ease}
+@keyframes cpPulse{30%{transform:scale(1.5)}}

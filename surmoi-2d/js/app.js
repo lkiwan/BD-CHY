@@ -643,8 +643,8 @@
     if (rl[3]) rl[3].textContent = L.ui.profile;
     var lbl = document.querySelector(".sizeRow .lbl");
     if (lbl) lbl.textContent = L.ui.size;
-    if (buyBtn) buyBtn.textContent = L.ui.buy;
-    if (sheetBuy) sheetBuy.textContent = L.ui.buy;
+    if (buyBtn) buyBtn.textContent = L.ui.addToCart;
+    if (sheetBuy) sheetBuy.textContent = L.ui.addToCart;
     var ib = $("#infoBtn");
     if (ib) ib.textContent = L.ui.moreInfo;
     fbOneTx.textContent = backView ? L.ui.front : L.ui.back;
@@ -653,6 +653,7 @@
     if (ct) ct.textContent = L.ui.tryOn;
     if (cd) cd.textContent = L.ui.drag;
     cardNames.forEach(function (nm, k) { nm.textContent = L.items[k % N].n; });
+    cartTexts();
     var cur = shown < 0 ? 0 : shown;
     updateBuy(ITEMS[cur], cur);
     movePill(activeTab);
@@ -663,6 +664,278 @@
     try { window.localStorage.setItem("lbs-lang", window.LANG); } catch (e) {}
     applyLang();
   });
+
+
+  /* ---------------- cart — the clothing rail ----------------
+     Selected hoodies hang on a chrome rail (the cart page, opened
+     from the top-bar Cart button). The checkout sends the order to
+     Omar: WhatsApp if ORDER_WHATSAPP is set, otherwise by email. */
+  var ORDER_WHATSAPP = ""; // e.g. "2126XXXXXXXX" — empty means orders arrive by email
+  var ORDER_EMAIL = "arhouneo14@gmail.com";
+  var cartPage = $("#cartPage"), cpRack = $("#cpRack"), cpCap = $("#cpCap"),
+      cpCapName = $("#cpCapName"), cpCapSub = $("#cpCapSub"),
+      cpBadge = $("#cartBadge"), cpDet = $("#cpDet"), cpBig = $("#cpBig"),
+      cpForm = $("#cpForm"), cpRailView = $("#cpRailView");
+  var cart = [];
+  try { cart = JSON.parse(window.localStorage.getItem("lbs-cart") || "[]"); } catch (e) { cart = []; }
+  if (!Array.isArray(cart)) cart = [];
+  var cpHov = -1, cpOpen = -1, cpBoxW = 150, cpGarments = [];
+
+  function cartSave() { try { window.localStorage.setItem("lbs-cart", JSON.stringify(cart)); } catch (e) {} }
+  function cartCount() { return cart.reduce(function (s, l) { return s + l.qty; }, 0); }
+  function cartTotal() { return cart.reduce(function (s, l) { return s + l.qty * ITEMS[l.i].p; }, 0); }
+  function selSize() { var c = document.querySelector(".sizeRow .chip.act"); return c ? c.textContent.trim() : "M"; }
+  function paintGarment(el, item) {
+    el.style.backgroundImage = "var(--garm)";
+    el.style.backgroundSize = "320% 212.5%";
+    el.style.backgroundPosition = item.g[0] + "% " + item.g[1] + "%";
+    el.style.backgroundRepeat = "no-repeat";
+  }
+  function cartBadgeUpdate(pulse) {
+    var n = cartCount();
+    cpBadge.hidden = n === 0;
+    cpBadge.textContent = n;
+    if (pulse && n > 0) { cpBadge.classList.remove("pulse"); void cpBadge.offsetWidth; cpBadge.classList.add("pulse"); }
+  }
+  function addToCart(idx) {
+    var sz = selSize(), found = null;
+    cart.forEach(function (l) { if (l.i === idx && l.size === sz) found = l; });
+    if (found) found.qty++; else cart.push({ i: idx, size: sz, qty: 1 });
+    cartSave(); cartBadgeUpdate(true);
+  }
+  var buyBtnEl = $("#buyBtn"), sheetBuyEl = $("#sheetBuy");
+  function flashAdded(btn) {
+    if (!btn) return;
+    btn.textContent = L.ui.addedMsg;
+    window.setTimeout(function () { btn.textContent = L.ui.addToCart; }, 950);
+  }
+  if (buyBtnEl) buyBtnEl.addEventListener("click", function (e) {
+    e.preventDefault();
+    addToCart(shown < 0 ? 0 : shown);
+    flashAdded(buyBtnEl);
+  });
+  if (sheetBuyEl) sheetBuyEl.addEventListener("click", function (e) {
+    e.preventDefault();
+    addToCart(shown < 0 ? 0 : shown);
+    sheet.hidden = true;
+    flashAdded(buyBtnEl);
+  });
+
+  function cartTexts() {
+    if (!cartPage) return;
+    $("#cpTitle").textContent = L.ui.cartTitle;
+    $("#cpBackTx").textContent = L.ui.retour;
+    $("#cpEmptyT").textContent = L.ui.emptyCart;
+    $("#cpEmptyH").textContent = L.ui.emptyHint;
+    $("#cpDiscover").textContent = L.ui.discover;
+    $("#cpTotalLbl").textContent = L.ui.total;
+    $("#cpCheckout").textContent = L.ui.checkout;
+    $("#cpDeliv").textContent = L.ui.deliveryFree;
+    $("#cpClose").textContent = L.ui.close;
+    $("#cpRemove").textContent = L.ui.remove;
+    $("#cpFormTitle").textContent = L.ui.formTitle;
+    $("#cpLblName").textContent = L.ui.fName;
+    $("#cpLblPhone").textContent = L.ui.fPhone;
+    $("#cpLblCity").textContent = L.ui.fCity;
+    $("#cpLblAddr").textContent = L.ui.fAddress;
+    $("#cpConfirm").textContent = L.ui.confirm;
+    $("#cpFormBack").textContent = L.ui.retour;
+    var half = L.ui.marquee.repeat(6);
+    $("#cpBandTrack").innerHTML = '<span class="cpHalf">' + half + '</span><span class="cpHalf">' + half + "</span>";
+    if (cpOpen >= 0 && cart[cpOpen]) cpFill(cpOpen);
+    if (!cartPage.hidden && cpForm.hidden) cpLayout();
+  }
+
+  function cartRender() {
+    cpRack.innerHTML = ""; cpGarments = [];
+    cart.forEach(function (line, k) {
+      var g = document.createElement("div");
+      g.className = "cg";
+      var iEl = document.createElement("i");
+      paintGarment(iEl, ITEMS[line.i]);
+      var hang = document.createElement("span");
+      hang.className = "cpHang";
+      iEl.appendChild(hang);
+      g.appendChild(iEl);
+      g.addEventListener("pointerenter", function () {
+        if (cpOpen < 0 && cpHov !== k) { cpHov = k; cpLayout(); }
+      });
+      g.addEventListener("click", function () {
+        if (cpOpen >= 0) return;
+        if (cpHov !== k) { cpHov = k; cpLayout(); } else cpOpenDetail(k);
+      });
+      cpRack.appendChild(g);
+      cpGarments.push(g);
+    });
+    var empty = cart.length === 0;
+    $("#cpEmpty").hidden = !empty;
+    $("#cpBar").style.visibility = empty ? "hidden" : "visible";
+    cpLayout();
+  }
+
+  function cpLayout() {
+    var n = cart.length;
+    $("#cpTotal").textContent = cartTotal() + " MAD";
+    $("#cpCount").textContent = cartCount() ? String(cartCount()) : "";
+    if (!n) { cpCap.classList.remove("on"); return; }
+    var W = cpRack.clientWidth || window.innerWidth;
+    var slot = Math.min(118, (W - 30) / n);
+    cpBoxW = Math.round(Math.max(108, Math.min(190, slot * 2.05)));
+    var openGap = Math.min(46, cpBoxW * 0.26);
+    cart.forEach(function (line, k) {
+      var g = cpGarments[k]; if (!g) return;
+      var cx = W / 2 + (k - (n - 1) / 2) * slot;
+      if (cpHov >= 0 && k !== cpHov) cx += Math.sign(k - cpHov) * openGap;
+      g.style.left = cx + "px";
+      g.style.width = cpBoxW + "px";
+      g.style.height = cpBoxW + "px";
+      g.classList.toggle("face", k === cpHov);
+      g.dataset.cx = cx;
+    });
+    if (cpHov >= 0 && cart[cpHov]) {
+      var line = cart[cpHov];
+      cpCapName.textContent = L.items[line.i].n;
+      cpCapSub.textContent = ITEMS[line.i].p + " MAD · " + L.ui.size + " " + line.size + (line.qty > 1 ? " · ×" + line.qty : "");
+      cpCap.style.left = cpGarments[cpHov].style.left;
+      cpCap.style.top = (40 + cpBoxW + 22) + "px";
+      cpCap.classList.add("on");
+    } else cpCap.classList.remove("on");
+  }
+
+  function cpFill(k) {
+    var line = cart[k];
+    $("#cpNum").textContent = ("0" + (k + 1)).slice(-2) + " / " + ("0" + cart.length).slice(-2);
+    $("#cpName").textContent = L.items[line.i].n;
+    $("#cpPrice").textContent = ITEMS[line.i].p + " MAD";
+    $("#cpSizeLine").textContent = L.ui.size + " : " + line.size;
+    $("#cpQVal").textContent = line.qty;
+  }
+  function cpOpenDetail(k) {
+    cpOpen = k; cpHov = k; cpLayout();
+    cpFill(k);
+    paintGarment(cpBig, ITEMS[cart[k].i]);
+    cpDet.hidden = false;
+    cpRailView.classList.add("dimmed");
+    var g = cpGarments[k];
+    var gx = parseFloat(g.dataset.cx || window.innerWidth / 2);
+    var bigW = cpBig.offsetWidth || 300;
+    try { cpBig.getAnimations().forEach(function (an) { an.cancel(); }); } catch (e) {}
+    cpBig.style.opacity = "1";
+    cpBig.animate([
+      { transform: "translate(" + (gx - window.innerWidth / 2) + "px, -10px) scale(" + (cpBoxW / bigW) + ")", opacity: 1 },
+      { transform: "translate(0px, 0px) scale(1)", opacity: 1 }
+    ], { duration: 750, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+    g.style.visibility = "hidden";
+  }
+  function cpStep(d) {
+    if (cpOpen < 0 || cart.length < 2) return;
+    var from = cpOpen;
+    cpOpen = (cpOpen + d + cart.length) % cart.length;
+    cpGarments[from].style.visibility = "";
+    cpGarments[cpOpen].style.visibility = "hidden";
+    cpHov = cpOpen; cpLayout();
+    cpFill(cpOpen);
+    paintGarment(cpBig, ITEMS[cart[cpOpen].i]);
+    try { cpBig.getAnimations().forEach(function (an) { an.cancel(); }); } catch (e) {}
+    cpBig.animate([
+      { transform: "translate(" + (d * 110) + "px, 0px) scale(.94)", opacity: 0 },
+      { transform: "translate(0px, 0px) scale(1)", opacity: 1 }
+    ], { duration: 550, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+  }
+  function cpCloseDetail() {
+    if (cpOpen < 0) return;
+    var k = cpOpen, g = cpGarments[k];
+    var gx = parseFloat(g.dataset.cx || window.innerWidth / 2);
+    var bigW = cpBig.offsetWidth || 300;
+    cpRailView.classList.remove("dimmed");
+    try { cpBig.getAnimations().forEach(function (an) { an.cancel(); }); } catch (e) {}
+    cpBig.animate([
+      { transform: "translate(0px, 0px) scale(1)", opacity: 1 },
+      { transform: "translate(" + (gx - window.innerWidth / 2) + "px, -10px) scale(" + (cpBoxW / bigW) + ")", opacity: 1 }
+    ], { duration: 650, easing: "cubic-bezier(.2,.8,.2,1)", fill: "forwards" });
+    window.setTimeout(function () {
+      cpDet.hidden = true;
+      g.style.visibility = "";
+      cpOpen = -1; cpHov = -1;
+      cpLayout();
+    }, 660);
+  }
+  $("#cpPrev").addEventListener("click", function () { cpStep(-1); });
+  $("#cpNext").addEventListener("click", function () { cpStep(1); });
+  $("#cpClose").addEventListener("click", cpCloseDetail);
+  $("#cpHit").addEventListener("click", cpCloseDetail);
+  $("#cpQPlus").addEventListener("click", function () {
+    if (cpOpen < 0) return;
+    cart[cpOpen].qty++; cartSave(); cpFill(cpOpen); cpLayout(); cartBadgeUpdate(false);
+  });
+  $("#cpQMinus").addEventListener("click", function () {
+    if (cpOpen < 0) return;
+    if (cart[cpOpen].qty > 1) cart[cpOpen].qty--;
+    cartSave(); cpFill(cpOpen); cpLayout(); cartBadgeUpdate(false);
+  });
+  $("#cpRemove").addEventListener("click", function () {
+    if (cpOpen < 0) return;
+    cart.splice(cpOpen, 1);
+    cartSave(); cartBadgeUpdate(false);
+    cpDet.hidden = true;
+    cpRailView.classList.remove("dimmed");
+    cpOpen = -1; cpHov = -1;
+    cartRender();
+  });
+
+  function cpShowView(which) {
+    cpRailView.hidden = which !== "rail";
+    cpForm.hidden = which !== "form";
+  }
+  $("#cartBtn").addEventListener("click", function () {
+    cartPage.hidden = false;
+    cpDet.hidden = true; cpOpen = -1; cpHov = -1;
+    cpRailView.classList.remove("dimmed");
+    cpShowView("rail");
+    cartRender();
+  });
+  $("#cpBack").addEventListener("click", function () {
+    if (!cpForm.hidden) { cpShowView("rail"); cartRender(); return; }
+    if (cpOpen >= 0) { cpCloseDetail(); return; }
+    cartPage.hidden = true;
+  });
+  $("#cpDiscover").addEventListener("click", function () { cartPage.hidden = true; });
+  $("#cpCheckout").addEventListener("click", function () {
+    if (!cart.length) return;
+    var html = "";
+    cart.forEach(function (l) {
+      html += '<div class="cpSumLine"><span>' + L.items[l.i].n + " · " + l.size + " ×" + l.qty + "</span><b>" + (ITEMS[l.i].p * l.qty) + " MAD</b></div>";
+    });
+    html += '<div class="cpSumLine cpSumTotal"><span>' + L.ui.total + "</span><b>" + cartTotal() + " MAD</b></div>";
+    html += '<div class="cpSumDeliv">' + L.ui.deliveryFree + "</div>";
+    $("#cpSummary").innerHTML = html;
+    cpShowView("form");
+  });
+  $("#cpFormBack").addEventListener("click", function () { cpShowView("rail"); cartRender(); });
+  $("#cpConfirm").addEventListener("click", function () {
+    var nameEl = $("#cpInName"), phoneEl = $("#cpInPhone");
+    var name = nameEl.value.trim(), phone = phoneEl.value.trim();
+    var city = $("#cpInCity").value.trim(), addr = $("#cpInAddr").value.trim();
+    if (!name) { nameEl.focus(); return; }
+    if (!phone) { phoneEl.focus(); return; }
+    var lines = ["LBS — " + L.ui.cartTitle, ""];
+    cart.forEach(function (l) {
+      lines.push("• " + L.items[l.i].n + " — " + L.ui.size + " " + l.size + " ×" + l.qty + " — " + (ITEMS[l.i].p * l.qty) + " MAD");
+    });
+    lines.push("", L.ui.total + " : " + cartTotal() + " MAD", L.ui.deliveryFree, "",
+      L.ui.fName + " : " + name, L.ui.fPhone + " : " + phone, L.ui.fCity + " : " + city, L.ui.fAddress + " : " + addr);
+    var text = lines.join("\n");
+    if (ORDER_WHATSAPP) window.open("https://wa.me/" + ORDER_WHATSAPP + "?text=" + encodeURIComponent(text), "_blank");
+    else window.location.href = "mailto:" + ORDER_EMAIL + "?subject=" + encodeURIComponent("LBS — Commande / Order") + "&body=" + encodeURIComponent(text);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (cartPage.hidden) return;
+    if (e.key === "Escape") { if (cpOpen >= 0) cpCloseDetail(); else cartPage.hidden = true; }
+    else if (cpOpen >= 0 && e.key === "ArrowRight") cpStep(1);
+    else if (cpOpen >= 0 && e.key === "ArrowLeft") cpStep(-1);
+  });
+  window.addEventListener("resize", function () { if (!cartPage.hidden) cpLayout(); });
+  cartBadgeUpdate(false);
 
   /* ---------------- init ---------------- */
   setGarmentBg(thumbG, ITEMS[0]);
