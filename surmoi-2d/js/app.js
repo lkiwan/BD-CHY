@@ -536,8 +536,9 @@
   function applyLang() {
     L = window.LANGS[window.LANG] || window.LANGS.fr;
     document.documentElement.lang = window.LANG;
+    document.documentElement.dir = "ltr";
     document.title = L.ui.title;
-    if (langTx) langTx.textContent = window.LANG.toUpperCase();
+    if (langTx) langTx.textContent = window.LANG === "ar" ? "عربي" : window.LANG.toUpperCase();
     gHomme.textContent = L.ui.homme;
     gFemme.textContent = L.ui.femme;
     tabs.forEach(function (b) { b.textContent = L.ui.tops; });
@@ -564,7 +565,7 @@
   }
   var langBtn = $("#langBtn");
   if (langBtn) langBtn.addEventListener("click", function () {
-    window.LANG = window.LANG === "fr" ? "en" : "fr";
+    window.LANG = window.LANG === "fr" ? "en" : window.LANG === "en" ? "ar" : "fr";
     try { window.localStorage.setItem("lbs-lang", window.LANG); } catch (e) {}
     applyLang();
   });

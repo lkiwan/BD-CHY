@@ -1,7 +1,7 @@
 /* ============================================================
    LBS 2D — ALL LANGUAGES IN ONE FILE
    ------------------------------------------------------------
-   Every word the page shows lives here, in French and English.
+   Every word the page shows lives here: French, English, Arabic.
    To change any text, or to fix a translation, edit ONLY this
    file — data.js keeps prices / positions / links, app.js
    keeps the logic.
@@ -14,7 +14,7 @@
 window.LANG = (function () {
   try {
     var saved = window.localStorage.getItem("lbs-lang");
-    if (saved === "en" || saved === "fr") return saved;
+    if (saved === "en" || saved === "fr" || saved === "ar") return saved;
   } catch (e) {}
   return "fr";
 })();
@@ -96,6 +96,45 @@ window.LANGS = {
         d: "بقا شوية — just a little more. The Moroccan tea glass under the calligraphy: our own humour, worn in soft cream. Oversize hoodie, lined hood, kangaroo pocket, relaxed unisex fit. Sizes S to XL. Cash on delivery anywhere in Morocco." },
       { n: "Still Here — Black",       c: "Black",
         d: "Still here. The dripping red broken heart on black — for those who went through things and are still standing. Large chest print, vivid colours. Oversize hoodie, lined hood, kangaroo pocket, relaxed unisex fit. Sizes S to XL. Cash on delivery anywhere in Morocco." }
+    ]
+  }
+,
+  /* ---------------- ARABIC ---------------- */
+  ar: {
+    ui: {
+      title:    "LBS — القياس الافتراضي",
+      homme:    "رجالي",
+      femme:    "نسائي",
+      tops:     "العلويات",
+      cart:     "السلة",
+      calendar: "التقويم",
+      profile:  "الحساب",
+      size:     "المقاس",
+      buy:      "اشتري",
+      moreInfo: "المزيد",
+      back:     "الظهر",
+      front:    "الأمام",
+      seeBack:  "شاهد الظهر",
+      seeFront: "شاهد الأمام",
+      tryOn:    "جرّب",
+      drag:     "اسحب",
+      prev:     "السابق",
+      next:     "التالي",
+      close:    "إغلاق"
+    },
+    items: [
+      { n: "Mini Logo — أسود",        c: "أسود",
+        d: "القطعة الأساسية النظيفة من LBS. هودي أسود أوفرسايز مع شعار أبيض صغير وخفيف على الصدر — بسيط وأنيق ويمشي مع كل شيء. غطاء رأس مبطّن، جيب كنغر، قصة مريحة للجنسين. المقاسات من S إلى XL. الدفع عند الاستلام في جميع أنحاء المغرب." },
+      { n: "ماشي بحالهم — أسود",    c: "أسود",
+        d: "ماشي بحالهم — لست مثلهم. الخط العربي الأبيض في وسط الصدر يقول كل شيء، دون أن يصرخ. هودي أسود أوفرسايز، غطاء رأس مبطّن، جيب كنغر، قصة مريحة للجنسين. المقاسات من S إلى XL. الدفع عند الاستلام في جميع أنحاء المغرب." },
+      { n: "Atlas Club — بيج رملي",  c: "رملي",
+        d: "جبال الأطلس مطبوعة بحجم كبير على الصدر، مع نجمة المغرب — روح المغامرة، بلون رملي سهل اللبس. هودي أوفرسايز، غطاء رأس مبطّن، جيب كنغر، قصة مريحة للجنسين. المقاسات من S إلى XL. الدفع عند الاستلام في جميع أنحاء المغرب." },
+      { n: "03:17 AM — أسود باهت",  c: "أسود باهت",
+        d: "03:17 AM — الجميع نائم، وأنا ما زلت أصنع نفسي. لمن يعمل بينما العالم نائم. أسود باهت بتأثير فينتاج (كل قطعة فريدة قليلاً)، نص رقمي أبيض وقمر صغير على الصدر. غطاء رأس مبطّن، جيب كنغر، قصة أوفرسايز للجنسين. المقاسات من S إلى XL. الدفع عند الاستلام في جميع أنحاء المغرب." },
+      { n: "بقا شوية — كريمي",      c: "كريمي",
+        d: "بقا شوية — ما زال قليل. كأس الشاي المغربي تحت الخط العربي: فكاهتنا الخاصة، ملبوسة بلون كريمي ناعم. هودي أوفرسايز، غطاء رأس مبطّن، جيب كنغر، قصة مريحة للجنسين. المقاسات من S إلى XL. الدفع عند الاستلام في جميع أنحاء المغرب." },
+      { n: "Still Here — أسود",       c: "أسود",
+        d: "ما زلت هنا. القلب الأحمر المكسور الذي يقطر على الأسود — لمن مرّوا بأوقات صعبة وما زالوا واقفين. طبعة صدر كبيرة وألوان زاهية. هودي أوفرسايز، غطاء رأس مبطّن، جيب كنغر، قصة مريحة للجنسين. المقاسات من S إلى XL. الدفع عند الاستلام في جميع أنحاء المغرب." }
     ]
   }
 };
