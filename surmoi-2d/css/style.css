@@ -319,3 +319,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 @media (max-width:767px){
   .rail{bottom:calc(4.6vh + 134px)}
 }
+
+/* Ghost = the LBS logo itself (white artwork), same drift/rise movement */
+.ghost{margin-top:calc(var(--MH) * -0.10)}
+.ghost img{display:block;width:calc(var(--MH) * 0.98);height:auto;opacity:.38}
