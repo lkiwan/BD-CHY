@@ -752,7 +752,10 @@
       var g = document.createElement("div");
       g.className = "cg";
       var iEl = document.createElement("i");
-      paintGarment(iEl, ITEMS[line.i]);
+      var gimg = document.createElement("div");
+      gimg.className = "gimg";
+      paintGarment(gimg, ITEMS[line.i]);
+      iEl.appendChild(gimg);
       var hang = document.createElement("span");
       hang.className = "cpHang";
       iEl.appendChild(hang);
@@ -779,8 +782,8 @@
     $("#cpCount").textContent = cartCount() ? String(cartCount()) : "";
     if (!n) { cpCap.classList.remove("on"); return; }
     var W = cpRack.clientWidth || window.innerWidth;
-    var slot = Math.min(118, (W - 30) / n);
-    cpBoxW = Math.round(Math.max(108, Math.min(190, slot * 2.05)));
+    cpBoxW = n <= 2 ? 196 : n === 3 ? 180 : n === 4 ? 165 : n === 5 ? 150 : 138;
+    var slot = n <= 1 ? 0 : Math.min(118, (W - 16 - cpBoxW) / (n - 1));
     var openGap = Math.min(46, cpBoxW * 0.26);
     cart.forEach(function (line, k) {
       var g = cpGarments[k]; if (!g) return;
@@ -789,6 +792,7 @@
       g.style.left = cx + "px";
       g.style.width = cpBoxW + "px";
       g.style.height = cpBoxW + "px";
+      g.style.zIndex = k === cpHov ? 5 : k;
       g.classList.toggle("face", k === cpHov);
       g.dataset.cx = cx;
     });
