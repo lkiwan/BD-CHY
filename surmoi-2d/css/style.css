@@ -12,6 +12,8 @@
   --room:url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261104_080623_c94c85a3-23d5-4a0c-afff-41be1b5b8191.png&w=2400&q=85");
   --model:url("../assets/model-sheet-6.webp");
   --model-back:url("../assets/model-sheet-back-6.webp");
+  --model-f:url("../assets/model-sheet-f-test.webp");
+  --model-f-back:url("../assets/model-sheet-f-back-test.webp");
   --garm:url("../assets/garment-sheet.webp");
 }
 
@@ -272,6 +274,7 @@ button{font:inherit;color:inherit;background:none;border:none}
   .tabs{max-width:calc(100vw - 16px);overflow-x:auto;scrollbar-width:none}
   .tabs::-webkit-scrollbar{display:none}
   .tabs .tab{height:32px;padding:0 13px;font-size:12px}
+  .tabs .gbtn{height:32px;padding:0 13px;font-size:12px}
   .tabs .pill{height:32px}
   .rail{left:50%;top:10px;bottom:auto;transform:translateX(-50%)}
   .rail .rbtn{width:34px;height:34px}
@@ -328,6 +331,16 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* Front / Back view: same figure box, back sheet swaps in */
 .model.back .fig{background-image:var(--model-back)}
+.model.f .fig{background-image:var(--model-f)}
+.model.f.back .fig{background-image:var(--model-f-back)}
+.tabs .gbtn{
+  position:relative;z-index:1;
+  height:38px;padding:0 18px;border-radius:999px;
+  font-weight:600;font-size:14px;font-family:inherit;
+  color:rgba(30,30,32,.72);background:transparent;border:0;cursor:pointer;
+  white-space:nowrap;
+}
+.tabs .gbtn.act{background:#26221e;color:#fff}
 .fbOne{
   position:fixed;right:14px;bottom:166px;z-index:80;
   display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:999px;

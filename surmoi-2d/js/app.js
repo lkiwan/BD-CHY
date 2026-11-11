@@ -207,7 +207,7 @@
     var item = ITEMS[shown];
     scanAnims.forEach(function (a) { a.cancel(); });
     scanAnims = [];
-    mNext.style.backgroundImage = "url(\"" + (backView ? "assets/model-sheet-back-6.webp" : "assets/model-sheet-6.webp") + "\")";
+    mNext.style.backgroundImage = "url(\"" + sheetFor(genderF, backView) + "\")";
     setFigure(mNext, item);
     if (reduced) {
       modelEl.classList.toggle("back", backView);
@@ -252,6 +252,68 @@
     };
   }
   fbOne.addEventListener("click", function () { flipView(!backView); });
+
+  /* ---------------- gender switch (Homme / Femme) ---------------- */
+  var genderF = false;
+  var gHomme = $("#gHomme"), gFemme = $("#gFemme");
+  function sheetFor(f, back) {
+    if (f) return back ? "assets/model-sheet-f-back-test.webp" : "assets/model-sheet-f-test.webp"; /* TEST sheet until the real femme sheets land */
+    return back ? "assets/model-sheet-back-6.webp" : "assets/model-sheet-6.webp";
+  }
+  function setGender(f) {
+    if (f === genderF) return;
+    genderF = f;
+    gHomme.classList.toggle("act", !f);
+    gFemme.classList.toggle("act", f);
+    var item = ITEMS[shown];
+    scanAnims.forEach(function (a) { a.cancel(); });
+    scanAnims = [];
+    mNext.style.backgroundImage = "url(\"" + sheetFor(genderF, backView) + "\")";
+    setFigure(mNext, item);
+    if (reduced) {
+      modelEl.classList.toggle("f", genderF);
+      mNext.style.backgroundImage = "";
+      setFigure(mCur, item);
+      mCur.style.opacity = "1";
+      return;
+    }
+    var a1 = mNext.animate(
+      [{ clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)" }],
+      { duration: 950, easing: SCAN_EASE, fill: "forwards" }
+    );
+    var a2 = grid.animate(
+      [
+        { clipPath: "inset(0 0 100% 0)", offset: 0 },
+        { clipPath: "inset(0 0 0% 0)", offset: 0.5 },
+        { clipPath: "inset(100% 0 0 0)", offset: 1 }
+      ],
+      { duration: 1092, easing: SCAN_EASE, fill: "forwards" }
+    );
+    var a3 = scan.animate(
+      [
+        { top: "0%", transform: "scaleX(.2)", opacity: "0", offset: 0 },
+        { top: "6%", transform: "scaleX(1)", opacity: "1", offset: 0.08 },
+        { top: "94%", offset: 0.92 },
+        { top: "100%", transform: "scaleX(.2)", opacity: "0", offset: 1 }
+      ],
+      { duration: 950, easing: SCAN_EASE, fill: "forwards" }
+    );
+    var a4 = mNext.animate(
+      [{ transform: "scale(1.012)" }, { transform: "scale(1)" }],
+      { duration: 1250, easing: "ease-out", fill: "forwards" }
+    );
+    scanAnims = [a1, a2, a3, a4];
+    a1.onfinish = function () {
+      modelEl.classList.toggle("f", genderF);
+      mNext.style.backgroundImage = "";
+      setFigure(mCur, item);
+      mCur.style.opacity = "1";
+      scanAnims.forEach(function (a) { a.cancel(); });
+      scanAnims = [];
+    };
+  }
+  gHomme.addEventListener("click", function () { setGender(false); });
+  gFemme.addEventListener("click", function () { setGender(true); });
 
   /* ---------------- tabs / arrows / chips ---------------- */
   function movePill(btn) {
