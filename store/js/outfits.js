@@ -1,5 +1,5 @@
 /* ============================================================
-   SURMOI — Tenues libres (Option 1, choix d'Omar 2026-11-07)
+   LBS — Tenues libres (Option 1, choix d'Omar 2026-11-07)
    L'utilisateur choisit librement un haut + un bas. Si la photo
    de CETTE combinaison existe (window.OUTFITS), le personnage
    l'affiche ; sinon on garde la vue pièce par pièce, et la
@@ -45,7 +45,7 @@ window.OUTFITS = {
   if (!img) return;
   var mCur = document.getElementById('mCur');
   var mNext = document.getElementById('mNext');
-  var sel = window.SURMOI_SEL || (window.SURMOI_SEL = { tops: null, bottoms: null, shoes: null });
+  var sel = window.LBS_SEL || (window.LBS_SEL = { tops: null, bottoms: null, shoes: null });
 
   function comboKey() {
     if (sel.tops == null || sel.bottoms == null) return null;
@@ -54,7 +54,7 @@ window.OUTFITS = {
   function refresh() {
     var k = comboKey();
     var src = k ? window.OUTFITS[k] : null;
-    window.SURMOI_COMBO = src ? k : null;
+    window.LBS_COMBO = src ? k : null;
     if (src) {
       if (img.getAttribute('src') !== src) img.src = src;
       img.hidden = false;
@@ -72,6 +72,6 @@ window.OUTFITS = {
       if (mNext) mNext.style.visibility = '';
     }
   }
-  window.SURMOI_OUTFIT_REFRESH = refresh;
+  window.LBS_OUTFIT_REFRESH = refresh;
   refresh();
 })();

@@ -1,5 +1,5 @@
 /* ============================================================
-   SURMOI — Avatar personnel : « Mets ton propre visage »
+   LBS — Avatar personnel : « Mets ton propre visage »
    1) Le client enregistre son corps + la pièce.
    2) Bouton « Copier le prompt » : le prompt REMPLI avec ses
       réponses aux 6 questions (PROMPT-AVATAR.md, format validé
@@ -40,7 +40,7 @@
   var PEAUX_EN = { claire: 'LIGHT', moyenne: 'MEDIUM', foncee: 'DARK' };
 
   function avatarData() {
-    if (window.SURMOI_AVATAR) return window.SURMOI_AVATAR;
+    if (window.LBS_AVATAR) return window.LBS_AVATAR;
     try { return JSON.parse(localStorage.getItem('vf_avatar') || 'null'); } catch (e) { return null; }
   }
 
@@ -54,7 +54,7 @@
     var ligneHauteur = haut
       ? 'MY HEIGHT: I am tall — make me LOOK tall: long legs, my head is about 1/8 of my total height.\n'
       : 'MY HEIGHT: keep my natural proportions for my height.\n';
-    return 'Here is my personal avatar request for the SURMOI shop.\n\n' +
+    return 'Here is my personal avatar request for the LBS shop.\n\n' +
       'MY ANSWERS (from the shop\'s questions — use these, do not ask me again):\n' +
       '- I am a ' + sexeMot + '.\n' +
       '- My body shape: ' + formeTxt + '.\n' +
@@ -84,7 +84,7 @@
     bodyImg.src = d.image;
     bodyDl.href = d.image;
     promptTxt = buildPrompt(d);
-    window.SURMOI_PROMPT = promptTxt;
+    window.LBS_PROMPT = promptTxt;
   }
 
   copyBtn.addEventListener('click', function () {
@@ -180,7 +180,7 @@
         return;
       }
       lastFace = out;
-      window.SURMOI_FACE = out;
+      window.LBS_FACE = out;
       faceImg.src = out.png;
       result.hidden = false;
     };
@@ -198,7 +198,7 @@
       localStorage.setItem('vf_face', lastFace.jpg);
       localStorage.setItem('vf_face_cut', lastFace.png);
       var d = avatarData();
-      if (d) { d.type = 'personnel'; d.face = true; localStorage.setItem('vf_avatar', JSON.stringify(d)); window.SURMOI_AVATAR = d; }
+      if (d) { d.type = 'personnel'; d.face = true; localStorage.setItem('vf_avatar', JSON.stringify(d)); window.LBS_AVATAR = d; }
     } catch (e) { /* stockage plein : on continue quand même */ }
     sec.classList.remove('v-open');
     var q = document.getElementById('questions');
@@ -209,5 +209,5 @@
 
   document.getElementById('vClose').addEventListener('click', function () { sec.classList.remove('v-open'); });
 
-  window.SURMOI_OPEN_VISAGE = function () { refresh(); sec.classList.add('v-open'); };
+  window.LBS_OPEN_VISAGE = function () { refresh(); sec.classList.add('v-open'); };
 })();

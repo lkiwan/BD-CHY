@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SURMOI — Essayage Virtuel</title>
+<title>LBS — Essayage Virtuel</title>
 <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="SURMOI">
+<meta name="apple-mobile-web-app-title" content="LBS">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -21,20 +21,27 @@
 <link rel="stylesheet" href="css/questions.css">
 <link rel="stylesheet" href="css/visage.css">
 <link rel="stylesheet" href="css/order.css">
+<link rel="stylesheet" href="css/model3d.css">
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
 </head>
 <body>
 
-<!-- ============ SURMOI — Page d'accueil (première page) ============ -->
-<section class="accueil" id="accueil" aria-label="Accueil SURMOI">
+<!-- ============ LBS — Page d'accueil (première page) ============ -->
+<section class="accueil" id="accueil" aria-label="Accueil LBS">
   <div class="acc-veil"></div>
   <div class="acc-inner">
     <div class="acc-brand">
-      <img class="acc-logo" src="assets/brand/transparent/surmoi-logo-nobg-800.png" alt="SURMOI — Essayage Virtuel">
+      <img class="acc-logo" src="assets/brand/transparent/surmoi-logo-nobg-800.png" alt="LBS — Essayage Virtuel">
     </div>
 
     <div class="acc-glass acc-hero">
       <div class="acc-ph">
-        <img src="assets/accueil-hero.jpg" alt="Campagne SURMOI">
+        <img src="assets/accueil-hero.jpg" alt="Campagne LBS">
       </div>
       <div class="acc-scan"></div>
     </div>
@@ -60,7 +67,7 @@
   </div>
 </section>
 
-<!-- ============ SURMOI — Les 6 questions (création de l'avatar) ============ -->
+<!-- ============ LBS — Les 6 questions (création de l'avatar) ============ -->
 <section class="questions" id="questions" aria-label="Créer mon avatar">
   <div class="q-veil"></div>
   <div class="q-inner">
@@ -77,7 +84,7 @@
   </div>
 </section>
 
-<!-- ============ SURMOI — Avatar personnel : mettre son propre visage ============ -->
+<!-- ============ LBS — Avatar personnel : mettre son propre visage ============ -->
 <section class="visage" id="visage" aria-label="Mon avatar personnel">
   <div class="v-veil"></div>
   <div class="v-inner">
@@ -134,7 +141,7 @@
   </div>
 </section>
 
-<!-- ============ SURMOI — Commander (WhatsApp + paiement à la livraison) ============ -->
+<!-- ============ LBS — Commander (WhatsApp + paiement à la livraison) ============ -->
 <section class="commande" id="commande" aria-label="Commander">
   <div class="o-veil"></div>
   <div class="o-inner">
@@ -202,6 +209,15 @@
   <div class="scan"></div>
 </div>
 
+<!-- 3D model — Femme entry test (2026-11-09): shown instead of the
+     2D model when the shop is entered through the Femme door. -->
+<div id="model3d" hidden>
+  <div class="model3d-chips">
+    <button class="model3d-chip on" id="m3dTee" type="button">T-shirt lkiwan</button>
+    <button class="model3d-chip" id="m3dNone" type="button">Sans</button>
+  </div>
+</div>
+
 <button class="arrow glass" id="prevBtn" type="button" aria-label="Previous">
   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="14.5 5 7.5 12 14.5 19"/></svg>
 </button>
@@ -253,6 +269,7 @@
 <script src="js/questions.js"></script>
 <script src="js/visage.js"></script>
 <script src="js/order.js"></script>
+<script src="js/model3d.js"></script>
 <script src="js/accueil.js"></script>
 </body>
 </html>

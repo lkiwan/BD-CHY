@@ -1,5 +1,5 @@
 /* ============================================================
-   SURMOI — Commander
+   LBS — Commander
    Le bouton « Commander » de la carte d'achat ouvre le panneau :
    récap (produit / taille / couleur lus dans la carte), quantité,
    nom + téléphone + ville, puis envoi sur WhatsApp (wa.me).
@@ -63,7 +63,7 @@
     if (ville.length < 2) { el('oErr').textContent = 'Écris ta ville.'; return; }
     el('oErr').textContent = '';
     var total = cur.devise + fmt(cur.prix * qty);
-    var msg = 'Nouvelle commande SURMOI\n' +
+    var msg = 'Nouvelle commande LBS\n' +
       'Produit : ' + cur.produit + '\n' +
       'Taille : ' + cur.taille + ' · Couleur : ' + cur.couleur + '\n' +
       'Quantité : ' + qty + '\n' +
@@ -74,7 +74,7 @@
     var url = NUMERO_WHATSAPP
       ? 'https://wa.me/' + NUMERO_WHATSAPP + '?text=' + encodeURIComponent(msg)
       : 'https://api.whatsapp.com/send?text=' + encodeURIComponent(msg);
-    window.SURMOI_ORDER = { message: msg, url: url };
+    window.LBS_ORDER = { message: msg, url: url };
     try {
       var list = JSON.parse(localStorage.getItem('vf_commandes') || '[]');
       list.push({ produit: cur.produit, taille: cur.taille, couleur: cur.couleur, quantite: qty, total: total, nom: nom, telephone: el('oTel').value.trim(), ville: ville, date: new Date().toISOString() });

@@ -1,5 +1,5 @@
 /* ============================================================
-   SURMOI — Les 6 questions (ordre validé par Omar) :
+   LBS — Les 6 questions (ordre validé par Omar) :
    Sexe → Âge → Forme → Taille → Poids → Peau (= choix de l'avatar).
    L'âge choisit la tranche : 14–19 = jeune, 20+ = adulte.
    Chaque question = un plein écran ; on touche un personnage
@@ -134,7 +134,7 @@
       document.getElementById('qEnter').addEventListener('click', finish);
       document.getElementById('qFace').addEventListener('click', function () {
         finishSaveOnly();
-        if (typeof window.SURMOI_OPEN_VISAGE === 'function') window.SURMOI_OPEN_VISAGE();
+        if (typeof window.LBS_OPEN_VISAGE === 'function') window.LBS_OPEN_VISAGE();
       });
       document.getElementById('qRestart').addEventListener('click', function () { reset(); render(); });
     }
@@ -186,7 +186,7 @@
       localStorage.setItem('vf_avatar', JSON.stringify(data));
       localStorage.setItem('vf_corps', data.image);
     } catch (e) { /* stockage indisponible */ }
-    window.SURMOI_AVATAR = data;
+    window.LBS_AVATAR = data;
   }
   function finish() {
     finishSaveOnly();
@@ -199,7 +199,7 @@
   }
 
   /* Point d'entrée appelé par l'Accueil (bouton « Créer mon avatar ») */
-  window.SURMOI_OPEN_QUESTIONS = function () { reset(); render(); sec.classList.add('q-open'); };
-  window.SURMOI_DEFAUT = DEFAUTS;
-  window.SURMOI_IMG = img;
+  window.LBS_OPEN_QUESTIONS = function () { reset(); render(); sec.classList.add('q-open'); };
+  window.LBS_DEFAUT = DEFAUTS;
+  window.LBS_IMG = img;
 })();

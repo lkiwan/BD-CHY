@@ -71,7 +71,7 @@ The man in the middle is a personal character. **CHARACTER.md** documents
 exactly how he and his two image sheets were made, so the same character can
 be recreated for another person: same sheet sizes, same framing, same crop
 maths — then swap `--model` (and `--garm`) in `css/style.css`.
-# SURMOI 2D
+# LBS 2D
 
 
 <!-- pages retrigger: garment sheet assets -->

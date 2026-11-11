@@ -1,5 +1,5 @@
 /* ============================================================
-   SURMOI 2D — garment data
+   LBS 2D — garment data
    ------------------------------------------------------------
    Every garment in the store is ONE entry in ITEMS below.
    The app builds two copies of every item as arc cards, so
@@ -21,7 +21,7 @@
    ============================================================ */
 
 window.ITEMS = [
-  {n:"Mini Logo — Noir", p:200, m:0, g:[1.5,2.8], c:[["Black","#1f1f21"]], u:"https://yovishop.youcan.store/products/hoodie-mini-logo-noir", d:"Le basique propre de SURMOI. Hoodie noir oversize avec un petit logo blanc discret sur la poitrine \u2014 simple, net, il va avec tout. Capuche doubl\u00e9e, poche kangourou, coupe d\u00e9contract\u00e9e unisexe. Tailles S \u00e0 XL. Paiement \u00e0 la livraison partout au Maroc."},
+  {n:"Mini Logo — Noir", p:200, m:0, g:[1.5,2.8], c:[["Black","#1f1f21"]], u:"https://yovishop.youcan.store/products/hoodie-mini-logo-noir", d:"Le basique propre de LBS. Hoodie noir oversize avec un petit logo blanc discret sur la poitrine \u2014 simple, net, il va avec tout. Capuche doubl\u00e9e, poche kangourou, coupe d\u00e9contract\u00e9e unisexe. Tailles S \u00e0 XL. Paiement \u00e0 la livraison partout au Maroc."},
   {n:"Machi Bhalhom — Noir", p:200, m:20, g:[50,2.8], c:[["Black","#1f1f21"]], u:"https://yovishop.youcan.store/products/hoodie-machi-bhalhom-noir", d:"\u0645\u0627\u0634\u064a \u0628\u062d\u0627\u0644\u0647\u0645 \u2014 pas comme eux. La calligraphie arabe blanche au centre de la poitrine dit tout, sans crier. Hoodie noir oversize, capuche doubl\u00e9e, poche kangourou, coupe d\u00e9contract\u00e9e unisexe. Tailles S \u00e0 XL. Paiement \u00e0 la livraison partout au Maroc."},
   {n:"Atlas Club — Beige Sable", p:200, m:40, g:[98.5,2.8], c:[["Sand","#d9ccb4"]], u:"https://yovishop.youcan.store/products/hoodie-atlas-club-beige-sable", d:"Les montagnes de l'Atlas imprim\u00e9es en grand sur la poitrine, avec l'\u00e9toile du Maroc \u2014 esprit outdoor, couleur sable facile \u00e0 porter. Hoodie oversize, capuche doubl\u00e9e, poche kangourou, coupe d\u00e9contract\u00e9e unisexe. Tailles S \u00e0 XL. Paiement \u00e0 la livraison partout au Maroc."},
   {n:"03:17 AM — Noir Délavé", p:200, m:60, g:[1.5,97.2], c:[["Washed Black","#3a3a3c"]], u:"https://yovishop.youcan.store/products/hoodie-0317-am-noir-delave", d:"03:17 AM \u2014 everyone is asleep, I'm still becoming. Pour ceux qui travaillent pendant que le monde dort. Noir d\u00e9lav\u00e9 effet vintage (chaque pi\u00e8ce est l\u00e9g\u00e8rement unique), texte digital blanc et petite lune sur la poitrine. Capuche doubl\u00e9e, poche kangourou, coupe oversize unisexe. Tailles S \u00e0 XL. Paiement \u00e0 la livraison partout au Maroc."},
