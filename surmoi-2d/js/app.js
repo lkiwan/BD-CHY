@@ -9,6 +9,7 @@
   "use strict";
 
   var ITEMS = window.ITEMS || [];
+  var L = window.LANGS[window.LANG] || window.LANGS.fr;
   var N = ITEMS.length;      // garments (spec: 5)
   var CARDS = N * 2;         // arc cards (spec: 10)
   var EASE = "cubic-bezier(.2,.8,.2,1)";
@@ -67,6 +68,7 @@
 
   /* ---------------- cards ---------------- */
   var cards = [];
+  var cardNames = [];
   for (var k = 0; k < CARDS; k++) {
     (function (k) {
       var item = ITEMS[k % N];
@@ -78,7 +80,8 @@
       setGarmentBg(g, item);
       var nm = document.createElement("div");
       nm.className = "cname";
-      nm.textContent = item.n;
+      nm.textContent = L.items[k % N].n;
+      cardNames.push(nm);
       var pr = document.createElement("div");
       pr.className = "cprice";
       pr.textContent = item.p + " MAD";
@@ -132,12 +135,13 @@
     };
   }
 
-  function updateBuy(item) {
-    rollText(nameLn, item.n);
+  function updateBuy(item, idx) {
+    var li = L.items[idx];
+    rollText(nameLn, li.n);
     if (buyBtn) { buyBtn.href = item.u; }
     if (sheetBuy) { sheetBuy.href = item.u; }
-    if (sheetName) { sheetName.textContent = item.n; sheetPrice.textContent = item.p + " MAD · " + item.c[0][0]; sheetDesc.textContent = item.d || ""; }
-    rollText(priceLn, item.p + " MAD · " + item.c[0][0]);
+    if (sheetName) { sheetName.textContent = li.n; sheetPrice.textContent = item.p + " MAD · " + li.c; sheetDesc.textContent = li.d || ""; }
+    rollText(priceLn, item.p + " MAD · " + li.c);
     setGarmentBg(thumbG, item);
     if (!reduced) {
       thumb.animate(
@@ -152,7 +156,7 @@
   function tryOn(idx) {
     shown = idx;
     var item = ITEMS[idx];
-    updateBuy(item);
+    updateBuy(item, idx);
     scanAnims.forEach(function (a) { a.cancel(); });
     scanAnims = [];
     setFigure(mNext, item);
@@ -202,8 +206,8 @@
   function flipView(toBack) {
     if (toBack === backView) return;
     backView = toBack;
-    fbOneTx.textContent = backView ? "Front" : "Back";
-    fbOne.setAttribute("aria-label", backView ? "See the front" : "See the back");
+    fbOneTx.textContent = backView ? L.ui.front : L.ui.back;
+    fbOne.setAttribute("aria-label", backView ? L.ui.seeFront : L.ui.seeBack);
     var item = ITEMS[shown];
     scanAnims.forEach(function (a) { a.cancel(); });
     scanAnims = [];
@@ -526,8 +530,48 @@
     requestAnimationFrame(frame);
   }
 
+
+  /* ---------------- language (all texts live in js/lang.js) ---------------- */
+  var langTx = $("#langTx");
+  function applyLang() {
+    L = window.LANGS[window.LANG] || window.LANGS.fr;
+    document.documentElement.lang = window.LANG;
+    document.title = L.ui.title;
+    if (langTx) langTx.textContent = window.LANG.toUpperCase();
+    gHomme.textContent = L.ui.homme;
+    gFemme.textContent = L.ui.femme;
+    tabs.forEach(function (b) { b.textContent = L.ui.tops; });
+    var rl = document.querySelectorAll(".rail .rlabel");
+    if (rl[0]) rl[0].textContent = L.ui.tops;
+    if (rl[1]) rl[1].textContent = L.ui.cart;
+    if (rl[2]) rl[2].textContent = L.ui.calendar;
+    if (rl[3]) rl[3].textContent = L.ui.profile;
+    var lbl = document.querySelector(".sizeRow .lbl");
+    if (lbl) lbl.textContent = L.ui.size;
+    if (buyBtn) buyBtn.textContent = L.ui.buy;
+    if (sheetBuy) sheetBuy.textContent = L.ui.buy;
+    var ib = $("#infoBtn");
+    if (ib) ib.textContent = L.ui.moreInfo;
+    fbOneTx.textContent = backView ? L.ui.front : L.ui.back;
+    fbOne.setAttribute("aria-label", backView ? L.ui.seeFront : L.ui.seeBack);
+    var ct = document.querySelector(".clab.try"), cd = document.querySelector(".clab.drag");
+    if (ct) ct.textContent = L.ui.tryOn;
+    if (cd) cd.textContent = L.ui.drag;
+    cardNames.forEach(function (nm, k) { nm.textContent = L.items[k % N].n; });
+    var cur = shown < 0 ? 0 : shown;
+    updateBuy(ITEMS[cur], cur);
+    movePill(activeTab);
+  }
+  var langBtn = $("#langBtn");
+  if (langBtn) langBtn.addEventListener("click", function () {
+    window.LANG = window.LANG === "fr" ? "en" : "fr";
+    try { window.localStorage.setItem("lbs-lang", window.LANG); } catch (e) {}
+    applyLang();
+  });
+
   /* ---------------- init ---------------- */
   setGarmentBg(thumbG, ITEMS[0]);
+  applyLang();
   layout();
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(function () { movePill(activeTab); });

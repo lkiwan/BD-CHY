@@ -353,3 +353,6 @@ button{font:inherit;color:inherit;background:none;border:none}
   .rail .rbtn{width:auto;height:44px;padding:0 18px;border-radius:999px;gap:8px}
   .rail .rlabel{display:inline;font-size:14px;font-weight:700;font-family:inherit;white-space:nowrap}
 }
+
+/* language switch (text button in the top bar) */
+.rbtn .langTx{display:block;font-weight:800;font-size:11px;letter-spacing:.03em;line-height:1}
