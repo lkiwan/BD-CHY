@@ -154,6 +154,7 @@
   /* ---------------- try-on scan ---------------- */
   var scanAnims = [];
   function tryOn(idx) {
+    zoomReset();
     shown = idx;
     var item = ITEMS[idx];
     updateBuy(item, idx);
@@ -205,6 +206,7 @@
   var fbOne = $("#fbOne"), fbOneTx = $("#fbOneTx");
   function flipView(toBack) {
     if (toBack === backView) return;
+    zoomReset();
     backView = toBack;
     fbOneTx.textContent = backView ? L.ui.front : L.ui.back;
     fbOne.setAttribute("aria-label", backView ? L.ui.seeFront : L.ui.seeBack);
@@ -266,6 +268,7 @@
   }
   function setGender(f) {
     if (f === genderF) return;
+    zoomReset();
     genderF = f;
     gHomme.classList.toggle("act", !f);
     gFemme.classList.toggle("act", f);
@@ -435,6 +438,7 @@
   /* ---------------- wheel / keys ---------------- */
   var wAcc = 0, wLast = 0;
   window.addEventListener("wheel", function (e) {
+    if (e.ctrlKey) return; // ctrl+wheel is the pinch-zoom gesture, handled below
     var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
     wAcc += d;
     var now = performance.now();
@@ -448,6 +452,96 @@
     if (e.key === "ArrowRight" || e.key === "ArrowDown") target += 1;
     else if (e.key === "ArrowLeft" || e.key === "ArrowUp") target -= 1;
   });
+
+
+  /* ---------------- character zoom (pinch / ctrl+wheel) ----------------
+     Free zoom on the model only: two fingers pinch, ctrl+wheel zooms,
+     and while zoomed in, one finger pans the character instead of
+     turning the arc. Every switch (hoodie, front/back, Homme/Femme)
+     resets the zoom to the default place (zoomReset, called above). */
+  var zoomS = 1, zoomX = 0, zoomY = 0;
+  var zPointers = new Map();
+  var pinchD0 = 0, pinchS0 = 1, pinchMX = null, pinchMY = null;
+  var panId = null, panLX = 0, panLY = 0;
+
+  function zoomApply(anim) {
+    modelEl.style.transition = anim ? "transform .45s cubic-bezier(.22,.9,.26,1)" : "none";
+    modelEl.style.transform = "translateX(-50%) translate(" + zoomX + "px," + zoomY + "px) scale(" + zoomS + ")";
+  }
+  function zoomClamp() {
+    if (zoomS <= 1) { zoomS = 1; zoomX = 0; zoomY = 0; return; }
+    var mx = modelEl.offsetWidth * (zoomS - 1) * 0.55;
+    var my = modelEl.offsetHeight * (zoomS - 1) * 0.55;
+    zoomX = Math.min(mx, Math.max(-mx, zoomX));
+    zoomY = Math.min(my, Math.max(-my, zoomY));
+  }
+  function zoomOriginAt(cx, cy) {
+    var r = modelEl.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    var fx = Math.min(1, Math.max(0, (cx - r.left) / r.width));
+    var fy = Math.min(1, Math.max(0, (cy - r.top) / r.height));
+    modelEl.style.transformOrigin = (fx * 100) + "% " + (fy * 100) + "%";
+  }
+  function zoomReset() {
+    if (zoomS === 1 && zoomX === 0 && zoomY === 0) return;
+    zoomS = 1; zoomX = 0; zoomY = 0;
+    panId = null;
+    modelEl.style.transformOrigin = "50% 50%";
+    zoomApply(true);
+    window.setTimeout(function () { modelEl.style.transition = "none"; }, 480);
+  }
+
+  stage.addEventListener("pointerdown", function (e) {
+    zPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (zPointers.size === 2) {
+      dragId = null; dragging = false; // pinch wins over the arc drag
+      var pts = Array.from(zPointers.values());
+      pinchD0 = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+      pinchS0 = zoomS;
+      pinchMX = (pts[0].x + pts[1].x) / 2;
+      pinchMY = (pts[0].y + pts[1].y) / 2;
+      zoomOriginAt(pinchMX, pinchMY);
+    } else if (zPointers.size === 1 && zoomS > 1) {
+      dragId = null; dragging = false; // zoomed: one finger pans the character
+      panId = e.pointerId; panLX = e.clientX; panLY = e.clientY;
+    }
+  });
+  stage.addEventListener("pointermove", function (e) {
+    if (!zPointers.has(e.pointerId)) return;
+    zPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (zPointers.size === 2) {
+      var pts = Array.from(zPointers.values());
+      var d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) || 1;
+      zoomS = Math.min(3, Math.max(1, pinchS0 * d / pinchD0));
+      var mx2 = (pts[0].x + pts[1].x) / 2, my2 = (pts[0].y + pts[1].y) / 2;
+      if (pinchMX !== null) { zoomX += mx2 - pinchMX; zoomY += my2 - pinchMY; }
+      pinchMX = mx2; pinchMY = my2;
+      zoomClamp(); zoomApply(false);
+    } else if (panId === e.pointerId && zoomS > 1) {
+      zoomX += e.clientX - panLX; zoomY += e.clientY - panLY;
+      panLX = e.clientX; panLY = e.clientY;
+      zoomClamp(); zoomApply(false);
+    }
+  });
+  function zEnd(e) {
+    zPointers.delete(e.pointerId);
+    if (zPointers.size < 2) { pinchMX = null; pinchMY = null; }
+    if (panId === e.pointerId) panId = null;
+    if (zPointers.size === 1 && zoomS > 1) {
+      var ent = Array.from(zPointers.entries())[0];
+      panId = ent[0]; panLX = ent[1].x; panLY = ent[1].y; // remaining finger takes over the pan
+      dragId = null; dragging = false;
+    }
+  }
+  stage.addEventListener("pointerup", zEnd);
+  stage.addEventListener("pointercancel", zEnd);
+  window.addEventListener("wheel", function (e) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    zoomOriginAt(e.clientX, e.clientY);
+    zoomS = Math.min(3, Math.max(1, zoomS * (e.deltaY < 0 ? 1.12 : 0.89)));
+    zoomClamp(); zoomApply(false);
+  }, { passive: false });
 
   /* ---------------- layout ---------------- */
   function layout() {
