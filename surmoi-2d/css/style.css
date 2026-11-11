@@ -70,7 +70,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* ---------- tab bar ---------- */
 .tabs{
-  position:fixed;left:50%;top:4.2vh;transform:translateX(-50%);z-index:30;
+  position:fixed;left:50%;top:66px;transform:translateX(-50%);z-index:30;
   display:flex;padding:5px;border-radius:999px;gap:2px;
 }
 .tabs .pill{
@@ -91,9 +91,10 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* ---------- tool rail ---------- */
 .rail{
-  position:fixed;left:max(18px,1.8vw);top:50%;transform:translateY(-50%);z-index:30;
-  display:flex;flex-direction:column;padding:8px;gap:10px;border-radius:999px;
+  position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:30;
+  display:flex;flex-direction:row;padding:6px;gap:6px;border-radius:999px;
 }
+.rail .rlabel{display:none}
 .rail .rbtn{
   width:42px;height:42px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -272,7 +273,7 @@ button{font:inherit;color:inherit;background:none;border:none}
   .tabs::-webkit-scrollbar{display:none}
   .tabs .tab{height:32px;padding:0 13px;font-size:12px}
   .tabs .pill{height:32px}
-  .rail{left:10px;top:auto;bottom:calc(4.6vh + 150px);transform:none}
+  .rail{left:50%;top:10px;bottom:auto;transform:translateX(-50%)}
   .rail .rbtn{width:34px;height:34px}
   .rail .rbtn svg{width:17px;height:17px}
   .arrow{display:none}
@@ -318,7 +319,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 .sheetDesc{font-size:14px;line-height:1.55;margin:12px 0 16px;opacity:.88}
 .sheetBuyBtn{display:flex}
 @media (max-width:767px){
-  .rail{bottom:calc(4.6vh + 134px)}
+  .rail{bottom:auto}
 }
 
 /* Ghost = the LBS logo itself (white artwork), same drift/rise movement */
@@ -332,4 +333,10 @@ button{font:inherit;color:inherit;background:none;border:none}
   display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:999px;
   border:0;cursor:pointer;
   font-family:Nunito,system-ui,sans-serif;font-weight:700;font-size:14px;color:#2B2622;
+}
+
+/* ---------- wide screens: top bar shows icon + name ---------- */
+@media (min-width:900px){
+  .rail .rbtn{width:auto;height:44px;padding:0 18px;border-radius:999px;gap:8px}
+  .rail .rlabel{display:inline;font-size:14px;font-weight:700;font-family:inherit;white-space:nowrap}
 }
