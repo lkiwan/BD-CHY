@@ -686,7 +686,7 @@
   function cartTotal() { return cart.reduce(function (s, l) { return s + l.qty * ITEMS[l.i].p; }, 0); }
   function selSize() { var c = document.querySelector(".sizeRow .chip.act"); return c ? c.textContent.trim() : "M"; }
   function paintGarment(el, item) {
-    el.style.backgroundImage = "var(--garm)";
+    el.style.backgroundImage = 'url("assets/garment-sheet.webp")';
     el.style.backgroundSize = "320% 212.5%";
     el.style.backgroundPosition = item.g[0] + "% " + item.g[1] + "%";
     el.style.backgroundRepeat = "no-repeat";
