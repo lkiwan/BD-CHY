@@ -12,8 +12,8 @@
   --room:url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261104_080623_c94c85a3-23d5-4a0c-afff-41be1b5b8191.png&w=2400&q=85");
   --model:url("../assets/model-sheet-6.webp");
   --model-back:url("../assets/model-sheet-back-6.webp");
-  --model-f:url("../assets/model-sheet-f.webp");
-  --model-f-back:url("../assets/model-sheet-f-back.webp");
+  --model-f:url("../assets/model-sheet-f-full.webp");
+  --model-f-back:url("../assets/model-sheet-f-back-full.webp");
   --garm:url("../assets/garment-sheet.webp");
 }
 

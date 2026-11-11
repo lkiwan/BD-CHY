@@ -257,7 +257,7 @@
   var genderF = false;
   var gHomme = $("#gHomme"), gFemme = $("#gFemme");
   function sheetFor(f, back) {
-    if (f) return back ? "assets/model-sheet-f-back.webp" : "assets/model-sheet-f.webp";
+    if (f) return back ? "assets/model-sheet-f-back-full.webp" : "assets/model-sheet-f-full.webp";
     return back ? "assets/model-sheet-back-6.webp" : "assets/model-sheet-6.webp";
   }
   function setGender(f) {
