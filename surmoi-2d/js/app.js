@@ -28,8 +28,11 @@
   var cur = $("#cur"), ring = cur.querySelector(".ring");
   var tabs = Array.prototype.slice.call(document.querySelectorAll(".tab"));
   var pill = $("#tabPill");
-  var nameLn = $("#nameLn"), priceLn = $("#priceLn"), colorLn = $("#colorLn");
-  var thumb = $("#thumb"), thumbG = $("#thumbG"), dotsEl = $("#dots");
+  var nameLn = $("#nameLn"), priceLn = $("#priceLn");
+  var thumb = $("#thumb"), thumbG = $("#thumbG");
+  var buyBtn = $("#buyBtn");
+  var sheet = $("#sheet"), sheetName = $("#sheetName"), sheetPrice = $("#sheetPrice"),
+      sheetDesc = $("#sheetDesc"), sheetBuy = $("#sheetBuy");
 
   /* ---------------- state ---------------- */
   var W = window.innerWidth, H = window.innerHeight;
@@ -129,31 +132,12 @@
     };
   }
 
-  function buildDots(item) {
-    dotsEl.innerHTML = "";
-    item.c.forEach(function (pair, i) {
-      var d = document.createElement("button");
-      d.type = "button";
-      d.className = "dot" + (i === 0 ? " act" : "");
-      d.style.background = pair[1];
-      d.setAttribute("aria-label", pair[0]);
-      d.addEventListener("click", function () {
-        Array.prototype.forEach.call(dotsEl.querySelectorAll(".dot"), function (x) {
-          x.classList.remove("act");
-        });
-        d.classList.add("act");
-        rollText(colorLn, "Color · " + pair[0]);
-      });
-      dotsEl.appendChild(d);
-    });
-  }
-
-  var buyBtn = $("#buyBtn");
   function updateBuy(item) {
     rollText(nameLn, item.n);
-    if (buyBtn) { buyBtn.href = item.u; buyBtn.textContent = "Commander · " + item.p + " MAD"; }
-    rollText(priceLn, item.p + " MAD");
-    rollText(colorLn, "Color · " + item.c[0][0]);
+    if (buyBtn) { buyBtn.href = item.u; }
+    if (sheetBuy) { sheetBuy.href = item.u; }
+    if (sheetName) { sheetName.textContent = item.n; sheetPrice.textContent = item.p + " MAD · " + item.c[0][0]; sheetDesc.textContent = item.d || ""; }
+    rollText(priceLn, item.p + " MAD · " + item.c[0][0]);
     setGarmentBg(thumbG, item);
     if (!reduced) {
       thumb.animate(
@@ -161,7 +145,6 @@
         { duration: 650, easing: EASE }
       );
     }
-    buildDots(item);
   }
 
   /* ---------------- try-on scan ---------------- */
@@ -234,6 +217,10 @@
       ch.classList.add("act");
     });
   });
+  var infoBtn = $("#infoBtn");
+  if (infoBtn) infoBtn.addEventListener("click", function () { sheet.hidden = false; });
+  $("#sheetX").addEventListener("click", function () { sheet.hidden = true; });
+  sheet.addEventListener("click", function (e) { if (e.target === sheet) sheet.hidden = true; });
   $("#prevBtn").addEventListener("click", function () { target -= 1; });
   $("#nextBtn").addEventListener("click", function () { target += 1; });
   Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (chip) {
@@ -420,7 +407,6 @@
   }
 
   /* ---------------- init ---------------- */
-  buildDots(ITEMS[0]);
   setGarmentBg(thumbG, ITEMS[0]);
   layout();
   if (document.fonts && document.fonts.ready) {

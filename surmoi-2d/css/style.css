@@ -189,14 +189,14 @@ button{font:inherit;color:inherit;background:none;border:none}
 .buy{
   position:fixed;left:50%;transform:translateX(-50%);bottom:4.6vh;z-index:60;
   width:min(640px, calc(100vw - 32px));
-  display:flex;align-items:center;gap:22px;
-  padding:12px 22px 12px 12px;
+  display:flex;align-items:center;gap:10px 16px;
+  padding:10px 16px 10px 10px;
   border-radius:24px;
   color:#fff;
   text-shadow:0 1px 6px rgba(0,0,0,.18);
 }
 .buy .thumb{
-  width:64px;height:64px;flex:none;position:relative;overflow:hidden;
+  width:52px;height:52px;flex:none;position:relative;overflow:hidden;
   border-radius:14px;background:rgba(255,255,255,.3);
 }
 .buy .thumbG{
@@ -209,7 +209,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 .ln{height:1.15em;overflow:hidden}
 .ln .stack{display:flex;flex-direction:column}
 .ln .stack span{display:block;height:1.15em;line-height:1.15em;white-space:nowrap}
-.ln.name{font-weight:600;font-size:16px}
+.ln.name{font-weight:600;font-size:15px}
 .ln.price{font-weight:500;font-size:14px;opacity:.9}
 .ln.colorL{font-weight:500;font-size:12px;opacity:.85}
 .buy .grp{display:flex;flex-direction:column;gap:6px}
@@ -279,5 +279,43 @@ button{font:inherit;color:inherit;background:none;border:none}
 }
 
 /* Commander button - opens this hoodie product page on YouCan */
-.buyBtn{display:flex;align-items:center;justify-content:center;margin-top:12px;padding:13px 18px;border-radius:999px;background:linear-gradient(135deg,#b98d5e,#A67C52);color:#fff;font-weight:800;font-size:15px;letter-spacing:.02em;text-decoration:none;box-shadow:0 8px 20px rgba(166,124,82,.35)}
+.buyBtn{display:flex;align-items:center;justify-content:center;flex:1 0 100%;margin-top:2px;padding:11px 18px;border-radius:999px;background:linear-gradient(135deg,#b98d5e,#A67C52);color:#fff;font-weight:800;font-size:15px;letter-spacing:.02em;text-decoration:none;box-shadow:0 8px 20px rgba(166,124,82,.35)}
 .buyBtn:active{transform:scale(.98)}
+
+/* ===== Slim dock — approved mockup v5 (replaces the tall buy card) ===== */
+.buy{
+  flex-wrap:nowrap;align-items:center;gap:12px;
+  padding:10px 12px;color:#241f1a;text-shadow:none;
+  background:linear-gradient(155deg, rgba(252,250,246,.66), rgba(216,207,194,.52));
+}
+.buy .thumb{width:68px;height:68px;border-radius:16px;background:rgba(255,255,255,.45)}
+.buy .mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;justify-content:center}
+.ln.name{font-size:15px;font-weight:700;color:#241f1a}
+.ln.price{font-size:14px;font-weight:700;color:#96683a;opacity:1}
+.sizeRow{display:flex;align-items:center;gap:8px;margin-top:2px}
+.sizeRow .lbl{font-size:12px;font-weight:500;opacity:.75}
+.chip{width:28px;height:28px;background:rgba(255,255,255,.55);color:#3c342a;font-size:11px}
+.chip.act{background:#241f1a;color:#fff}
+.buy .acts{display:flex;flex-direction:column;gap:7px;flex:none}
+.buyBtn{flex:none;margin:0;padding:9px 24px;font-size:15px}
+.infoBtn{
+  padding:7px 14px;border-radius:999px;background:transparent;cursor:pointer;
+  border:1.5px solid rgba(122,90,58,.75);color:#6d4e2e;font-weight:600;font-size:12.5px;
+}
+.infoBtn:active{transform:scale(.97)}
+/* More info sheet */
+.sheet{position:fixed;inset:0;z-index:95;display:flex;align-items:flex-end;justify-content:center;background:rgba(28,22,16,.38)}
+.sheet[hidden]{display:none}
+.sheetCard{
+  position:relative;width:min(640px, calc(100vw - 20px));margin-bottom:10px;border-radius:22px;
+  padding:22px 20px 20px;background:rgba(252,250,246,.97);color:#241f1a;
+  box-shadow:0 24px 60px -20px rgba(30,20,10,.5);
+}
+.sheetX{position:absolute;top:10px;right:12px;width:32px;height:32px;border-radius:50%;background:rgba(30,26,22,.06);font-size:14px;color:#241f1a;cursor:pointer}
+.sheetName{font-size:19px;font-weight:800;padding-right:36px}
+.sheetPrice{font-size:16px;font-weight:800;color:#96683a;margin-top:3px}
+.sheetDesc{font-size:14px;line-height:1.55;margin:12px 0 16px;opacity:.88}
+.sheetBuyBtn{display:flex}
+@media (max-width:767px){
+  .rail{bottom:calc(4.6vh + 134px)}
+}
