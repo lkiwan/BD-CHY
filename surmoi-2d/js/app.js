@@ -195,6 +195,64 @@
     };
   }
 
+  /* ---------------- front / back view ---------------- */
+  var backView = false;
+  var modelEl = $(".model");
+  var fbOne = $("#fbOne"), fbOneTx = $("#fbOneTx");
+  function flipView(toBack) {
+    if (toBack === backView) return;
+    backView = toBack;
+    fbOneTx.textContent = backView ? "Front" : "Back";
+    fbOne.setAttribute("aria-label", backView ? "See the front" : "See the back");
+    var item = ITEMS[shown];
+    scanAnims.forEach(function (a) { a.cancel(); });
+    scanAnims = [];
+    mNext.style.backgroundImage = "url(\"" + (backView ? "assets/model-sheet-back-6.webp" : "assets/model-sheet-6.webp") + "\")";
+    setFigure(mNext, item);
+    if (reduced) {
+      modelEl.classList.toggle("back", backView);
+      mNext.style.backgroundImage = "";
+      setFigure(mCur, item);
+      mCur.style.opacity = "1";
+      return;
+    }
+    var a1 = mNext.animate(
+      [{ clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)" }],
+      { duration: 950, easing: SCAN_EASE, fill: "forwards" }
+    );
+    var a2 = grid.animate(
+      [
+        { clipPath: "inset(0 0 100% 0)", offset: 0 },
+        { clipPath: "inset(0 0 0% 0)", offset: 0.5 },
+        { clipPath: "inset(100% 0 0 0)", offset: 1 }
+      ],
+      { duration: 1092, easing: SCAN_EASE, fill: "forwards" }
+    );
+    var a3 = scan.animate(
+      [
+        { top: "0%", transform: "scaleX(.2)", opacity: "0", offset: 0 },
+        { top: "6%", transform: "scaleX(1)", opacity: "1", offset: 0.08 },
+        { top: "94%", offset: 0.92 },
+        { top: "100%", transform: "scaleX(.2)", opacity: "0", offset: 1 }
+      ],
+      { duration: 950, easing: SCAN_EASE, fill: "forwards" }
+    );
+    var a4 = mNext.animate(
+      [{ transform: "scale(1.012)" }, { transform: "scale(1)" }],
+      { duration: 1250, easing: "ease-out", fill: "forwards" }
+    );
+    scanAnims = [a1, a2, a3, a4];
+    a1.onfinish = function () {
+      modelEl.classList.toggle("back", backView);
+      mNext.style.backgroundImage = "";
+      setFigure(mCur, item);
+      mCur.style.opacity = "1";
+      scanAnims.forEach(function (a) { a.cancel(); });
+      scanAnims = [];
+    };
+  }
+  fbOne.addEventListener("click", function () { flipView(!backView); });
+
   /* ---------------- tabs / arrows / chips ---------------- */
   function movePill(btn) {
     if (!btn) return;

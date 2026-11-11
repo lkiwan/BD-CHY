@@ -11,6 +11,7 @@
   --CW:200px; /* card width — set precisely by js/app.js on resize */
   --room:url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261104_080623_c94c85a3-23d5-4a0c-afff-41be1b5b8191.png&w=2400&q=85");
   --model:url("../assets/model-sheet-6.webp");
+  --model-back:url("../assets/model-sheet-back-6.webp");
   --garm:url("../assets/garment-sheet.webp");
 }
 
@@ -323,3 +324,12 @@ button{font:inherit;color:inherit;background:none;border:none}
 /* Ghost = the LBS logo itself (white artwork), same drift/rise movement */
 .ghost{margin-top:calc(var(--MH) * -0.10)}
 .ghost img{display:block;width:calc(var(--MH) * 0.98);height:auto;opacity:.38}
+
+/* Front / Back view: same figure box, back sheet swaps in */
+.model.back .fig{background-image:var(--model-back)}
+.fbOne{
+  position:fixed;right:14px;bottom:166px;z-index:80;
+  display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:999px;
+  border:0;cursor:pointer;
+  font-family:Nunito,system-ui,sans-serif;font-weight:700;font-size:14px;color:#2B2622;
+}
