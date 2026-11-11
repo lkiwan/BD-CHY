@@ -685,6 +685,13 @@
   function cartCount() { return cart.reduce(function (s, l) { return s + l.qty; }, 0); }
   function cartTotal() { return cart.reduce(function (s, l) { return s + l.qty * ITEMS[l.i].p; }, 0); }
   function selSize() { var c = document.querySelector(".sizeRow .chip.act"); return c ? c.textContent.trim() : "M"; }
+  function paintHanger(el, idx) {
+    // generated hanger pictures, background removed (transparent)
+    el.style.backgroundImage = 'url("assets/cart-nobg-' + (idx + 1) + '.webp")';
+    el.style.backgroundSize = "contain";
+    el.style.backgroundPosition = "center";
+    el.style.backgroundRepeat = "no-repeat";
+  }
   function paintGarment(el, item) {
     el.style.backgroundImage = 'url("assets/garment-sheet.webp")';
     el.style.backgroundSize = "320% 212.5%";
@@ -817,7 +824,7 @@
   function cpOpenDetail(k) {
     cpOpen = k; cpHov = k; cpLayout();
     cpFill(k);
-    paintGarment(cpBig, ITEMS[cart[k].i]);
+    paintHanger(cpBig, cart[k].i);
     cpDet.hidden = false;
     cpRailView.classList.add("dimmed");
     var g = cpGarments[k];
@@ -839,7 +846,7 @@
     cpGarments[cpOpen].style.visibility = "hidden";
     cpHov = cpOpen; cpLayout();
     cpFill(cpOpen);
-    paintGarment(cpBig, ITEMS[cart[cpOpen].i]);
+    paintHanger(cpBig, cart[cpOpen].i);
     try { cpBig.getAnimations().forEach(function (an) { an.cancel(); }); } catch (e) {}
     cpBig.animate([
       { transform: "translate(" + (d * 110) + "px, 0px) scale(.94)", opacity: 0 },

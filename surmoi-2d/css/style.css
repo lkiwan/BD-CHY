@@ -450,3 +450,6 @@ button{font:inherit;color:inherit;background:none;border:none}
 /* hanger hook sits exactly on the rail: arc centre = rail centre
    (measured in-browser: the curl was 23px too high) */
 .cg .cpHang{top:13px}
+
+/* the detail picture carries its own real hanger — hide the drawn hook there */
+.cpBig .cpHang{display:none}
