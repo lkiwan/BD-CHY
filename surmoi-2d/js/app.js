@@ -680,6 +680,7 @@
   try { cart = JSON.parse(window.localStorage.getItem("lbs-cart") || "[]"); } catch (e) { cart = []; }
   if (!Array.isArray(cart)) cart = [];
   var cpHov = -1, cpOpen = -1, cpBoxW = 150, cpGarments = [];
+  var cpBack = false, cpFlipping = false;
 
   function cartSave() { try { window.localStorage.setItem("lbs-cart", JSON.stringify(cart)); } catch (e) {} }
   function cartCount() { return cart.reduce(function (s, l) { return s + l.qty; }, 0); }
@@ -688,6 +689,13 @@
   function paintHanger(el, idx) {
     // generated hanger pictures, background removed (transparent)
     el.style.backgroundImage = 'url("assets/cart-nobg-' + (idx + 1) + '.webp")';
+    el.style.backgroundSize = "contain";
+    el.style.backgroundPosition = "center";
+    el.style.backgroundRepeat = "no-repeat";
+  }
+  function paintHangerBack(el, idx) {
+    // generated back-view hanger pictures, background removed (transparent)
+    el.style.backgroundImage = 'url("assets/cart-nobg-back-' + (idx + 1) + '.webp")';
     el.style.backgroundSize = "contain";
     el.style.backgroundPosition = "center";
     el.style.backgroundRepeat = "no-repeat";
@@ -754,6 +762,8 @@
     $("#cpLblAddr").textContent = L.ui.fAddress;
     $("#cpConfirm").textContent = L.ui.confirm;
     $("#cpFormBack").textContent = L.ui.retour;
+    var cpft = $("#cpFlipTx");
+    if (cpft) cpft.textContent = cpBack ? L.ui.front : L.ui.back;
     var half = L.ui.marquee.repeat(6);
     $("#cpBandTrack").innerHTML = '<span class="cpHalf">' + half + '</span><span class="cpHalf">' + half + "</span>";
     if (cpOpen >= 0 && cart[cpOpen]) cpFill(cpOpen);
@@ -829,10 +839,30 @@
     $("#cpSizeLine").textContent = L.ui.size + " : " + line.size;
     $("#cpQVal").textContent = line.qty;
   }
+  var cpFlipBtn = $("#cpFlip");
+  function cpPaintBig() {
+    if (cpBack) paintHangerBack(cpBig, cart[cpOpen].i); else paintHanger(cpBig, cart[cpOpen].i);
+    var tx = $("#cpFlipTx");
+    if (tx) tx.textContent = cpBack ? L.ui.front : L.ui.back;
+    if (cpFlipBtn) cpFlipBtn.setAttribute("aria-label", cpBack ? L.ui.seeFront : L.ui.seeBack);
+  }
+  function cpFlip() {
+    if (cpOpen < 0 || cpFlipping) return;
+    cpFlipping = true;
+    try { cpBig.getAnimations().forEach(function (an) { an.cancel(); }); } catch (e) {}
+    cpBig.style.opacity = "1";
+    cpBig.animate([
+      { transform: "rotateY(0deg)", opacity: 1 },
+      { transform: "rotateY(88deg)", opacity: .3, offset: .45 },
+      { transform: "rotateY(0deg)", opacity: 1 }
+    ], { duration: 480, easing: "ease-in-out" });
+    window.setTimeout(function () { cpBack = !cpBack; cpPaintBig(); }, 215);
+    window.setTimeout(function () { cpFlipping = false; }, 500);
+  }
   function cpOpenDetail(k) {
-    cpOpen = k; cpHov = k; cpLayout();
+    cpOpen = k; cpHov = k; cpBack = false; cpLayout();
     cpFill(k);
-    paintHanger(cpBig, cart[k].i);
+    cpPaintBig();
     cpDet.hidden = false;
     cpRailView.classList.add("dimmed");
     var g = cpGarments[k];
@@ -852,9 +882,9 @@
     cpOpen = (cpOpen + d + cart.length) % cart.length;
     cpGarments[from].style.visibility = "";
     cpGarments[cpOpen].style.visibility = "hidden";
-    cpHov = cpOpen; cpLayout();
+    cpHov = cpOpen; cpBack = false; cpLayout();
     cpFill(cpOpen);
-    paintHanger(cpBig, cart[cpOpen].i);
+    cpPaintBig();
     try { cpBig.getAnimations().forEach(function (an) { an.cancel(); }); } catch (e) {}
     cpBig.animate([
       { transform: "translate(" + (d * 110) + "px, 0px) scale(.94)", opacity: 0 },
@@ -875,12 +905,13 @@
     window.setTimeout(function () {
       cpDet.hidden = true;
       g.style.visibility = "";
-      cpOpen = -1; cpHov = -1;
+      cpOpen = -1; cpHov = -1; cpBack = false;
       cpLayout();
     }, 660);
   }
   $("#cpPrev").addEventListener("click", function () { cpStep(-1); });
   $("#cpNext").addEventListener("click", function () { cpStep(1); });
+  if (cpFlipBtn) cpFlipBtn.addEventListener("click", cpFlip);
   $("#cpClose").addEventListener("click", cpCloseDetail);
   $("#cpHit").addEventListener("click", cpCloseDetail);
   $("#cpQPlus").addEventListener("click", function () {
