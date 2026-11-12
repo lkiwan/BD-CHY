@@ -578,6 +578,10 @@
     cy += (my - cy) * ck;
     putT(cur, "translate3d(" + r2(cx) + "px, " + r2(cy) + "px, 0) translate(-50%, -50%)");
 
+    /* cart open: the home stage is fully hidden behind it — pause its animation
+       so the cursor (and the cart itself) get the whole frame budget */
+    if (cartPage && !cartPage.hidden) { requestAnimationFrame(frame); return; }
+
     if (!dragging) pos = reduced ? target : pos + (target - pos) * 0.11;
     if (intro < 1) intro = Math.min(1, intro + 0.012);
     var ie = reduced ? 1 : 1 - Math.pow(1 - intro, 3);
