@@ -234,9 +234,12 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* ---------- glass cursor ---------- */
 .cur{
-  position:fixed;left:0;top:0;width:58px;height:58px;z-index:100;
+  position:fixed;left:0;top:0;width:58px;height:58px;z-index:200;
   pointer-events:none;opacity:0;
 }
+/* on light pages (the cart) the white glass ring is invisible — dark variant */
+.cur.dark .ring{border-color:rgba(38,34,30,.7);background:rgba(38,34,30,.07)}
+.cur.dark .cdot{background:#26221e}
 .cur .ring{
   position:absolute;inset:0;border-radius:50%;
   border:1.5px solid rgba(255,255,255,.95);

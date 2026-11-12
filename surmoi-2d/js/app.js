@@ -381,6 +381,8 @@
       cx = mx; cy = my;
       cur.style.opacity = "1";
     }
+    var t0 = e.target;
+    cur.classList.toggle("dark", !!(t0.closest && t0.closest(".cartPage")));
     if (!dragging) {
       var t = e.target;
       if (t.closest && t.closest(".card")) setCurState("try");
@@ -562,8 +564,19 @@
   }
 
   /* ---------------- main loop — the arc maths ---------------- */
+  var lastNow = 0;
+  function r2(v) { return Math.round(v * 100) / 100; }
+  function putT(el, str) { if (el._tf !== str) { el._tf = str; el.style.transform = str; } }
   function frame(now) {
     var t = now / 1000;
+
+    /* cursor first, with frame-rate independent smoothing (same feel at 30/60/120 Hz) */
+    var dtF = lastNow ? Math.min(3, Math.max(0.25, (now - lastNow) / 16.667)) : 1;
+    lastNow = now;
+    var ck = 1 - Math.pow(0.78, dtF);
+    cx += (mx - cx) * ck;
+    cy += (my - cy) * ck;
+    putT(cur, "translate3d(" + r2(cx) + "px, " + r2(cy) + "px, 0) translate(-50%, -50%)");
 
     if (!dragging) pos = reduced ? target : pos + (target - pos) * 0.11;
     if (intro < 1) intro = Math.min(1, intro + 0.012);
@@ -572,12 +585,10 @@
     sx += (tx - sx) * 0.06;
     sy += (ty - sy) * 0.06;
 
-    room.style.transform =
-      "translate3d(" + (-sx * 22) + "px, " + (-sy * 14) + "px, 0) scale(" + (1.08 - 0.03 * ie) + ")";
-    ghost.style.transform =
-      "translate(calc(-50% + " + (-sx * 40) + "px), " + (-sy * 16) + "px)";
+    putT(room, "translate3d(" + r2(-sx * 22) + "px, " + r2(-sy * 14) + "px, 0) scale(" + r2(1.08 - 0.03 * ie) + ")");
+    putT(ghost, "translate(calc(-50% + " + r2(-sx * 40) + "px), " + r2(-sy * 16) + "px)");
     letters.forEach(function (el, i) {
-      el.style.transform = "translateY(" + ((1 - ie) * (60 + 30 * i)) + "px)";
+      putT(el, "translateY(" + r2((1 - ie) * (60 + 30 * i)) + "px)");
     });
 
     for (var i = 0; i < CARDS; i++) {
@@ -603,18 +614,18 @@
       ry += sx * 10;
       var x = sg * xAt(a) * ie;
       op *= ie;
-      card.style.transform =
-        "translate(" + x + "px, " + y + "px) perspective(1300px) translateZ(" + z + "px)" +
-        " rotateY(" + ry + "deg) rotateX(" + (-sy * 6) + "deg) scale(" + (s * (0.6 + 0.4 * ie)) + ")";
-      card.style.opacity = op;
-      card.style.zIndex = a < 1 ? 1 : Math.round(100 - 10 * a);
-      card.style.filter = blur > 0.01 ? "blur(" + blur + "px)" : "";
-      card.style.visibility = op < 0.01 ? "hidden" : "visible";
+      putT(card,
+        "translate(" + r2(x) + "px, " + r2(y) + "px) perspective(1300px) translateZ(" + r2(z) + "px)" +
+        " rotateY(" + r2(ry) + "deg) rotateX(" + r2(-sy * 6) + "deg) scale(" + r2(s * (0.6 + 0.4 * ie)) + ")");
+      var opR = Math.round(op * 1000) / 1000;
+      if (card._op !== opR) { card._op = opR; card.style.opacity = opR; }
+      var zi = a < 1 ? 1 : Math.round(100 - 10 * a);
+      if (card._z !== zi) { card._z = zi; card.style.zIndex = zi; }
+      var fs = blur > 0.01 ? "blur(" + r2(blur) + "px)" : "";
+      if (card._f !== fs) { card._f = fs; card.style.filter = fs; }
+      var vs = op < 0.01 ? "hidden" : "visible";
+      if (card._v !== vs) { card._v = vs; card.style.visibility = vs; }
     }
-
-    cx += (mx - cx) * 0.22;
-    cy += (my - cy) * 0.22;
-    cur.style.transform = "translate3d(" + cx + "px, " + cy + "px, 0) translate(-50%, -50%)";
 
     if (!dragging && Math.abs(target - pos) < 0.02) {
       var idx = mod(Math.round(target), N);
