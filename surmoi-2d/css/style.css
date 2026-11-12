@@ -9,7 +9,7 @@
   --sans:"Inter",system-ui,-apple-system,sans-serif;
   --MH:min(78vh,62vw);
   --CW:200px; /* card width — set precisely by js/app.js on resize */
-  --room:url("https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20261104_080623_c94c85a3-23d5-4a0c-afff-41be1b5b8191.png&w=2400&q=85");
+  --room:url("../assets/room-riad.webp");
   --model:url("../assets/model-sheet-6.webp");
   --model-back:url("../assets/model-sheet-back-6.webp");
   --model-f:url("../assets/model-sheet-f-full.webp");
