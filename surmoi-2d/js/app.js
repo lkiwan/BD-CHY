@@ -262,25 +262,19 @@
   /* ---------------- gender switch (Homme / Femme) ---------------- */
   var genderF = false;
   var gHomme = $("#gHomme"), gFemme = $("#gFemme");
-  var shape = "droit";
-  var SHAPE_SHEETS = {
-    droit: ["assets/model-sheet-6.webp", "assets/model-sheet-back-6.webp"],
-    equilibre: ["assets/model-sheet-equilibre.webp", "assets/model-sheet-equilibre-back.webp"],
-    muscle: ["assets/model-sheet-muscle.webp", "assets/model-sheet-muscle-back.webp"],
-    rond: ["assets/model-sheet-rond.webp", "assets/model-sheet-rond-back.webp"]
-  };
+  /* The size button changes the character: each size is the same man
+     at a different width (sheets model-sheet-size-<key>.webp). */
+  var sizeKey = "m";
+  var SIZE_KEYS = { S: "s", M: "m", L: "l", XL: "xl", XXL: "xxl" };
   function sheetFor(f, back) {
     if (f) return back ? "assets/model-sheet-f-back-full.webp" : "assets/model-sheet-f-full.webp";
-    var s = SHAPE_SHEETS[shape] || SHAPE_SHEETS.droit;
-    return back ? s[1] : s[0];
+    return "assets/model-sheet-size-" + sizeKey + (back ? "-back.webp" : ".webp");
   }
-  function applyShape() {
-    modelEl.classList.remove("sh-eq", "sh-mu", "sh-rd");
-    if (shape === "equilibre") modelEl.classList.add("sh-eq");
-    else if (shape === "muscle") modelEl.classList.add("sh-mu");
-    else if (shape === "rond") modelEl.classList.add("sh-rd");
+  function applySize() {
+    modelEl.classList.remove("sz-s", "sz-m", "sz-l", "sz-xl", "sz-xxl");
+    modelEl.classList.add("sz-" + sizeKey);
   }
-  function swapShape() {
+  function swapSize() {
     zoomReset();
     var item = ITEMS[shown];
     scanAnims.forEach(function (x) { x.cancel(); });
@@ -288,7 +282,7 @@
     mNext.style.backgroundImage = "url(\"" + sheetFor(genderF, backView) + "\")";
     setFigure(mNext, item);
     if (reduced) {
-      applyShape();
+      applySize();
       mNext.style.backgroundImage = "";
       setFigure(mCur, item);
       mCur.style.opacity = "1";
@@ -321,7 +315,7 @@
     );
     scanAnims = [a1, a2, a3, a4];
     a1.onfinish = function () {
-      applyShape();
+      applySize();
       mNext.style.backgroundImage = "";
       setFigure(mCur, item);
       mCur.style.opacity = "1";
@@ -384,6 +378,21 @@
   }
   gHomme.addEventListener("click", function () { setGender(false); });
   gFemme.addEventListener("click", function () { setGender(true); });
+
+  /* ---------------- size chips — the size changes the character ---------------- */
+  function setSize(label, instant) {
+    var key = SIZE_KEYS[label] || "m";
+    Array.prototype.forEach.call(document.querySelectorAll(".sizeRow .chip"), function (c) {
+      c.classList.toggle("act", c.textContent.trim() === label);
+    });
+    if (key === sizeKey) { applySize(); return; }
+    sizeKey = key;
+    if (instant || genderF) { applySize(); return; }
+    swapSize();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".sizeRow .chip"), function (ch) {
+    ch.addEventListener("click", function () { setSize(ch.textContent.trim(), false); });
+  });
 
   /* ---------------- tabs / arrows / chips ---------------- */
   function movePill(btn) {
@@ -1077,15 +1086,13 @@
   if (profile && profile.sexe !== "f") profile.forme = "droit";
   var HEIGHTS = ["<160", "160\u2013170", "170\u2013180", "180\u2013190", ">190"];
   var WEIGHTS = ["<60", "60\u201375", "75\u201390", "90\u2013105", ">105"];
-  var SIZE_TABLE = [["S", "S", "M", "L", "XL"], ["S", "M", "M", "L", "XL"], ["M", "M", "L", "L", "XL"], ["M", "L", "L", "XL", "XL"], ["L", "L", "XL", "XL", "XL"]];
+  var SIZE_TABLE = [["S", "S", "M", "L", "XL"], ["S", "M", "M", "L", "XL"], ["M", "M", "L", "L", "XXL"], ["M", "L", "L", "XL", "XXL"], ["L", "L", "XL", "XXL", "XXL"]];
   var draft = null;
 
-  function profSetSize() {
+  function profSetSize(animate) {
     if (!profile || profile.skip) return;
     var sz = SIZE_TABLE[profile.taille != null ? profile.taille : 2][profile.poids != null ? profile.poids : 1];
-    Array.prototype.forEach.call(document.querySelectorAll(".sizeRow .chip"), function (c) {
-      c.classList.toggle("act", c.textContent.trim() === sz);
-    });
+    setSize(sz, !animate);
   }
   function applyProfileInit() {
     if (!profile || profile.skip) return;
@@ -1094,9 +1101,6 @@
       modelEl.classList.add("f");
       gHomme.classList.remove("act");
       gFemme.classList.add("act");
-    } else {
-      shape = profile.forme || "droit";
-      applyShape();
     }
     profSetSize();
   }
@@ -1105,11 +1109,9 @@
     if (profile.sexe === "f") {
       if (!genderF) setGender(true);
     } else {
-      var ns = profile.forme || "droit";
-      if (genderF) { shape = ns; applyShape(); setGender(false); }
-      else if (ns !== shape) { shape = ns; swapShape(); }
+      if (genderF) setGender(false);
     }
-    profSetSize();
+    profSetSize(true);
   }
   function chipRow(el, labels, curVal, onPick) {
     el.innerHTML = "";
@@ -1195,6 +1197,7 @@
   /* ---------------- init ---------------- */
   setGarmentBg(thumbG, ITEMS[0]);
   applyLang();
+  applySize();
   applyProfileInit();
   if (!profile) window.setTimeout(openProf, 900);
   layout();
