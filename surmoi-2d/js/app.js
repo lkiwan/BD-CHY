@@ -1074,6 +1074,7 @@
   var profPage = $("#profPage");
   var profile = null;
   try { profile = JSON.parse(window.localStorage.getItem("lbs-profile") || "null"); } catch (e) { profile = null; }
+  if (profile && profile.sexe !== "f") profile.forme = "droit";
   var HEIGHTS = ["<160", "160\u2013170", "170\u2013180", "180\u2013190", ">190"];
   var WEIGHTS = ["<60", "60\u201375", "75\u201390", "90\u2013105", ">105"];
   var SIZE_TABLE = [["S", "S", "M", "L", "XL"], ["S", "M", "M", "L", "XL"], ["M", "M", "L", "L", "XL"], ["M", "L", "L", "XL", "XL"], ["L", "L", "XL", "XL", "XL"]];
@@ -1132,8 +1133,8 @@
       chipRow($("#profForme"), [L.ui.shSablier], 0, function () {});
       $("#profSoon").hidden = false;
     } else {
-      var keys = ["droit", "equilibre", "muscle", "rond"];
-      var labels = [L.ui.shDroit, L.ui.shEquilibre, L.ui.shMuscle, L.ui.shRond];
+      var keys = ["droit"];
+      var labels = [L.ui.shDroit];
       chipRow($("#profForme"), labels, Math.max(0, keys.indexOf(draft.forme)), function (i) {
         draft.forme = keys[i];
         renderProf();
