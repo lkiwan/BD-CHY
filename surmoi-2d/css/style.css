@@ -469,6 +469,11 @@ button{font:inherit;color:inherit;background:none;border:none}
 .model.sh-eq{--model:url("../assets/model-sheet-equilibre.webp");--model-back:url("../assets/model-sheet-equilibre-back.webp")}
 .model.sh-mu{--model:url("../assets/model-sheet-muscle.webp");--model-back:url("../assets/model-sheet-muscle-back.webp")}
 .model.sh-rd{--model:url("../assets/model-sheet-rond.webp");--model-back:url("../assets/model-sheet-rond-back.webp")}
+.model.sz-s{--model:url("../assets/model-sheet-size-s.webp");--model-back:url("../assets/model-sheet-size-s-back.webp")}
+.model.sz-m{--model:url("../assets/model-sheet-size-m.webp");--model-back:url("../assets/model-sheet-size-m-back.webp")}
+.model.sz-l{--model:url("../assets/model-sheet-size-l.webp");--model-back:url("../assets/model-sheet-size-l-back.webp")}
+.model.sz-xl{--model:url("../assets/model-sheet-size-xl.webp");--model-back:url("../assets/model-sheet-size-xl-back.webp")}
+.model.sz-xxl{--model:url("../assets/model-sheet-size-xxl.webp");--model-back:url("../assets/model-sheet-size-xxl-back.webp")}
 
 /* ---------- profile page — phone profile + questions ---------- */
 .profPage{position:fixed;inset:0;z-index:140;overflow-y:auto;background:linear-gradient(168deg,#f8f3e9,#eee4d0);color:#26221e;padding:22px 16px 40px}
