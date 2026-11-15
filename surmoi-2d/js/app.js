@@ -267,7 +267,7 @@
   var sizeKey = "m";
   var SIZE_KEYS = { S: "s", M: "m", L: "l", XL: "xl", XXL: "xxl" };
   function sheetFor(f, back) {
-    if (f) return back ? "assets/model-sheet-f-back-full.webp" : "assets/model-sheet-f-full.webp";
+    if (f) return 'assets/model-sheet-f-size-' + sizeKey + (back ? '-back' : '') + '.webp';
     return "assets/model-sheet-size-" + sizeKey + (back ? "-back.webp" : ".webp");
   }
   function applySize() {
