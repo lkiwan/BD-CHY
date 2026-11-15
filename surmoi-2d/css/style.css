@@ -481,6 +481,12 @@ button{font:inherit;color:inherit;background:none;border:none}
 .model.sz-l:not(.f){aspect-ratio:609/1360}
 .model.sz-xl:not(.f){aspect-ratio:677/1360}
 .model.sz-xxl:not(.f){aspect-ratio:687/1360}
+/* Femme size sheets: same system, her true widths */
+.model.f.sz-s{--model-f:url("../assets/model-sheet-f-size-s.webp");--model-f-back:url("../assets/model-sheet-f-size-s-back.webp");aspect-ratio:473/1360}
+.model.f.sz-m{--model-f:url("../assets/model-sheet-f-size-m.webp");--model-f-back:url("../assets/model-sheet-f-size-m-back.webp");aspect-ratio:524/1360}
+.model.f.sz-l{--model-f:url("../assets/model-sheet-f-size-l.webp");--model-f-back:url("../assets/model-sheet-f-size-l-back.webp");aspect-ratio:556/1360}
+.model.f.sz-xl{--model-f:url("../assets/model-sheet-f-size-xl.webp");--model-f-back:url("../assets/model-sheet-f-size-xl-back.webp");aspect-ratio:610/1360}
+.model.f.sz-xxl{--model-f:url("../assets/model-sheet-f-size-xxl.webp");--model-f-back:url("../assets/model-sheet-f-size-xxl-back.webp");aspect-ratio:668/1360}
 
 /* ---------- profile page — phone profile + questions ---------- */
 .profPage{position:fixed;inset:0;z-index:140;overflow-y:auto;background:linear-gradient(168deg,#f8f3e9,#eee4d0);color:#26221e;padding:22px 16px 40px}
