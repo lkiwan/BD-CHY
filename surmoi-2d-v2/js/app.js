@@ -66,41 +66,55 @@
     el.style.backgroundPosition = (item.m != null ? item.m : 0) + "% 100%";
   }
 
-  /* ---------------- cards ---------------- */
+  /* ---------------- cards ----------------
+     V3: the arc shows ONLY the cart selection (arcItems = unique
+     item indices from the cart). buildArc() rebuilds the cards
+     every time the cart changes; N and CARDS track arcItems. */
   var cards = [];
   var cardNames = [];
-  for (var k = 0; k < CARDS; k++) {
-    (function (k) {
-      var item = ITEMS[k % N];
-      var card = document.createElement("div");
-      card.className = "card glass";
-      card.dataset.idx = k;
-      var g = document.createElement("div");
-      g.className = "g";
-      setGarmentBg(g, item);
-      var nm = document.createElement("div");
-      nm.className = "cname";
-      nm.textContent = L.items[k % N].n;
-      cardNames.push(nm);
-      var pr = document.createElement("div");
-      pr.className = "cprice";
-      pr.textContent = item.p + " MAD";
-      var sh = document.createElement("div");
-      sh.className = "sheen";
-      card.appendChild(g);
-      card.appendChild(nm);
-      card.appendChild(pr);
-      card.appendChild(sh);
-      card.addEventListener("mouseenter", function () {
-        if (reduced) return;
-        sh.animate(
-          [{ transform: "translateX(-130%)" }, { transform: "translateX(130%)" }],
-          { duration: 1000, easing: EASE }
-        );
-      });
-      arc.appendChild(card);
-      cards.push(card);
-    })(k);
+  var arcItems = [];
+  var shownArc = -1;   // position in arcItems of the item on the character
+  var preview = -1;    // item worn from the grid, not (yet) in the arc
+  var arcReady = false;
+  function buildArc() {
+    arc.innerHTML = "";
+    cards = [];
+    cardNames = [];
+    N = arcItems.length;
+    CARDS = N * 2;
+    for (var k = 0; k < CARDS; k++) {
+      (function (k) {
+        var item = ITEMS[arcItems[k % N]];
+        var card = document.createElement("div");
+        card.className = "card glass";
+        card.dataset.idx = k;
+        var g = document.createElement("div");
+        g.className = "g";
+        setGarmentBg(g, item);
+        var nm = document.createElement("div");
+        nm.className = "cname";
+        nm.textContent = L.items[arcItems[k % N]].n;
+        cardNames.push(nm);
+        var pr = document.createElement("div");
+        pr.className = "cprice";
+        pr.textContent = item.p + " MAD";
+        var sh = document.createElement("div");
+        sh.className = "sheen";
+        card.appendChild(g);
+        card.appendChild(nm);
+        card.appendChild(pr);
+        card.appendChild(sh);
+        card.addEventListener("mouseenter", function () {
+          if (reduced) return;
+          sh.animate(
+            [{ transform: "translateX(-130%)" }, { transform: "translateX(130%)" }],
+            { duration: 1000, easing: EASE }
+          );
+        });
+        arc.appendChild(card);
+        cards.push(card);
+      })(k);
+    }
   }
 
   /* ---------------- buy card ---------------- */
@@ -335,7 +349,8 @@
       btn.classList.add("active");
       activeTab = btn;
       movePill(btn);
-      target += N; // full lap — lands back on the same garment
+      preview = -1;
+      if (N > 0) target += N; // full lap — lands back on the same garment
     });
   });
   Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (ch) {
@@ -348,8 +363,8 @@
   if (infoBtn) infoBtn.addEventListener("click", function () { sheet.hidden = false; });
   $("#sheetX").addEventListener("click", function () { sheet.hidden = true; });
   sheet.addEventListener("click", function (e) { if (e.target === sheet) sheet.hidden = true; });
-  $("#prevBtn").addEventListener("click", function () { target -= 1; });
-  $("#nextBtn").addEventListener("click", function () { target += 1; });
+  $("#prevBtn").addEventListener("click", function () { preview = -1; target -= 1; });
+  $("#nextBtn").addEventListener("click", function () { preview = -1; target += 1; });
   Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (chip) {
     chip.addEventListener("click", function () {
       Array.prototype.forEach.call(document.querySelectorAll(".chip"), function (c) {
@@ -398,6 +413,7 @@
   var dragId = null, startX = 0, p0 = 0, lastX = 0, lastT = 0, vel = 0, moved = 0, downCard = null;
   stage.addEventListener("pointerdown", function (e) {
     if (e.button !== 0 && e.pointerType === "mouse") return;
+    preview = -1; // touching the arc takes back control from a grid preview
     dragId = e.pointerId;
     try { stage.setPointerCapture(dragId); } catch (err) {}
     dragging = true;
@@ -426,6 +442,7 @@
     dragging = false;
     if (moved < 6) {
       if (downCard) {
+        preview = -1;
         var i = parseInt(downCard.dataset.idx, 10);
         target += mod(i - target + N, CARDS) - N;
       }
@@ -437,24 +454,11 @@
   stage.addEventListener("pointerup", endDrag);
   stage.addEventListener("pointercancel", endDrag);
 
-  /* ---------------- wheel / keys ---------------- */
-  var wAcc = 0, wLast = 0;
-  window.addEventListener("wheel", function (e) {
-    if (e.ctrlKey) return; // ctrl+wheel is the pinch-zoom gesture, handled below
-    if (document.body.classList.contains("view-home")) return; // home page scrolls natively
-    var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    wAcc += d;
-    var now = performance.now();
-    if (Math.abs(wAcc) > 60 && now - wLast >= 260) {
-      target += Math.sign(wAcc);
-      wAcc = 0;
-      wLast = now;
-    }
-  }, { passive: true });
+  /* ---------------- keys ----------------
+     V3: no wheel-to-arc — the page itself scrolls (products below). */
   window.addEventListener("keydown", function (e) {
-    if (document.body.classList.contains("view-home")) return;
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") target += 1;
-    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") target -= 1;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") { preview = -1; target += 1; }
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { preview = -1; target -= 1; }
   });
 
 
@@ -555,6 +559,7 @@
     document.documentElement.style.setProperty("--CW", CW + "px");
     var f = isPhone() ? [0, 0.36, 0.5, 0.56, 0.6, 0.62] : [0, 0.215, 0.345, 0.432, 0.49, 0.52];
     XSpx = f.map(function (v) { return v * W; });
+    document.documentElement.style.setProperty("--arcX", XSpx[1] + "px");
     movePill(activeTab);
   }
   window.addEventListener("resize", layout);
@@ -633,9 +638,9 @@
       if (card._v !== vs) { card._v = vs; card.style.visibility = vs; }
     }
 
-    if (!dragging && Math.abs(target - pos) < 0.02) {
+    if (!dragging && Math.abs(target - pos) < 0.02 && N > 0 && preview < 0) {
       var idx = mod(Math.round(target), N);
-      if (idx !== shown) tryOn(idx);
+      if (idx !== shownArc) { shownArc = idx; tryOn(arcItems[idx]); }
     }
 
     requestAnimationFrame(frame);
@@ -669,7 +674,7 @@
     var ct = document.querySelector(".clab.try"), cd = document.querySelector(".clab.drag");
     if (ct) ct.textContent = L.ui.tryOn;
     if (cd) cd.textContent = L.ui.drag;
-    cardNames.forEach(function (nm, k) { nm.textContent = L.items[k % N].n; });
+    cardNames.forEach(function (nm, k) { if (arcItems.length) nm.textContent = L.items[arcItems[k % N]].n; });
     cartTexts();
     var cur = shown < 0 ? 0 : shown;
     updateBuy(ITEMS[cur], cur);
@@ -735,8 +740,10 @@
     cpBadge.hidden = n === 0;
     cpBadge.textContent = n;
     if (pulse && n > 0) { cpBadge.classList.remove("pulse"); void cpBadge.offsetWidth; cpBadge.classList.add("pulse"); }
+    if (arcReady) syncArc(); // the side arc mirrors the cart, always
   }
   function addToCart(idx) {
+    preview = -1; // once added, the item lives in the arc — no longer a preview
     var sz = selSize(), found = null;
     cart.forEach(function (l) { if (l.i === idx && l.size === sz) found = l; });
     if (found) found.qty++; else cart.push({ i: idx, size: sz, qty: 1 });
@@ -1004,23 +1011,38 @@
   window.addEventListener("resize", function () { if (!cartPage.hidden) cpLayout(); });
   cartBadgeUpdate(false);
 
-  /* ---------------- V2 — catalogue home ----------------
-     Home (hero + grid) is the first screen. Clicking a hoodie
-     opens the product page = the try-on stage (character wearing
-     it, size chips, Ajouter, Plus d'infos with cm measures).
-     The cart page shows only the selected hoodies; when it is
-     empty it shows empty cases with a + — tapping + (or the
-     Discover button) goes home and smooth-scrolls to the grid. */
-  var homeEl = $("#home"), pgrid = $("#pgrid"), prodBack = $("#prodBack");
-  var FEATURED = 0; // the one hoodie shown on the character at the top of home
+  /* ---------------- V3 — one page ----------------
+     The top section is the character page AND the cart page:
+     the arc beside the character shows only the cart selection
+     (syncArc, driven by every cart change). Cart empty ->
+     skeleton boxes with a "+ Ajouter" button that smooth-scrolls
+     to the products below. A grid tap wears the hoodie (preview)
+     and scrolls back up; Ajouter then puts it in the arc. */
+  var scrollPage = $("#scrollPage"), pgrid = $("#pgrid");
+  var skelL = $("#skelL"), skelR = $("#skelR");
+  setGarmentBg(skelL.querySelector(".skelImg"), ITEMS[0]);
+  setGarmentBg(skelR.querySelector(".skelImg"), ITEMS[1]);
 
-  function paintHero() {
-    var fig = $("#heroFig");
-    fig.style.backgroundImage = 'url("assets/model-sheet-6.webp")';
-    fig.style.backgroundPosition = (ITEMS[FEATURED].m || 0) + "% 100%";
-    $("#heroName").textContent = L.items[FEATURED].n;
-    $("#heroPrice").textContent = ITEMS[FEATURED].p + " MAD";
+  function syncArc() {
+    var uniq = [];
+    cart.forEach(function (l) { if (uniq.indexOf(l.i) < 0) uniq.push(l.i); });
+    arcItems = uniq;
+    buildArc();
+    var has = arcItems.length > 0;
+    skelL.hidden = has;
+    skelR.hidden = has;
+    var pv = $("#prevBtn"), nx = $("#nextBtn");
+    if (pv) pv.style.visibility = arcItems.length > 1 ? "" : "hidden";
+    if (nx) nx.style.visibility = arcItems.length > 1 ? "" : "hidden";
+    if (has) {
+      var ai = arcItems.indexOf(shown);
+      if (ai >= 0) { pos = target = ai; shownArc = ai; }
+      else { pos = target = 0; shownArc = -1; } // the settle loop will tryOn(arcItems[0])
+    } else if (shown !== 0) {
+      tryOn(0); // empty cart: the default hoodie stays on the character
+    }
   }
+
   function buildGrid() {
     pgrid.innerHTML = "";
     ITEMS.forEach(function (item, i) {
@@ -1047,39 +1069,25 @@
       pgrid.appendChild(card);
     });
   }
-  function showHome() {
-    sheet.hidden = true;
-    homeEl.hidden = false;
-    document.body.classList.add("view-home");
-    prodBack.hidden = true;
-    // reset scroll AFTER the element is visible again (display:none ignores scrollTop)
-    requestAnimationFrame(function () { homeEl.scrollTop = 0; });
-  }
   function openProduct(i) {
-    homeEl.hidden = true;
-    document.body.classList.remove("view-home");
-    prodBack.hidden = false;
-    homeEl.scrollTop = 0;
-    pos = i; target = i; // the frame loop calls tryOn(i): character wears it
+    preview = i;
+    tryOn(i);
+    scrollPage.scrollTo({ top: 0, behavior: "smooth" });
   }
   function goProducts() {
     cartPage.hidden = true;
-    showHome();
-    window.setTimeout(function () {
-      var p = document.getElementById("products");
-      if (p) p.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
+    var p = document.getElementById("products");
+    if (p) p.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-  $("#heroBtn").addEventListener("click", function () { openProduct(FEATURED); });
-  $("#heroScroll").addEventListener("click", function () {
-    document.getElementById("products").scrollIntoView({ behavior: "smooth", block: "start" });
+  Array.prototype.forEach.call(document.querySelectorAll(".skelBtn"), function (btn) {
+    btn.addEventListener("click", goProducts);
   });
-  prodBack.addEventListener("click", showHome);
   Array.prototype.forEach.call(document.querySelectorAll(".cpCase"), function (c) {
     c.addEventListener("click", goProducts);
   });
-  paintHero();
   buildGrid();
+  arcReady = true;
+  syncArc();
 
   /* ---------------- init ---------------- */
   setGarmentBg(thumbG, ITEMS[0]);
