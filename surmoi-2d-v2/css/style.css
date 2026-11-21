@@ -57,7 +57,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* ---------- ghost FIT word ---------- */
 .ghost{
-  position:fixed;left:50%;top:calc(50% - var(--MH) * .42);z-index:2;
+  position:absolute;left:50%;top:calc(50% - var(--MH) * .42);z-index:2;
   font-weight:900;
   font-size:calc(var(--MH) * .42);
   line-height:.8;
@@ -72,7 +72,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* ---------- tab bar ---------- */
 .tabs{
-  position:fixed;left:50%;top:66px;transform:translateX(-50%);z-index:30;
+  position:absolute;left:50%;top:66px;transform:translateX(-50%);z-index:30;
   display:flex;padding:5px;border-radius:999px;gap:2px;
 }
 .tabs .pill{
@@ -108,7 +108,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 .rail .rbtn.act{background:rgba(255,255,255,.9);color:#111}
 
 /* ---------- stage / arc / cards ---------- */
-.stage{position:fixed;inset:0;z-index:10;touch-action:pan-y;overflow:hidden}
+.stage{position:absolute;inset:0;z-index:10;touch-action:pan-y;overflow:hidden}
 .arc{position:absolute;left:50%;top:50%}
 .card{
   position:absolute;left:0;top:0;
@@ -147,7 +147,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* ---------- model ---------- */
 .model{
-  position:fixed;left:50%;bottom:0;transform:translateX(-50%);
+  position:absolute;left:50%;bottom:0;transform:translateX(-50%);
   height:var(--MH);
   aspect-ratio:524/1360;
   z-index:50;
@@ -182,7 +182,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* ---------- arrows ---------- */
 .arrow{
-  position:fixed;top:50%;transform:translateY(-50%);z-index:40;
+  position:absolute;top:50%;transform:translateY(-50%);z-index:40;
   width:46px;height:46px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
 }
@@ -191,7 +191,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 
 /* ---------- buy card ---------- */
 .buy{
-  position:fixed;left:50%;transform:translateX(-50%);bottom:4.6vh;z-index:60;
+  position:absolute;left:50%;transform:translateX(-50%);bottom:4.6vh;z-index:60;
   width:min(640px, calc(100vw - 32px));
   display:flex;align-items:center;gap:10px 16px;
   padding:10px 16px 10px 10px;
@@ -345,7 +345,7 @@ button{font:inherit;color:inherit;background:none;border:none}
 }
 .tabs .gbtn.act{background:#26221e;color:#fff}
 .fbOne{
-  position:fixed;right:14px;bottom:166px;z-index:80;
+  position:absolute;right:14px;bottom:166px;z-index:80;
   display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:999px;
   border:0;cursor:pointer;
   font-family:Nunito,system-ui,sans-serif;font-weight:700;font-size:14px;color:#2B2622;
@@ -466,43 +466,23 @@ button{font:inherit;color:inherit;background:none;border:none}
 .cg .gimg.rail{left:50%;transform:translateX(-50%)}
 
 /* ============================================================
-   V2 — catalogue home + product info (prototype, local only)
-   Home = hero (featured hoodie on the character) + scrollable
-   grid 2 per row. The try-on stage becomes the product page.
+   V3 — ONE PAGE (Omar's design, 2026-11-21)
+   Top section = the character page, and it IS the cart page:
+   the side boxes show only the hoodies added to the cart.
+   Cart empty -> skeleton boxes (faded default hoodies) with a
+   "+ Ajouter" button in the middle. Scroll down on the same
+   page -> the products grid.
    ============================================================ */
-body.view-home .stage,
-body.view-home .model,
-body.view-home .buy,
-body.view-home .fbOne,
-body.view-home .arrow,
-body.view-home .tabs,
-body.view-home .ghost{display:none!important}
-
-.home{
-  position:fixed;inset:0;z-index:20;overflow-y:auto;overflow-x:hidden;
-  -webkit-overflow-scrolling:touch;scroll-behavior:smooth;
-  padding:70px 14px 44px;color:#26221e;
-  background:linear-gradient(168deg, rgba(248,243,233,.93), rgba(238,228,208,.95));
+.scrollPage{
+  position:fixed;inset:0;z-index:1;
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
 }
-.home[hidden]{display:none}
-.homeHero{position:relative;border-radius:24px;padding:14px 14px 12px;text-align:center}
-.heroFig{
-  /* the sheet frame's own aspect (524x1360) — the picture keeps its
-     original dimensions, never stretched or cropped */
-  height:46vh;min-height:300px;aspect-ratio:524/1360;width:auto;max-width:100%;
-  margin:0 auto;border-radius:16px;
-  background-repeat:no-repeat;background-size:600% 100%;
+.topSection{position:relative;height:100vh;height:100dvh;min-height:540px;overflow:hidden}
+.prodSection{
+  position:relative;padding:26px 14px 48px;color:#26221e;
+  background:linear-gradient(168deg,#f8f3e9,#eee4d0);
+  scroll-margin-top:58px;
 }
-.heroInfo{margin-top:10px}
-.heroKick{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#96683a}
-.heroName{font-size:21px;font-weight:800;margin-top:3px}
-.heroPrice{font-size:17px;font-weight:800;color:#96683a;margin-top:2px}
-.heroBtn{margin:12px auto 4px;max-width:280px;width:100%}
-.heroScroll{
-  display:block;margin:8px auto 2px;font-size:13px;font-weight:700;color:#6d5b41;
-  padding:8px 14px;border-radius:999px;
-}
-.homeGrid{margin-top:22px}
 .homeTitle{font-size:19px;font-weight:800;margin:0 2px 12px}
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pcard{
@@ -518,19 +498,30 @@ body.view-home .ghost{display:none!important}
 .pcard .pp{font-size:14px;font-weight:800;color:#96683a;margin-top:3px}
 .homeFoot{text-align:center;font-size:12px;color:#8a7a63;margin-top:20px}
 
-.prodBack{
-  position:fixed;left:12px;top:116px;z-index:65;
-  padding:9px 15px;border-radius:999px;font-weight:700;font-size:14px;color:#26221e;
+/* skeleton boxes — shown only while the cart is empty */
+.skelBox{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:20;
+  width:var(--CW);height:calc(var(--CW) * 1.42);
+  border-radius:22px;overflow:hidden;
+  border:1.5px dashed rgba(90,70,45,.45);
+  background:rgba(255,255,255,.16);
+  display:flex;align-items:center;justify-content:center;
 }
-.prodBack[hidden]{display:none}
-
-/* verifier fixes (2026-11-20) */
-.cbadge[hidden]{display:none!important}
-.homeGrid{scroll-margin-top:66px}
+.skelBox[hidden]{display:none}
+.skelBox.l{left:calc(50% - var(--CW) / 2 - var(--arcX, 36vw))}
+.skelBox.r{left:calc(50% - var(--CW) / 2 + var(--arcX, 36vw))}
+.skelImg{position:absolute;inset:0;filter:grayscale(1);opacity:.30}
+.skelBtn{
+  position:relative;z-index:2;padding:11px 16px;border-radius:999px;border:0;
+  background:linear-gradient(135deg,#b98d5e,#A67C52);color:#fff;
+  font-weight:800;font-size:14.5px;letter-spacing:.01em;cursor:pointer;
+  box-shadow:0 10px 24px rgba(166,124,82,.4);
+  white-space:nowrap;
+}
 @media (max-width:400px){
-  .buy .ln.name{height:2.3em}
-  .buy .ln.name .stack span{white-space:normal;height:2.3em}
+  .skelBtn{padding:10px 12px;font-size:13px}
 }
+.skelBtn:active{transform:scale(.96)}
 
 /* product info — measurements */
 .sheetCard{max-height:88vh;overflow-y:auto}
@@ -551,3 +542,10 @@ body.view-home .ghost{display:none!important}
   font-size:32px;font-weight:300;color:#96683a;background:rgba(255,255,255,.35);
 }
 .cpCase:active{transform:scale(.96)}
+
+/* verifier fixes (2026-11-20) */
+.cbadge[hidden]{display:none!important}
+@media (max-width:400px){
+  .buy .ln.name{height:2.3em}
+  .buy .ln.name .stack span{white-space:normal;height:2.3em}
+}
